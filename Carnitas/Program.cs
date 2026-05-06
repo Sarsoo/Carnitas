@@ -1,10 +1,32 @@
 using Carnitas.Components;
+using MudBlazor.Services;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddMudServices();
+
+builder.Services.AddOpenTelemetry()
+    .WithLogging(b =>
+    {
+        b.AddOtlpExporter();
+    })
+    .WithMetrics(b =>
+    {
+        b.AddAspNetCoreInstrumentation()
+            .AddOtlpExporter();
+    })
+    .WithTracing(b =>
+    {
+        b.AddAspNetCoreInstrumentation()
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddOtlpExporter();
+    });
 
 var app = builder.Build();
 
