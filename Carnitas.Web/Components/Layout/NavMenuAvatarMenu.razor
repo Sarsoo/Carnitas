@@ -1,0 +1,18 @@
+<MudMenu
+    AnchorOrigin="Origin.BottomRight"
+    TransformOrigin="Origin.TopRight"
+    AriaLabel="Open user menu">
+    <ActivatorContent>
+        <div @onclick="@context.ToggleAsync" style="cursor: pointer">
+            <MudAvatar Color="Color.Primary">U</MudAvatar>
+        </div>
+    </ActivatorContent>
+    <ChildContent>
+        <MudMenuItem Label="Profile" Icon="@Icons.Material.Filled.Person" Href="/Account/Manage" />
+        <MudMenuItem Label="Logout" Icon="@Icons.Material.Filled.Logout" Href="/Account/Login" ForceLoad="true"/>
+    </ChildContent>
+</MudMenu>
+
+@code {
+
+}
