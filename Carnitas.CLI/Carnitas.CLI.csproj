@@ -1,11 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <AssemblyName>cns</AssemblyName>
         <OutputType>Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <PropertyGroup>
         <PublishAot>true</PublishAot>
+        <PublishSelfContained>true</PublishSelfContained>
+        <!--    <IsTrimmable>true</IsTrimmable>-->
+        <EnableAotAnalyzer>true</EnableAotAnalyzer>
+        <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+        <OptimizationPreference>Speed</OptimizationPreference>
+        <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,7 +24,8 @@
 
     <ItemGroup>
       <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
-      <PackageReference Include="Sarsoo.TF.NET" Version="0.0.2" />
+      <PackageReference Include="Sarsoo.Terraform" Version="0.0.3" />
+      <PackageReference Include="System.CommandLine" Version="2.0.7" />
     </ItemGroup>
 
 </Project>
