@@ -12,7 +12,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\TF.NET\Sarsoo.Terraform\Sarsoo.Terraform.csproj" />
+      <ProjectReference Include="..\Sarsoo.Terraform\Sarsoo.Terraform\Sarsoo.Terraform.csproj" />
+      <ProjectReference Include="..\Sarsoo.Terraform\TerraformDotnet\src\TerraformDotnet.Hcl\TerraformDotnet.Hcl.csproj" />
+      <ProjectReference Include="..\Sarsoo.Terraform\TerraformDotnet\src\TerraformDotnet\TerraformDotnet.csproj" />
     </ItemGroup>
 
 </Project>

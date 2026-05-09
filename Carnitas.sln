@@ -8,7 +8,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carnitas", "Carnitas\Carnit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carnitas.CLI", "Carnitas.CLI\Carnitas.CLI.csproj", "{A557B0EC-8231-45A2-BF4E-BD655A9B0196}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sarsoo.Terraform", "..\TF.NET\Sarsoo.Terraform\Sarsoo.Terraform.csproj", "{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sarsoo.Terraform", "Sarsoo.Terraform\Sarsoo.Terraform\Sarsoo.Terraform.csproj", "{57D3E362-2715-4769-BFFD-037AB64F0420}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerraformDotnet", "Sarsoo.Terraform\TerraformDotnet\src\TerraformDotnet\TerraformDotnet.csproj", "{98007ADA-3DD7-4B58-A0F1-E894241588C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerraformDotnet.Hcl", "Sarsoo.Terraform\TerraformDotnet\src\TerraformDotnet.Hcl\TerraformDotnet.Hcl.csproj", "{7F558146-4CF7-47E8-A4E4-9F03255D643C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{62A25006-108E-4EEB-8E95-42E4B4D3D958}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,9 +38,22 @@ Global
 		{A557B0EC-8231-45A2-BF4E-BD655A9B0196}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A557B0EC-8231-45A2-BF4E-BD655A9B0196}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A557B0EC-8231-45A2-BF4E-BD655A9B0196}.Release|Any CPU.Build.0 = Release|Any CPU
-		{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57D3E362-2715-4769-BFFD-037AB64F0420}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57D3E362-2715-4769-BFFD-037AB64F0420}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57D3E362-2715-4769-BFFD-037AB64F0420}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57D3E362-2715-4769-BFFD-037AB64F0420}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98007ADA-3DD7-4B58-A0F1-E894241588C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98007ADA-3DD7-4B58-A0F1-E894241588C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98007ADA-3DD7-4B58-A0F1-E894241588C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98007ADA-3DD7-4B58-A0F1-E894241588C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F558146-4CF7-47E8-A4E4-9F03255D643C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F558146-4CF7-47E8-A4E4-9F03255D643C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F558146-4CF7-47E8-A4E4-9F03255D643C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F558146-4CF7-47E8-A4E4-9F03255D643C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{57D3E362-2715-4769-BFFD-037AB64F0420} = {62A25006-108E-4EEB-8E95-42E4B4D3D958}
+		{98007ADA-3DD7-4B58-A0F1-E894241588C5} = {62A25006-108E-4EEB-8E95-42E4B4D3D958}
+		{7F558146-4CF7-47E8-A4E4-9F03255D643C} = {62A25006-108E-4EEB-8E95-42E4B4D3D958}
 	EndGlobalSection
 EndGlobal

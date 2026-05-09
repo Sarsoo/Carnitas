@@ -1,0 +1,3 @@
+[submodule "Sarsoo.Terraform"]
+	path = Sarsoo.Terraform
+	url = git@github.com:Sarsoo/Sarsoo.Terraform.git
