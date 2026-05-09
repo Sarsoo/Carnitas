@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carnitas", "Carnitas\Carnit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carnitas.CLI", "Carnitas.CLI\Carnitas.CLI.csproj", "{A557B0EC-8231-45A2-BF4E-BD655A9B0196}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sarsoo.Terraform", "..\TF.NET\Sarsoo.Terraform\Sarsoo.Terraform.csproj", "{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{A557B0EC-8231-45A2-BF4E-BD655A9B0196}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A557B0EC-8231-45A2-BF4E-BD655A9B0196}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A557B0EC-8231-45A2-BF4E-BD655A9B0196}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68EC5FCF-EE11-4EAF-B2D2-4B23F77F1D22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

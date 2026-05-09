@@ -8,7 +8,11 @@
 
     <ItemGroup>
       <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
-      <PackageReference Include="Sarsoo.Terraform" Version="0.0.3" />
+<!--      <PackageReference Include="Sarsoo.Terraform" Version="0.0.3" />-->
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\TF.NET\Sarsoo.Terraform\Sarsoo.Terraform.csproj" />
     </ItemGroup>
 
 </Project>

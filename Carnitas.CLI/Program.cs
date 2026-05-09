@@ -1,3 +1,6 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using System.CommandLine;
+using Carnitas.CLI.Command;
 
-Console.WriteLine("Hello, World!");
+
+Root rootCommand = new();
+return await rootCommand.Parse(args).InvokeAsync();
