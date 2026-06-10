@@ -1,3 +1,5 @@
+using Carnitas.Model.Source;
+
 namespace Carnitas.Model.Governance;
 
 public class Organisation

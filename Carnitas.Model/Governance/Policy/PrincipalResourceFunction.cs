@@ -9,4 +9,5 @@ public class PrincipalResourceFunction
     public ResourceType ResourceType { get; set; }
 
     public Function Function { get; set; }
+    public string FunctionName { get; set; }
 }

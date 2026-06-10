@@ -3,6 +3,7 @@ using System;
 using Carnitas.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Carnitas.Model.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509171637_initial_authorisation_layer")]
+    partial class initial_authorisation_layer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,6 +71,34 @@ namespace Carnitas.Model.Migrations
                     b.HasIndex("FunctionName");
 
                     b.ToTable("PrincipalResourceFunctions");
+                });
+
+            modelBuilder.Entity("Carnitas.Model.Governance.Repository", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("GitUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrganisationId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RepositoryUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganisationId");
+
+                    b.ToTable("Repository");
                 });
 
             modelBuilder.Entity("Carnitas.Model.Identity.ApplicationUser", b =>
@@ -164,62 +195,6 @@ namespace Carnitas.Model.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PlanRuns", (string)null);
-                });
-
-            modelBuilder.Entity("Carnitas.Model.Source.GitHub.GitHubApp", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<string>("InstanceUrl")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PrivateKey")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("GitHubApps");
-                });
-
-            modelBuilder.Entity("Carnitas.Model.Source.Repository", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<string>("GitHubAppId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("GitUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("OrganisationId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RepositoryUrl")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GitHubAppId");
-
-                    b.HasIndex("OrganisationId");
-
-                    b.ToTable("Repository");
                 });
 
             modelBuilder.Entity("Carnitas.Model.Source.RootModule", b =>
@@ -385,26 +360,20 @@ namespace Carnitas.Model.Migrations
                     b.Navigation("Function");
                 });
 
-            modelBuilder.Entity("Carnitas.Model.Source.Repository", b =>
+            modelBuilder.Entity("Carnitas.Model.Governance.Repository", b =>
                 {
-                    b.HasOne("Carnitas.Model.Source.GitHub.GitHubApp", "GitHubApp")
-                        .WithMany()
-                        .HasForeignKey("GitHubAppId");
-
                     b.HasOne("Carnitas.Model.Governance.Organisation", "Organisation")
                         .WithMany("Repositories")
                         .HasForeignKey("OrganisationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("GitHubApp");
-
                     b.Navigation("Organisation");
                 });
 
             modelBuilder.Entity("Carnitas.Model.Source.RootModule", b =>
                 {
-                    b.HasOne("Carnitas.Model.Source.Repository", "Repository")
+                    b.HasOne("Carnitas.Model.Governance.Repository", "Repository")
                         .WithMany("RootModules")
                         .HasForeignKey("RepositoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -474,7 +443,7 @@ namespace Carnitas.Model.Migrations
                     b.Navigation("PrincipalResourceFunctions");
                 });
 
-            modelBuilder.Entity("Carnitas.Model.Source.Repository", b =>
+            modelBuilder.Entity("Carnitas.Model.Governance.Repository", b =>
                 {
                     b.Navigation("RootModules");
                 });

@@ -7,6 +7,8 @@ public class RootModule
     public string Id { get; set; }
     public string Name { get; set; }
 
+    public string? TrackingBranch { get; set; }
+
     public string RepositoryId { get; set; }
     public Repository Repository { get; set; }
 }
