@@ -1,0 +1,22 @@
+@page "/Repo/{id}"
+<h3>Repository</h3>
+
+<MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
+    <MudTabPanel Text="Overview">
+        <MudText>Content One</MudText>
+    </MudTabPanel>
+    <MudTabPanel Text="Root Modules">
+        <MudText>Content Two</MudText>
+    </MudTabPanel>
+    <MudTabPanel Text="Drift">
+        <MudText>Content Three</MudText>
+    </MudTabPanel>
+    <MudTabPanel Text="Settings">
+        <MudText>Content Disabled</MudText>
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+}

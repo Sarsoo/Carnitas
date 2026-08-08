@@ -1,0 +1,51 @@
+@using Carnitas.Web.Model
+<MudDialog>
+    <TitleContent>
+        Create Organisation
+    </TitleContent>
+    <DialogContent>
+        <EditForm @ref="editForm" Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator/>
+            <MudGrid>
+                <MudItem>
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Name" HelperText="Max. 8 characters"
+                                          @bind-Value="model.Name" For="@(() => model.Name)"/>
+                        </MudCardContent>
+                        @* <MudCardActions> *@
+                        @*     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton> *@
+                        @* </MudCardActions> *@
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    NewOrganisation model = new();
+    bool success;
+
+    EditForm editForm;
+
+    private void OnValidSubmit(EditContext context)
+    {
+        success = true;
+        StateHasChanged();
+    }
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private void Submit() {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+}

@@ -4,11 +4,14 @@
     <MudDivider Class="my-2"/>
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
     @* <MudNavLink Href="/servers" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Computer">Servers</MudNavLink> *@
+    <MudNavLink Href="/org" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Domain">Orgs</MudNavLink>
+    <MudNavLink Href="/repo" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Code">Repos</MudNavLink>
+    <MudNavLink Href="/task" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Task">Tasks</MudNavLink>
     <MudNavLink Href="/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
     <MudNavLink Href="/admin" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudNavLink>
-    <MudNavGroup Title="Settings" Expanded="true" Icon="@Icons.Material.Filled.Settings">
-        <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Users</MudNavLink>
-        <MudNavLink Href="/security" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Security">Security</MudNavLink>
-    </MudNavGroup>
-    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+    @* <MudNavGroup Title="Settings" Expanded="true" Icon="@Icons.Material.Filled.Settings"> *@
+    @*     <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Users</MudNavLink> *@
+    @*     <MudNavLink Href="/security" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Security">Security</MudNavLink> *@
+    @* </MudNavGroup> *@
+    @* <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink> *@
 </MudNavMenu>

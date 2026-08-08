@@ -1,0 +1,41 @@
+@inject IDialogService DialogService
+
+<MudToolBar>
+    @* <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Class="mr-5" /> *@
+    @* <MudIconButton Icon="@Icons.Material.Outlined.Add" /> *@
+    @* <MudIconButton Icon="@Icons.Material.Outlined.Edit" /> *@
+    @* <MudIconButton Icon="@Icons.Material.Outlined.Remove" /> *@
+    <MudSpacer />
+    <MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+    <MudIconButton Icon="@Icons.Material.Outlined.Notifications" />
+    <MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt" />
+    <MudIconButton Icon="@Icons.Material.Outlined.MoreVert" Color="Color.Inherit" />
+</MudToolBar>
+<MudGrid Justify="Justify.Center">
+    <MudItem>
+        <MudCard>
+            <MudCardContent>
+                <MudText>Story of the day</MudText>
+                <MudText Typo="Typo.body2">The quick, brown fox jumps over a lazy dog.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Text" Color="Color.Primary">Learn more</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem>
+        <MudPaper Height="140px" Width="140px"/>
+    </MudItem>
+    <MudItem>
+        <MudPaper Height="140px" Width="140px"/>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        return DialogService.ShowAsync<NewOrgDialog>("Simple Dialog", options);
+    }
+}
