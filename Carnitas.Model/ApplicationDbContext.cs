@@ -44,6 +44,9 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
     public DbSet<Organisation> Organisations { get; set; }
     public DbSet<Repository> Repository { get; set; }
     public DbSet<RootModule> RootModules { get; set; }
+    public DbSet<Checkout> Checkouts { get; set; }
+    public DbSet<OperationRun> OperationRuns { get; set; }
+    public DbSet<OperationRunLogEntry> OperationRunLogEntries { get; set; }
 
     public DbSet<GitHubApp> GitHubApps { get; set; }
 
@@ -93,12 +96,53 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
         builder.Entity<RootModule>()
             .HasKey(e => e.Id);
 
-        builder.Entity<ApplyRun>()
-            .ToTable("ApplyRuns")
+        builder.Entity<Checkout>()
+            .HasKey(e => e.Id);
+        builder.Entity<Checkout>()
+            .HasOne(e => e.Repository)
+            .WithMany(e => e.Checkouts)
+            .HasForeignKey(e => e.RepositoryId)
+            .HasPrincipalKey(e => e.Id);
+
+        builder.Entity<OperationRun>()
+            .ToTable("OperationRuns")
             .HasKey(e => e.Id);
 
-        builder.Entity<PlanRun>()
-            .ToTable("PlanRuns")
+        builder.Entity<OperationRun>()
+            .HasOne(e => e.Checkout)
+            .WithMany()
+            .HasForeignKey(e => e.CheckoutId)
+            .HasPrincipalKey(e => e.Id)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<OperationRunLogEntry>()
+            .ToTable("OperationRunLogEntries")
             .HasKey(e => e.Id);
+
+        builder.Entity<OperationRunLogEntry>()
+            .HasOne(e => e.OperationRun)
+            .WithMany()
+            .HasForeignKey(e => e.OperationRunId)
+            .HasPrincipalKey(e => e.Id)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<OperationRunLogEntry>()
+            .Property(e => e.Payload)
+            .HasColumnType("jsonb");
+
+        builder.Entity<OperationRunLogEntry>()
+            .HasIndex(e => e.OperationRunId);
+        builder.Entity<OperationRunLogEntry>()
+            .HasIndex(e => new { e.OperationRunId, e.Sequence });
+        builder.Entity<OperationRunLogEntry>()
+            .HasIndex(e => e.Timestamp);
+        builder.Entity<OperationRunLogEntry>()
+            .HasIndex(e => e.Level);
+        builder.Entity<OperationRunLogEntry>()
+            .HasIndex(e => e.Type);
+
+        builder.Entity<InitRun>().ToTable("InitRuns");
+        builder.Entity<ApplyRun>().ToTable("ApplyRuns");
+        builder.Entity<PlanRun>().ToTable("PlanRuns");
     }
 }

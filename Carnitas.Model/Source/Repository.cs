@@ -21,4 +21,9 @@ public class Repository
     public Organisation Organisation { get; set; }
 
     public ICollection<RootModule> RootModules { get; }
+    public ICollection<Checkout> Checkouts { get; }
+    
+    public ICollection<Operations.InitRun> InitRuns { get; }
+    public ICollection<Operations.PlanRun> PlanRuns { get; }
+    public ICollection<Operations.ApplyRun> ApplyRuns { get; }
 }
