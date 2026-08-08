@@ -9,5 +9,6 @@ public class Root: RootCommand
     {
         Add(new Dependents());
         Add(new Dependencies());
+        Add(new Plan());
     }
 }

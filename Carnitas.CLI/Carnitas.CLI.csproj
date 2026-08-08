@@ -27,6 +27,8 @@
 
     <ItemGroup>
       <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+      <PackageReference Include="NLog.Extensions.Logging" Version="6.1.4" />
 <!--      <PackageReference Include="Sarsoo.Terraform" Version="0.0.3" />-->
       <PackageReference Include="System.CommandLine" Version="2.0.7" />
     </ItemGroup>
