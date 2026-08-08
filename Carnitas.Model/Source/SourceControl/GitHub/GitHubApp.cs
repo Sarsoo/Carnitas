@@ -1,4 +1,4 @@
-namespace Carnitas.Model.Source.GitHub;
+namespace Carnitas.Model.Source.SourceControl.GitHub;
 
 public class GitHubApp
 {

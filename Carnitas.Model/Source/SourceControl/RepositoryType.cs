@@ -1,4 +1,4 @@
-namespace Carnitas.Model.Source;
+namespace Carnitas.Model.Source.SourceControl;
 
 public enum RepositoryType
 {

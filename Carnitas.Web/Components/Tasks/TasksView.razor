@@ -32,13 +32,13 @@ else
             {
                 <MudText Typo="Typo.body2">Log: @run.LogPath</MudText>
             }
-            @if (run.RootModule is not null)
+            @if (run.Module is not null)
             {
-                var moduleLink = $"/Repo/{run.RootModule.RepositoryId}/Module/{run.RootModuleId}";
+                var moduleLink = $"/Repo/{run.Module.RepositoryId}/Module/{run.ModuleId}";
                 
                 <MudButton Variant="Variant.Text" Color="Color.Primary"
                            Href=@moduleLink >
-                    @run.RootModule.Name
+                    @run.Module.Name
                 </MudButton>
             }
             @if (run.Checkout is not null)
@@ -77,7 +77,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         run = await Db.OperationRuns
-            .Include(r => r.RootModule)
+            .Include(r => r.Module)
             .Include(r => r.Checkout)
             .SingleOrDefaultAsync(r => r.Id == Id);
 

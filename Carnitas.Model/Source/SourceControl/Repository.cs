@@ -1,8 +1,7 @@
-
 using Carnitas.Model.Governance;
-using Carnitas.Model.Source.GitHub;
+using Carnitas.Model.Source.SourceControl.GitHub;
 
-namespace Carnitas.Model.Source;
+namespace Carnitas.Model.Source.SourceControl;
 
 public class Repository
 {
@@ -20,7 +19,7 @@ public class Repository
     public string OrganisationId { get; set; }
     public Organisation Organisation { get; set; }
 
-    public ICollection<RootModule> RootModules { get; }
+    public ICollection<Module> Modules { get; }
     public ICollection<Checkout> Checkouts { get; }
     
     public ICollection<Operations.InitRun> InitRuns { get; }

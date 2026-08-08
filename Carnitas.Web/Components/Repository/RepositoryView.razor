@@ -1,6 +1,7 @@
 @page "/Repo/{id}"
 @using Carnitas.Model
 @using Carnitas.Model.Source
+@using Carnitas.Model.Source.SourceControl
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
@@ -42,7 +43,7 @@ else
             </MudCard>
         </MudTabPanel>
         <MudTabPanel Text="Root Modules">
-            <MudTable Items="@repo.RootModules" Dense="true" Hover="true" Class="mt-4">
+            <MudTable Items="@repo.Modules" Dense="true" Hover="true" Class="mt-4">
                 <HeaderContent>
                     <MudTh>Name</MudTh>
                     <MudTh>Tracking Branch</MudTh>
@@ -50,7 +51,7 @@ else
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>@context.Name</MudTd>
-                    <MudTd>@context.TrackingBranch</MudTd>
+                    @* <MudTd>@context.TrackingBranch</MudTd> *@
                     <MudTd>
                         @{ var moduleLink = $"/Repo/{repo.Id}/Module/{context.Id}"; }
                         <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
@@ -78,7 +79,7 @@ else
     {
         repo = await Db.Repository
             .Include(r => r.Organisation)
-            .Include(r => r.RootModules)
+            .Include(r => r.Modules)
             .SingleOrDefaultAsync(r => r.Id == Id);
     }
 }
