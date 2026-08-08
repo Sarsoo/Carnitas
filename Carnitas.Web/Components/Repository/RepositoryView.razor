@@ -1,22 +1,84 @@
 @page "/Repo/{id}"
+@using Carnitas.Model
+@using Carnitas.Model.Source
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+
 <h3>Repository</h3>
 
-<MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
-    <MudTabPanel Text="Overview">
-        <MudText>Content One</MudText>
-    </MudTabPanel>
-    <MudTabPanel Text="Root Modules">
-        <MudText>Content Two</MudText>
-    </MudTabPanel>
-    <MudTabPanel Text="Drift">
-        <MudText>Content Three</MudText>
-    </MudTabPanel>
-    <MudTabPanel Text="Settings">
-        <MudText>Content Disabled</MudText>
-    </MudTabPanel>
-</MudTabs>
+@if (repo is null)
+{
+    <MudText>Not found</MudText>
+}
+else
+{
+    <MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
+        <MudTabPanel Text="Overview">
+            <MudCard Elevation="0" Class="mb-4">
+                <MudCardHeader>
+                    <MudCardHeaderContent>
+                        <MudText Typo="Typo.h5">@repo.Name</MudText>
+                    </MudCardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body2">Id: @repo.Id</MudText>
+                    <MudText Typo="Typo.body2">Type: @repo.Type</MudText>
+                    @if (repo.RepositoryUrl is not null)
+                    {
+                        <MudText Typo="Typo.body2">URL: @repo.RepositoryUrl</MudText>
+                    }
+                    <MudText Typo="Typo.body2">Git: @repo.GitUrl</MudText>
+                    @if (repo.Organisation is not null)
+                    {
+                        var orgLink = $"/Org/{repo.OrganisationId}";
+                        
+                        <MudButton Variant="Variant.Text" Color="Color.Primary"
+                                   Href=@orgLink >
+                            @repo.Organisation.Name
+                        </MudButton>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudTabPanel>
+        <MudTabPanel Text="Root Modules">
+            <MudTable Items="@repo.RootModules" Dense="true" Hover="true" Class="mt-4">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Tracking Branch</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Name</MudTd>
+                    <MudTd>@context.TrackingBranch</MudTd>
+                    <MudTd>
+                        @{ var moduleLink = $"/Repo/{repo.Id}/Module/{context.Id}"; }
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                                       Href=@moduleLink />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudTabPanel>
+        <MudTabPanel Text="Drift">
+            <MudText>Coming soon</MudText>
+        </MudTabPanel>
+        <MudTabPanel Text="Settings">
+            <MudText>Coming soon</MudText>
+        </MudTabPanel>
+    </MudTabs>
+}
 
 @code {
     [Parameter]
     public string Id { get; set; }
+
+    private Repository? repo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        repo = await Db.Repository
+            .Include(r => r.Organisation)
+            .Include(r => r.RootModules)
+            .SingleOrDefaultAsync(r => r.Id == Id);
+    }
 }

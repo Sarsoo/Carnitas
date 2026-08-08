@@ -1,4 +1,10 @@
+@using Carnitas.Model
+@using Carnitas.Model.Governance
+@using Microsoft.EntityFrameworkCore
+
 @inject IDialogService DialogService
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
 
 <MudToolBar>
     @* <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Class="mr-5" /> *@
@@ -12,17 +18,21 @@
     <MudIconButton Icon="@Icons.Material.Outlined.MoreVert" Color="Color.Inherit" />
 </MudToolBar>
 <MudGrid Justify="Justify.Center">
-    <MudItem>
-        <MudCard>
-            <MudCardContent>
-                <MudText>Story of the day</MudText>
-                <MudText Typo="Typo.body2">The quick, brown fox jumps over a lazy dog.</MudText>
-            </MudCardContent>
-            <MudCardActions>
-                <MudButton Variant="Variant.Text" Color="Color.Primary">Learn more</MudButton>
-            </MudCardActions>
-        </MudCard>
-    </MudItem>
+    @foreach (var org in _organisations)
+    {
+        var orgHref = $"/Org/{org.Id}";
+        <MudItem>
+            <MudCard>
+                <MudCardContent>
+                    <MudText>@org.Name</MudText>
+                    <MudText Typo="Typo.body2">The quick, brown fox jumps over a lazy dog.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@orgHref>Open</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    }
     <MudItem>
         <MudPaper Height="140px" Width="140px"/>
     </MudItem>
@@ -32,10 +42,26 @@
 </MudGrid>
 
 @code {
-    private Task OpenDialogAsync()
+
+    private IEnumerable<Organisation> _organisations = Enumerable.Empty<Organisation>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _organisations = await DbContext.Organisations.ToListAsync();
+    }
+    
+    private async Task OpenDialogAsync()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
 
-        return DialogService.ShowAsync<NewOrgDialog>("Simple Dialog", options);
+        var dialog = await DialogService.ShowAsync<NewOrgDialog>("Create Organisation", options);
+        var result = await dialog.Result;
+
+        if (result.Canceled || result.Data is not Organisation org)
+        {
+            return;
+        }
+
+        Navigation.NavigateTo($"/Org/{org.Id}");
     }
 }

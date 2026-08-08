@@ -1,0 +1,90 @@
+@page "/Repo/{repoId}/Module/{id}"
+@using Carnitas.Model
+@using Carnitas.Model.Operations
+@using Carnitas.Model.Source
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+
+<h3>Root Module</h3>
+
+@if (module is null)
+{
+    <MudText>Not found</MudText>
+}
+else
+{
+    <MudCard Elevation="0" Class="mb-4">
+        <MudCardHeader>
+            <MudCardHeaderContent>
+                <MudText Typo="Typo.h5">@module.Name</MudText>
+            </MudCardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2">Id: @module.Id</MudText>
+            @if (module.TrackingBranch is not null)
+            {
+                <MudText Typo="Typo.body2">Tracking Branch: @module.TrackingBranch</MudText>
+            }
+            @if (module.Repository is not null)
+            {
+                var repoLink = $"/Repo/{module.RepositoryId}";
+                
+                <MudButton Variant="Variant.Text" Color="Color.Primary"
+                           Href=@repoLink >
+                    @module.Repository.Name
+                </MudButton>
+            }
+        </MudCardContent>
+    </MudCard>
+
+    <MudText Typo="Typo.h6">Operation Runs</MudText>
+    <MudTable Items="@runs" Dense="true" Hover="true" Class="mt-2">
+        <HeaderContent>
+            <MudTh>Type</MudTh>
+            <MudTh>Started</MudTh>
+            <MudTh>Ended</MudTh>
+            <MudTh>Exit Code</MudTh>
+            <MudTh>Commit</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.GetType().Name</MudTd>
+            <MudTd>@context.StartTime</MudTd>
+            <MudTd>@context.EndTime</MudTd>
+            <MudTd>@context.ExitCode?.ToString()</MudTd>
+            <MudTd>@context.CommitSha</MudTd>
+            <MudTd>
+                @{ var taskLink = $"/Task/{context.Id}"; }
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                               Href=@taskLink />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    [Parameter]
+    public string RepoId { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private RootModule? module;
+    private List<OperationRun> runs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        module = await Db.RootModules
+            .Include(m => m.Repository)
+            .Include(m => m.OperationRuns)
+            .SingleOrDefaultAsync(m => m.Id == Id && m.RepositoryId == RepoId);
+
+        if (module is not null)
+        {
+            runs = module.OperationRuns
+                .OrderByDescending(r => r.StartTime)
+                .ToList();
+        }
+    }
+}

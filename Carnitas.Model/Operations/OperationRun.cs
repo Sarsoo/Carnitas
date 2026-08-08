@@ -14,8 +14,8 @@ public class OperationRun
     public string? GitReference { get; set; }
     public string? CommitSha { get; set; }
 
-    public string RepositoryId { get; set; }
-    public Repository Repository { get; set; }
+    public string RootModuleId { get; set; }
+    public RootModule RootModule { get; set; }
 
     public string? CheckoutId { get; set; }
     public Checkout? Checkout { get; set; }

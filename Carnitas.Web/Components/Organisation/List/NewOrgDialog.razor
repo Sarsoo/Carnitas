@@ -1,50 +1,50 @@
+@using Carnitas.Model
+@using Carnitas.Model.Governance
 @using Carnitas.Web.Model
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
 <MudDialog>
     <TitleContent>
         Create Organisation
     </TitleContent>
     <DialogContent>
-        <EditForm @ref="editForm" Model="@model" OnValidSubmit="OnValidSubmit">
-            <DataAnnotationsValidator/>
-            <MudGrid>
-                <MudItem>
-                    <MudCard>
-                        <MudCardContent>
-                            <MudTextField Label="Name" HelperText="Max. 8 characters"
-                                          @bind-Value="model.Name" For="@(() => model.Name)"/>
-                        </MudCardContent>
-                        @* <MudCardActions> *@
-                        @*     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton> *@
-                        @* </MudCardActions> *@
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
-        </EditForm>
+        <MudGrid>
+            <MudItem>
+                <MudCard>
+                    <MudCardContent>
+                        <MudTextField Label="Name" HelperText="Max. 8 characters"
+                                      @bind-Value="model.Name" For="@(() => model.Name)"/>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" OnClick="@OnSubmit">Create</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     NewOrganisation model = new();
-    bool success;
+    EditForm form;
 
-    EditForm editForm;
-
-    private void OnValidSubmit(EditContext context)
+    private async Task OnSubmit()
     {
-        success = true;
-        StateHasChanged();
+        var org = new Organisation
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = model.Name
+        };
+
+        DbContext.Organisations.Add(org);
+        await DbContext.SaveChangesAsync();
+
+        MudDialog.Close(DialogResult.Ok(org));
     }
 
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
-
-    private void Submit() {
-        MudDialog.Close(DialogResult.Ok(true));
-    }
 
     private void Cancel() => MudDialog.Cancel();
 

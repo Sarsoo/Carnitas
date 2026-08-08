@@ -1,0 +1,25 @@
+@using Carnitas.Model.Governance
+<MudGrid>
+    <MudItem xs="12">
+        <MudTable Items="@Organisation.Repositories" Dense="true" Hover="true" Class="mt-4">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Type</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Name</MudTd>
+                <MudTd>@context.Type</MudTd>
+                <MudTd>
+                    @{ var repoLink = $"/Repo/{context.Id}"; }
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                                   Href=@repoLink />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public required Organisation Organisation { get; set; }
+}

@@ -1,0 +1,18 @@
+@using Carnitas.Model.Governance
+@inherits MudTabPanel
+
+<MudCard Elevation="0" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">@Organisation.Name</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body2">Id: @Organisation.Id</MudText>
+        <MudText Typo="Typo.body2">Repositories: @Organisation.Repositories.Count</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public required Organisation Organisation { get; set; }
+}

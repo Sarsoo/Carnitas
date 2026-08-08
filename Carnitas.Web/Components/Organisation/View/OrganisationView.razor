@@ -1,0 +1,40 @@
+@page "/Org/{id}"
+@using Carnitas.Model
+@using Carnitas.Model.Governance
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+
+<h3>Organisation</h3>
+
+@if (org is null)
+{
+    <MudText>Not found</MudText>
+}
+else
+{
+    <MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
+        <MudTabPanel Text="Overview">
+            <OrgOverviewCard Organisation=@org />
+        </MudTabPanel>
+        <MudTabPanel Text="Repos">
+            <OrgReposCard Organisation=@org />
+        </MudTabPanel>
+        <MudTabPanel Text="Settings">
+            <MudText>Coming soon</MudText>
+        </MudTabPanel>
+    </MudTabs>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Organisation? org;
+
+    protected override async Task OnInitializedAsync()
+    {
+        org = await Db.Organisations
+            .Include(o => o.Repositories)
+            .SingleOrDefaultAsync(o => o.Id == Id);
+    }
+}

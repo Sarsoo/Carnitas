@@ -73,6 +73,12 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
             .HasForeignKey(e => e.RepositoryId)
             .HasPrincipalKey(e => e.Id);
 
+        builder.Entity<RootModule>()
+            .HasMany(e => e.OperationRuns)
+            .WithOne(e => e.RootModule)
+            .HasForeignKey(e => e.RootModuleId)
+            .HasPrincipalKey(e => e.Id);
+
         builder.Entity<Repository>()
             .HasOne(e => e.GitHubApp)
             .WithMany()
@@ -107,6 +113,12 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
         builder.Entity<OperationRun>()
             .ToTable("OperationRuns")
             .HasKey(e => e.Id);
+
+        builder.Entity<OperationRun>()
+            .HasOne(e => e.RootModule)
+            .WithMany(e => e.OperationRuns)
+            .HasForeignKey(e => e.RootModuleId)
+            .HasPrincipalKey(e => e.Id);
 
         builder.Entity<OperationRun>()
             .HasOne(e => e.Checkout)
