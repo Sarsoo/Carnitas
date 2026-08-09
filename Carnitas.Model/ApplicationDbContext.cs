@@ -5,6 +5,7 @@ using Carnitas.Model.Operations;
 using Carnitas.Model.Source;
 using Carnitas.Model.Source.SourceControl;
 using Carnitas.Model.Source.SourceControl.GitHub;
+using Carnitas.Model.Util;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,8 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
 
     public DbSet<Function> Functions { get; set; }
     public DbSet<PrincipalResourceFunction> PrincipalResourceFunctions { get; set; }
+    
+    public DbSet<InstanceSetting> InstanceSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -76,6 +79,13 @@ internal static class ModelBuilderExtensions
 {
     extension(ModelBuilder builder)
     {
+        public ModelBuilder BuildInstanceSettings()
+        {
+            builder.Entity<InstanceSetting>()
+                .HasKey(e => e.Key);
+
+            return builder;
+        }
 
         public ModelBuilder BuildModule()
         {
