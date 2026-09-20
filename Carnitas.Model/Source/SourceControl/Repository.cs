@@ -7,6 +7,7 @@ public class Repository
 {
     public string Id { get; set; }
     public string Name { get; set; }
+    public string Description { get; set; }
 
     public RepositoryType Type { get; set; }
 

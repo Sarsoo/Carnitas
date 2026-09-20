@@ -4,7 +4,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 
-<h3>Organisation</h3>
+<h3>@org?.Name</h3>
 
 @if (org is null)
 {
