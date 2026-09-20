@@ -1,0 +1,34 @@
+@using Carnitas.Model
+@using Carnitas.Model.Source
+@using Carnitas.Model.Source.SourceControl
+@inherits MudTabPanel
+
+<MudCard Elevation="0" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">@Repository.Name</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body2">Id: @Repository.Id</MudText>
+        <MudText Typo="Typo.body2">Type: @Repository.Type</MudText>
+        @if (Repository.RepositoryUrl is not null)
+        {
+            <MudText Typo="Typo.body2">URL: @Repository.RepositoryUrl</MudText>
+        }
+        <MudText Typo="Typo.body2">Git: @Repository.GitUrl</MudText>
+        @if (Repository.Organisation is not null)
+        {
+            var orgLink = $"/Org/{Repository.OrganisationId}";
+
+            <MudButton Variant="Variant.Text" Color="Color.Primary"
+                       Href=@orgLink>
+                @Repository.Organisation.Name
+            </MudButton>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public required Repository Repository { get; set; }
+}

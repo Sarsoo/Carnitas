@@ -16,31 +16,7 @@ else
 {
     <MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
         <MudTabPanel Text="Overview">
-            <MudCard Elevation="0" Class="mb-4">
-                <MudCardHeader>
-                    <MudCardHeaderContent>
-                        <MudText Typo="Typo.h5">@repo.Name</MudText>
-                    </MudCardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText Typo="Typo.body2">Id: @repo.Id</MudText>
-                    <MudText Typo="Typo.body2">Type: @repo.Type</MudText>
-                    @if (repo.RepositoryUrl is not null)
-                    {
-                        <MudText Typo="Typo.body2">URL: @repo.RepositoryUrl</MudText>
-                    }
-                    <MudText Typo="Typo.body2">Git: @repo.GitUrl</MudText>
-                    @if (repo.Organisation is not null)
-                    {
-                        var orgLink = $"/Org/{repo.OrganisationId}";
-                        
-                        <MudButton Variant="Variant.Text" Color="Color.Primary"
-                                   Href=@orgLink >
-                            @repo.Organisation.Name
-                        </MudButton>
-                    }
-                </MudCardContent>
-            </MudCard>
+            <RepoOverviewCard Repository=@repo />
         </MudTabPanel>
         <MudTabPanel Text="Root Modules">
             <MudTable Items="@repo.Modules" Dense="true" Hover="true" Class="mt-4">
@@ -64,7 +40,7 @@ else
             <MudText>Coming soon</MudText>
         </MudTabPanel>
         <MudTabPanel Text="Settings">
-            <MudText>Coming soon</MudText>
+            <RepoSettingsCard Repository=@repo Saved="ReloadRepo" />
         </MudTabPanel>
     </MudTabs>
 }
@@ -76,6 +52,11 @@ else
     private Repository? repo;
 
     protected override async Task OnInitializedAsync()
+    {
+        await ReloadRepo();
+    }
+
+    private async Task ReloadRepo()
     {
         repo = await Db.Repository
             .Include(r => r.Organisation)

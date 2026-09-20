@@ -1,0 +1,63 @@
+@using Carnitas.Model
+@using Carnitas.Model.Governance
+@using Carnitas.Model.Source.SourceControl
+@using Microsoft.EntityFrameworkCore
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+
+<MudToolBar>
+    <MudSpacer />
+    <MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+    <MudIconButton Icon="@Icons.Material.Outlined.Notifications" />
+    <MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt" />
+    <MudIconButton Icon="@Icons.Material.Outlined.MoreVert" Color="Color.Inherit" />
+</MudToolBar>
+<MudGrid Justify="Justify.Center">
+    @foreach (var repo in _repositories)
+    {
+        var repoHref = $"/Repo/{repo.Id}";
+        var orgHref = $"/Org/{repo.OrganisationId}";
+        <MudItem>
+            <MudCard>
+                <MudCardContent>
+                    <MudText>@repo.Name</MudText>
+                    <MudText Typo="Typo.body2">@repo.Description</MudText>
+                    <MudText Typo="Typo.body2">Type: @repo.Type</MudText>
+                    <MudLink Href=@orgHref>@(repo.Organisation?.Name ?? repo.OrganisationId)</MudLink>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@repoHref>Open</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+
+    private IEnumerable<Repository> _repositories = Enumerable.Empty<Repository>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _repositories = await DbContext.Repository
+            .Include(r => r.Organisation)
+            .OrderBy(r => r.Name)
+            .ToListAsync();
+    }
+
+    private async Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialog = await DialogService.ShowAsync<NewRepoDialog>("Add Repository", options);
+        var result = await dialog.Result;
+
+        if (result.Canceled || result.Data is not Repository repo)
+        {
+            return;
+        }
+
+        Navigation.NavigateTo($"/Repo/{repo.Id}");
+    }
+}

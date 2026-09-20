@@ -16,4 +16,6 @@ public class NewRepository
     public string GitUrl { get; set; }
 
     public string? RepositoryUrl { get; set; }
+
+    public string? Description { get; set; }
 }

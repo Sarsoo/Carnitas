@@ -1,0 +1,112 @@
+@using Carnitas.Model
+@using Carnitas.Model.Source.SourceControl
+@using Carnitas.Web.Model
+@inject ApplicationDbContext DbContext
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudCard Elevation="0" Class="mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h5">General</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <EditForm Model="@model" OnValidSubmit="@SaveAsync">
+                    <DataAnnotationsValidator />
+                    <MudTextField Label="Name" HelperText="Max. 50 characters"
+                                  @bind-Value="model.Name" For="@(() => model.Name)" />
+                    <MudTextField Label="Description" Lines="4"
+                                  @bind-Value="model.Description" For="@(() => model.Description)" />
+                    <MudSelect T="RepositoryType" Label="Type" @bind-Value="model.Type" For="@(() => model.Type)">
+                        @foreach (var type in Enum.GetValues<RepositoryType>())
+                        {
+                            <MudSelectItem Value="@type">@type</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Git URL"
+                                  @bind-Value="model.GitUrl" For="@(() => model.GitUrl)" />
+                    <MudTextField Label="Repository URL (optional)"
+                                  @bind-Value="model.RepositoryUrl" For="@(() => model.RepositoryUrl)" />
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                               Color="Color.Primary" Disabled="@_saving">Save</MudButton>
+                </EditForm>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12">
+        <MudCard Elevation="0" Class="mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h5" Class="error-text">Danger zone</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2" Class="mb-4">
+                    Delete this repository along with all of its modules, checkouts and operation runs. This action cannot be undone.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Delete"
+                           OnClick="@OpenDeleteDialogAsync">Delete repository</MudButton>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public required Repository Repository { get; set; }
+    [Parameter] public EventCallback Saved { get; set; }
+
+    private NewRepository model = new();
+    private string? _loadedRepoId;
+    private bool _saving;
+
+    protected override void OnParametersSet()
+    {
+        if (!string.Equals(_loadedRepoId, Repository.Id, StringComparison.Ordinal))
+        {
+            _loadedRepoId = Repository.Id;
+            model.Name = Repository.Name;
+            model.Description = Repository.Description;
+            model.Type = Repository.Type;
+            model.GitUrl = Repository.GitUrl;
+            model.RepositoryUrl = Repository.RepositoryUrl;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+
+        Repository.Name = model.Name;
+        Repository.Description = model.Description ?? "";
+        Repository.Type = model.Type;
+        Repository.GitUrl = model.GitUrl;
+        Repository.RepositoryUrl = model.RepositoryUrl;
+
+        await DbContext.SaveChangesAsync();
+        Snackbar.Add("Repository updated", Severity.Success);
+
+        _saving = false;
+        await Saved.InvokeAsync();
+    }
+
+    private async Task OpenDeleteDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters { { "Repository", Repository } };
+
+        var dialog = await DialogService.ShowAsync<DeleteRepoDialog>("Delete Repository", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Canceled || result.Data is not bool deleted || !deleted)
+        {
+            return;
+        }
+
+        Navigation.NavigateTo("/Repo");
+    }
+}

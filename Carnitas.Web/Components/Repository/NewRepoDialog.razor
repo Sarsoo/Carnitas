@@ -1,6 +1,8 @@
 @using Carnitas.Model
+@using Carnitas.Model.Governance
 @using Carnitas.Model.Source.SourceControl
 @using Carnitas.Web.Model
+@using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext DbContext
 
 <MudDialog>
@@ -13,6 +15,15 @@
                 <MudCard>
                     <MudCardContent>
                         <MudTextField Label="Name" @bind-Value="model.Name" For="@(() => model.Name)"/>
+                        @if (string.IsNullOrEmpty(OrganisationId))
+                        {
+                            <MudSelect T="string" Label="Organisation" @bind-Value="_selectedOrgId">
+                                @foreach (var org in _organisations)
+                                {
+                                    <MudSelectItem Value="@org.Id">@org.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        }
                         <MudSelect T="RepositoryType" Label="Type" @bind-Value="model.Type" For="@(() => model.Type)">
                             @foreach (var type in Enum.GetValues<RepositoryType>())
                             {
@@ -21,6 +32,7 @@
                         </MudSelect>
                         <MudTextField Label="Git URL" @bind-Value="model.GitUrl" For="@(() => model.GitUrl)"/>
                         <MudTextField Label="Repository URL (optional)" @bind-Value="model.RepositoryUrl" For="@(() => model.RepositoryUrl)"/>
+                        <MudTextField Label="Description" Lines="3" @bind-Value="model.Description" For="@(() => model.Description)"/>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -28,15 +40,30 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="@Cancel">Cancel</MudButton>
-        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" OnClick="@OnSubmit">Create</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary"
+                   Disabled="@(string.IsNullOrEmpty(OrganisationId) && string.IsNullOrEmpty(_selectedOrgId))"
+                   OnClick="@OnSubmit">Create</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     NewRepository model = new();
 
+    private List<Organisation> _organisations = new();
+    private string? _selectedOrgId;
+
     [Parameter]
-    public string OrganisationId { get; set; }
+    public string? OrganisationId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(OrganisationId))
+        {
+            _organisations = await DbContext.Organisations
+                .OrderBy(o => o.Name)
+                .ToListAsync();
+        }
+    }
 
     private async Task OnSubmit()
     {
@@ -47,8 +74,8 @@
             Type = model.Type,
             GitUrl = model.GitUrl,
             RepositoryUrl = model.RepositoryUrl,
-            OrganisationId = OrganisationId,
-            Description = ""
+            OrganisationId = string.IsNullOrEmpty(OrganisationId) ? _selectedOrgId! : OrganisationId,
+            Description = model.Description ?? ""
         };
 
         DbContext.Repository.Add(repo);
