@@ -22,8 +22,10 @@ public class ApplyStage : IStage
     }
     
     public Apply Command { get; private set; }
-    public ChannelReader<TerraformMessage> Output => Command.Output;
+    public ChannelReader<TerraformMessage>? MessageOutput => Command.Output;
+    public ChannelReader<string>? JsonOutput => Command.JsonOutput;
 
+    public string Id { get; }
     public string Name => "Apply";
     public bool Retryable => true;
     
@@ -31,12 +33,12 @@ public class ApplyStage : IStage
     {
         try
         {
-            await Command.Run(ct);
-            return new StageResult(StageState.Success);
+            await Command.Run(ct).ConfigureAwait(false);
+            return new StageResult(Id, StageState.Success);
         }
         catch (Exception)
         {
-            return new StageResult(StageState.Failure);
+            return new StageResult(Id, StageState.Failure);
         }
     }
 }

@@ -1,10 +1,10 @@
 using System.Threading.Channels;
 using Carnitas.Workflow.Stage;
-using Sarsoo.Terraform.MachineReadableUI;
+using Microsoft.Extensions.Hosting;
 
 namespace Carnitas.Workflow.Output;
 
-public class WorkflowOutputCapture : IWorkflowOutputCapture
+public class WorkflowOutputCapture : BackgroundService, IWorkflowOutputCapture
 {
     private readonly Channel<IStage> _stageQueue = Channel.CreateUnbounded<IStage>();
 
@@ -15,17 +15,34 @@ public class WorkflowOutputCapture : IWorkflowOutputCapture
 
     public async Task Process(CancellationToken cancel = default)
     {
-        await foreach (var stage in _stageQueue.Reader.ReadAllAsync(cancel))
+        await foreach (var stage in _stageQueue.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
         {
-            await ProcessFullMessageStage(stage, cancel);
+            await Task.WhenAll(
+                ProcessStageMessages(stage, cancel),
+                ProcessStageJson(stage, cancel)
+            );
         }
     }
     
-    private async Task ProcessFullMessageStage(IStage stage, CancellationToken cancel)
+    private async Task ProcessStageMessages(IStage stage, CancellationToken cancel)
     {
-        await foreach (var line in stage.Output.ReadAllAsync(cancel))
+        if (stage.MessageOutput is null) return;
+        
+        await foreach (var line in stage.MessageOutput.ReadAllAsync(cancel).ConfigureAwait(false))
         {
             
         }
     }
+    
+    private async Task ProcessStageJson(IStage stage, CancellationToken cancel)
+    {
+        if (stage.JsonOutput is null) return;
+        
+        await foreach (var line in stage.JsonOutput.ReadAllAsync(cancel).ConfigureAwait(false))
+        {
+            
+        }
+    }
+
+    protected override Task ExecuteAsync(CancellationToken stoppingToken) => Process(stoppingToken);
 }

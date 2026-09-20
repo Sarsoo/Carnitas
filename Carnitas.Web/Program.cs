@@ -1,3 +1,4 @@
+using Carnitas.Extensions;
 using Carnitas.Model;
 using Carnitas.Model.Identity;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -23,6 +24,8 @@ builder.Services.AddMudServices();
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 builder.Services.AddGrpcHealthChecks();
+
+builder.Services.AddCarnitas(builder.Configuration);
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();

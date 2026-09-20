@@ -27,12 +27,12 @@ public class Plan: System.CommandLine.Command
 
         var task = command.Run();
 
-        await foreach (var line in command.Output!.ReadAllAsync())
+        await foreach (var line in command.Output!.ReadAllAsync().ConfigureAwait(false))
         {
             Console.WriteLine($"{line.GetType()}: {line}");
         }
 
-        await task;
+        await task.ConfigureAwait(false);
 
         return 0;
     }

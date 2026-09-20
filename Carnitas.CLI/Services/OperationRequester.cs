@@ -1,6 +1,7 @@
 using Carnitas.CLI.Operation;
 using Carnitas.CLI.Options;
 using Carnitas.Grpc;
+using Carnitas.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,19 +24,19 @@ public class OperationRequester(
         {
             try
             {
-                var resp = await client.RequestOperationAsync(new OperationRequest
+                var resp = await client.RequestWorkflowAsync(new OperationRequest
                 {
                     WorkerId = workerOptions.Value.Name
-                }, cancellationToken:  stoppingToken);
+                }, cancellationToken:  stoppingToken).ConfigureAwait(false);
 
-                await queue.AddAsync(resp);
+                await queue.AddAsync(resp).ConfigureAwait(false);
             }
             catch (Exception e)
             {
                 logger.LogError(e, "Error occured while requesting work");
             }
             
-            await Task.Delay(TimeSpan.FromSeconds(backendOptions.Value.WorkPollDelay), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(backendOptions.Value.WorkPollDelay), stoppingToken).ConfigureAwait(false);
         }
     }
 }

@@ -5,8 +5,9 @@ option csharp_namespace = "Carnitas.Grpc";
 package agent;
 
 service Agent {
-  rpc ReportOperationLogs(stream OperationLog) returns (OperationLog);
-  rpc RequestOperation(OperationRequest) returns (OperationRequestResponse);
+  rpc ReportOperationLogs(stream OperationLog) returns (OperationLogResponse);
+  rpc ReportOperationStatus(OperationStatusRequest) returns (OperationStatusResponse);
+  rpc RequestWorkflow(OperationRequest) returns (WorkflowRequestResponse);
   rpc Ping(PingRequest) returns (PingResponse);
 }
 
@@ -19,15 +20,35 @@ message OperationLogResponse {
   
 }
 
+enum OperationStatusState {
+  OPERATION_SUCCESS = 0;
+  OPERATION_FAILURE = 1;
+  OPERATION_UNKNOWN = 2;
+}
+
+message OperationStatusRequest {
+  string operation_id = 1;
+  OperationStatusState state = 2;
+}
+
+message OperationStatusResponse {
+  string operation_id = 1;
+}
+
 message OperationRequest {
   string worker_id = 1;
 }
 
-message OperationRequestResponse {
+message WorkflowRequestResponse {
   string id = 1;
   string repo = 2;
   string module_path = 3;
-  string operation = 4;
+  repeated OperationResponse operations = 4;
+}
+
+message OperationResponse {
+  string id = 1;
+  string operation = 2;
 }
 
 message PingRequest {

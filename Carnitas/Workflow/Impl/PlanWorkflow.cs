@@ -13,15 +13,17 @@ public static class PlanWorkflow
 {
     public static IWorkflowOrchestrator Get(string id, ModuleStageOptions options, IServiceProvider sp)
     {
-        var orchestrator = new WorkflowOrchestrator(id, sp.GetRequiredService<ILogger<WorkflowOrchestrator>>());
+        var orchestrator = sp.GetRequiredService<IWorkflowOrchestrator>();
 
-        orchestrator.AddStage(
-            new PlanStage(
-                options, 
-                sp.GetRequiredService<IOptions<TerraformEnvironmentOptions>>(),
-                logger: sp.GetRequiredService<ILogger<TerraformStreamCommand>>()
-            )
-        );
+        orchestrator
+            .WithId(id)
+            .AddStage(
+                new PlanStage(
+                    options, 
+                    sp.GetRequiredService<IOptions<TerraformEnvironmentOptions>>(),
+                    logger: sp.GetRequiredService<ILogger<TerraformStreamCommand>>()
+                )
+            );
         return orchestrator;
     }
 }

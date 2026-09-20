@@ -5,18 +5,45 @@ using Microsoft.Extensions.Logging;
 
 namespace Carnitas.Workflow.Orchestration;
 
-public class WorkflowOrchestrator(string id, ILogger<WorkflowOrchestrator> logger): IWorkflowOrchestrator, IDisposable
+public class WorkflowOrchestrator(IWorkflowOutputCapture workflowOutputCapture, ILogger<WorkflowOrchestrator> logger): IWorkflowOrchestrator, IDisposable
 {
     private Queue<IStage> _stages = new();
     private Queue<IStage> _completedStages = new();
     private bool _disposed = false;
     public bool IsDisposed => _disposed;
-    public string Id { get; } = id;
 
-    private IWorkflowOutputCapture? _outputCapture;
-    public void WithOutputCapture(IWorkflowOutputCapture outputCapture)
+    public string Id
+    {
+        get
+        {
+            if (field is null)
+            {
+                throw new InvalidOperationException("Id for the orchestrator has not been set");
+            }
+
+            return field;
+        }
+        private set;
+    }
+
+    private IWorkflowOutputCapture _outputCapture = workflowOutputCapture;
+    
+    public IWorkflowOrchestrator WithOutputCapture(IWorkflowOutputCapture outputCapture)
     {
         _outputCapture = outputCapture;
+
+        return this;
+    }
+    
+    public IWorkflowOrchestrator WithId(string id)
+    {
+        if (Id is not null)
+        {
+            throw new  InvalidOperationException("Id for workflow has already been set");
+        }
+        Id = id;
+
+        return this;
     }
 
     public IWorkflowOrchestrator AddStage(IStage stage)
@@ -28,15 +55,16 @@ public class WorkflowOrchestrator(string id, ILogger<WorkflowOrchestrator> logge
     
     public async Task<IStageResult> RunNextStage(CancellationToken token = default)
     {
+        if (Id is null) throw new InvalidOperationException("Id for the orchestrator has not been set");
+        
         var nextStage = _stages.Peek();
         try
         {
             logger.LogInformation("Starting stage {stage}", nextStage.Name);
-            if (_outputCapture?.AddStage(nextStage) is { } t)
-            {
-                await t;
-            }
-            var result = await nextStage.Run(token);
+            
+            await _outputCapture.AddStage(nextStage).ConfigureAwait(false);
+            
+            var result = await nextStage.Run(token).ConfigureAwait(false);
 
             HandleWorkflowResult(nextStage, result: result);
             return result;
@@ -44,15 +72,17 @@ public class WorkflowOrchestrator(string id, ILogger<WorkflowOrchestrator> logge
         catch (Exception ex)
         {
             HandleWorkflowResult(nextStage, e: ex);
-            return new StageResult(StageState.Failure);
+            return new StageResult(nextStage.Id, StageState.Failure);
         }
     }
 
     public async IAsyncEnumerable<IStageResult> RunAll([EnumeratorCancellation] CancellationToken token = default)
     {
+        if (Id is null) throw new InvalidOperationException("Id for the orchestrator has not been set");
+        
         while (_stages.Count > 0 && !_disposed && !token.IsCancellationRequested)
         {
-            var result = await RunNextStage(token);
+            var result = await RunNextStage(token).ConfigureAwait(false);
             yield return result;
         }
     }
@@ -80,5 +110,10 @@ public class WorkflowOrchestrator(string id, ILogger<WorkflowOrchestrator> logge
     public void Dispose()
     {
         _disposed = true;
+    }
+
+    public async Task Execute(CancellationToken token)
+    {
+        await RunAll(token).ToListAsync(token).ConfigureAwait(false);
     }
 }

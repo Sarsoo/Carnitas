@@ -11,7 +11,7 @@ public class OperationDispatcher(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Starting queue processing of received operations..");
-        await foreach (var work in queue.Reader.ReadAllAsync(stoppingToken))
+        await foreach (var work in queue.Reader.ReadAllAsync(stoppingToken).ConfigureAwait(false))
         {
             try
             {
@@ -19,7 +19,6 @@ public class OperationDispatcher(
                     new[]
                     {
                         new KeyValuePair<string, object>("id", work.Id),
-                        new KeyValuePair<string, object>("operation", work.Operation),
                         new KeyValuePair<string, object>("repo", work.Repo),
                         new KeyValuePair<string, object>("module", work.ModulePath)
                     });

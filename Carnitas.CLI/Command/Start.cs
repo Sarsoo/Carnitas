@@ -3,7 +3,9 @@ using Carnitas.CLI.Host;
 using Carnitas.CLI.Operation;
 using Carnitas.CLI.Options;
 using Carnitas.CLI.Services;
+using Carnitas.Extensions;
 using Carnitas.Grpc;
+using Carnitas.Options;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
@@ -35,7 +37,8 @@ public class Start: System.CommandLine.Command
 
         host.Services.AddSingleton<OperationQueue>()
             .AddHostedService<OperationRequester>()
-            .AddHostedService<OperationDispatcher>();
+            .AddHostedService<OperationDispatcher>()
+            .AddCarnitas(host.Configuration);
 
         await host.Build().RunAsync();
 

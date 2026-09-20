@@ -10,19 +10,25 @@ public class AgentService: Agent.AgentBase
         return Task.FromResult(new PingResponse() { Id = request.Id});
     }
 
-    public override Task<OperationLog> ReportOperationLogs(IAsyncStreamReader<OperationLog> requestStream, ServerCallContext context)
+    public override Task<OperationLogResponse> ReportOperationLogs(IAsyncStreamReader<OperationLog> requestStream, ServerCallContext context)
     {
         return base.ReportOperationLogs(requestStream, context);
     }
 
-    public override async Task<OperationRequestResponse> RequestOperation(OperationRequest request, ServerCallContext context)
+    public override async Task<WorkflowRequestResponse> RequestWorkflow(OperationRequest request, ServerCallContext context)
     {
-        return new OperationRequestResponse()
+        var resp = new WorkflowRequestResponse()
         {
             Id = Guid.NewGuid().ToString(),
             Repo = "test repo",
-            ModulePath = "test module",
-            Operation = "plan"
+            ModulePath = "test module"
         };
+        
+        resp.Operations.Add(new OperationResponse
+        {
+            Id = Guid.NewGuid().ToString(),
+        });
+
+        return resp;
     }
 }

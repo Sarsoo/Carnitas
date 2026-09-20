@@ -1,5 +1,7 @@
+using Carnitas.Job;
 using Carnitas.Options;
 using Carnitas.Workflow.Orchestration;
+using Carnitas.Workflow.Output;
 using Carnitas.Workflow.Stage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,13 +15,26 @@ public static class ServiceExtensions
         public IServiceCollection AddCarnitas(IConfiguration configuration)
         {
             serviceCollection.Configure<TerraformEnvironmentOptions>(configuration.GetSection(TerraformEnvironmentOptions.Key));
+
+            serviceCollection.AddSingleton<IJobDispatcher, JobDispatcher>()
+                .AddWorkflow()
+                .AddWorkflowStages();
             
             return serviceCollection;
         }
         
         public IServiceCollection AddWorkflow()
         {
-            serviceCollection.AddTransient<IWorkflowOrchestrator, WorkflowOrchestrator>();
+            serviceCollection
+                .AddSingleton<WorkflowOutputCapture>()
+                .AddSingleton<IWorkflowOutputCapture, WorkflowOutputCapture>(sp => sp.GetRequiredService<WorkflowOutputCapture>())
+                .AddHostedService<WorkflowOutputCapture>(sp => sp.GetRequiredService<WorkflowOutputCapture>())
+                
+                .AddSingleton<JobDispatcher>()
+                .AddSingleton<IJobDispatcher, JobDispatcher>(sp => sp.GetRequiredService<JobDispatcher>())
+                .AddHostedService<JobDispatcher>(sp => sp.GetRequiredService<JobDispatcher>())
+                
+                .AddTransient<IWorkflowOrchestrator, WorkflowOrchestrator>();
             
             return serviceCollection;
         }

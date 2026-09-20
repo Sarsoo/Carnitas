@@ -1,3 +1,3 @@
 namespace Carnitas.Workflow.Stage;
 
-public record StageResult(StageState Status): IStageResult;
+public record StageResult(string Id, StageState Status): IStageResult;
