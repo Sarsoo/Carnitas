@@ -1,0 +1,96 @@
+@using Carnitas.Model
+@using Carnitas.Model.Governance
+@using Carnitas.Web.Model
+@inject ApplicationDbContext DbContext
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudCard Elevation="0" Class="mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h5">General</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <EditForm Model="@model" OnValidSubmit="@SaveAsync">
+                    <DataAnnotationsValidator />
+                    <MudTextField Label="Name" HelperText="Max. 50 characters"
+                                  @bind-Value="model.Name" For="@(() => model.Name)" />
+                    <MudTextField Label="Description" Lines="4"
+                                  @bind-Value="model.Description" For="@(() => model.Description)" />
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                               Color="Color.Primary" Disabled="@_saving">Save</MudButton>
+                </EditForm>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12">
+        <MudCard Elevation="0" Class="mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h5" Class="error-text">Danger zone</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2" Class="mb-4">
+                    Delete this organisation along with all of its repositories, modules, checkouts and operation runs. This action cannot be undone.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Delete"
+                           OnClick="@OpenDeleteDialogAsync">Delete organisation</MudButton>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public required Organisation Organisation { get; set; }
+    [Parameter] public EventCallback Saved { get; set; }
+
+    private NewOrganisation model = new();
+    private string? _loadedOrgId;
+    private bool _saving;
+
+    protected override void OnParametersSet()
+    {
+        if (!string.Equals(_loadedOrgId, Organisation.Id, StringComparison.Ordinal))
+        {
+            _loadedOrgId = Organisation.Id;
+            model.Name = Organisation.Name;
+            model.Description = Organisation.Description;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+
+        Organisation.Name = model.Name;
+        Organisation.Description = model.Description ?? "";
+
+        await DbContext.SaveChangesAsync();
+        Snackbar.Add("Organisation updated", Severity.Success);
+
+        _saving = false;
+        await Saved.InvokeAsync();
+    }
+
+    private async Task OpenDeleteDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters { { "Organisation", Organisation } };
+
+        var dialog = await DialogService.ShowAsync<DeleteOrgDialog>("Delete Organisation", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Canceled || result.Data is not bool deleted || !deleted)
+        {
+            return;
+        }
+
+        Navigation.NavigateTo("/Org");
+    }
+}

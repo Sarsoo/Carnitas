@@ -14,6 +14,8 @@
                     <MudCardContent>
                         <MudTextField Label="Name" HelperText="Max. 8 characters"
                                       @bind-Value="model.Name" For="@(() => model.Name)"/>
+                        <MudTextField Label="Description" Lines="3"
+                                      @bind-Value="model.Description" For="@(() => model.Description)"/>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -34,7 +36,8 @@
         var org = new Organisation
         {
             Id = Guid.NewGuid().ToString(),
-            Name = model.Name
+            Name = model.Name,
+            Description = model.Description ?? ""
         };
 
         DbContext.Organisations.Add(org);

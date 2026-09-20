@@ -1,0 +1,75 @@
+@using Carnitas.Model
+@using Carnitas.Model.Governance
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+
+<MudDialog>
+    <TitleContent>
+        Delete Organisation
+    </TitleContent>
+    <DialogContent>
+        <MudText Class="mb-4">
+            This will permanently delete <strong>@Organisation.Name</strong> and everything it owns:
+        </MudText>
+        <MudTable Items="@_impact" Dense="true" Hover="true">
+            <HeaderContent>
+                <MudTh>Type</MudTh>
+                <MudTh>Count</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Key</MudTd>
+                <MudTd>@context.Value</MudTd>
+            </RowTemplate>
+        </MudTable>
+        <MudText Typo="Typo.body2" Class="mt-4 mb-2">
+            Type <strong>@Organisation.Name</strong> to confirm:
+        </MudText>
+        <MudTextField Label="Organisation name" @bind-Value="_confirmation" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Error"
+                   Disabled="@(!string.Equals(_confirmation, Organisation.Name, StringComparison.Ordinal))"
+                   OnClick="@OnConfirm">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public required Organisation Organisation { get; set; }
+
+    private string _confirmation = "";
+    private Dictionary<string, int> _impact = new();
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var repositoryCount = await DbContext.Repository
+            .CountAsync(r => r.OrganisationId == Organisation.Id);
+        var moduleCount = await DbContext.Modules
+            .CountAsync(m => m.Repository.OrganisationId == Organisation.Id);
+        var checkoutCount = await DbContext.Checkouts
+            .CountAsync(c => c.Repository.OrganisationId == Organisation.Id);
+        var operationRunCount = await DbContext.OperationRuns
+            .CountAsync(o => o.Module.Repository.OrganisationId == Organisation.Id);
+
+        _impact = new Dictionary<string, int>
+        {
+            { "Repositories", repositoryCount },
+            { "Modules", moduleCount },
+            { "Checkouts", checkoutCount },
+            { "Operation runs", operationRunCount },
+        };
+    }
+
+    private async Task OnConfirm()
+    {
+        DbContext.Organisations.Remove(Organisation);
+        await DbContext.SaveChangesAsync();
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -20,7 +20,7 @@ else
             <OrgReposCard Organisation=@org />
         </MudTabPanel>
         <MudTabPanel Text="Settings">
-            <MudText>Coming soon</MudText>
+            <OrgSettingsCard Organisation=@org Saved="ReloadOrg" />
         </MudTabPanel>
     </MudTabs>
 }
@@ -32,6 +32,13 @@ else
     private Organisation? org;
 
     protected override async Task OnInitializedAsync()
+    {
+        org = await Db.Organisations
+            .Include(o => o.Repositories)
+            .SingleOrDefaultAsync(o => o.Id == Id);
+    }
+
+    private async Task ReloadOrg()
     {
         org = await Db.Organisations
             .Include(o => o.Repositories)
