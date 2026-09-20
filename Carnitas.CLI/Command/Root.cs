@@ -7,6 +7,7 @@ public class Root: RootCommand
     public Root():
         base("Carnitas - a TACO")
     {
+        Add(new Start());
         Add(new Dependents());
         Add(new Dependencies());
         Add(new Plan());

@@ -5,17 +5,24 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Carnitas.Web.Components;
 using Carnitas.Web.Components.Account;
+using Carnitas.Web.Grpc;
 using MudBlazor.Services;
+using NLog.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders().AddNLog();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
+builder.Services.AddGrpc();
+builder.Services.AddGrpcReflection();
+builder.Services.AddGrpcHealthChecks();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -89,6 +96,10 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapGrpcService<AgentService>();
+app.MapGrpcReflectionService();
+app.MapGrpcHealthChecksService();
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();

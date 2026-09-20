@@ -13,8 +13,10 @@ ARG TARGETARCH
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Carnitas/Carnitas.csproj", "Carnitas/"]
-COPY ["Carnitas.Web/Carnitas.Web.csproj", "Carnitas.Web/"]
 COPY ["Carnitas.Model/Carnitas.Model.csproj", "Carnitas.Model/"]
+COPY ["Carnitas.Grpc/Carnitas.Grpc.csproj", "Carnitas.Grpc/"]
+COPY ["Carnitas.Web/Carnitas.Web.csproj", "Carnitas.Web/"]
+
 RUN dotnet restore "Carnitas.Web/Carnitas.Web.csproj" -a $TARGETARCH
 COPY . .
 WORKDIR "/src/Carnitas.Web"

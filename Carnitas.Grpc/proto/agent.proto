@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option csharp_namespace = "Carnitas.Grpc";
+
+package agent;
+
+service Agent {
+  rpc ReportOperationLogs(stream OperationLog) returns (OperationLog);
+  rpc RequestOperation(OperationRequest) returns (OperationRequestResponse);
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message OperationLog {
+  string operation_id = 1;
+  string log = 2;
+}
+
+message OperationLogResponse {
+  
+}
+
+message OperationRequest {
+  string worker_id = 1;
+}
+
+message OperationRequestResponse {
+  string id = 1;
+  string repo = 2;
+  string module_path = 3;
+  string operation = 4;
+}
+
+message PingRequest {
+  string id = 1;
+}
+
+message PingResponse {
+  string id = 1;
+}
