@@ -1,7 +1,9 @@
+using Carnitas.Options;
 using Carnitas.Workflow.Orchestration;
 using Carnitas.Workflow.Stage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Sarsoo.Terraform.Command;
 using Sarsoo.Terraform.MachineReadableUI;
 
@@ -16,7 +18,8 @@ public static class PlanWorkflow
         orchestrator.AddStage(
             new PlanStage(
                 options, 
-                logger: sp.GetRequiredService<ILogger<TerraformStreamCommand<FullMessage>>>()
+                sp.GetRequiredService<IOptions<TerraformEnvironmentOptions>>(),
+                logger: sp.GetRequiredService<ILogger<TerraformStreamCommand>>()
             )
         );
         return orchestrator;

@@ -7,11 +7,11 @@ using Sarsoo.Terraform.Module.Dependency;
 
 namespace Carnitas.CLI.Command;
 
-public class Plan: System.CommandLine.Command
+public class Init: System.CommandLine.Command
 {
 
-    public Plan()
-        : base("plan", "Run tf plan")
+    public Init()
+        : base("init", "Run tf init")
     {
         SetAction(Run);
     }
@@ -23,7 +23,7 @@ public class Plan: System.CommandLine.Command
             c.AddConsole();
         });
         
-        var command = new Sarsoo.Terraform.Command.Plan("terraform", ".", logger: loggingFactory.CreateLogger<TerraformStreamCommand>());
+        var command = new Sarsoo.Terraform.Command.Init("terraform", ".", logger: loggingFactory.CreateLogger<TerraformStreamCommand>());
 
         var task = command.Run();
 

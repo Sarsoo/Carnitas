@@ -17,14 +17,11 @@ public class WorkflowOutputCapture : IWorkflowOutputCapture
     {
         await foreach (var stage in _stageQueue.Reader.ReadAllAsync(cancel))
         {
-            if (stage is IStage<FullMessage> fms)
-            {
-                await ProcessFullMessageStage(fms, cancel);
-            }
+            await ProcessFullMessageStage(stage, cancel);
         }
     }
     
-    private async Task ProcessFullMessageStage(IStage<FullMessage> stage, CancellationToken cancel)
+    private async Task ProcessFullMessageStage(IStage stage, CancellationToken cancel)
     {
         await foreach (var line in stage.Output.ReadAllAsync(cancel))
         {

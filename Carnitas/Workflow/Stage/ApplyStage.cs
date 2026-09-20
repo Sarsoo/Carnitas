@@ -1,26 +1,28 @@
 using System.Threading.Channels;
+using Carnitas.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Sarsoo.Terraform.Command;
 using Sarsoo.Terraform.MachineReadableUI;
 
 namespace Carnitas.Workflow.Stage;
 
-public class ApplyStage : IStage<FullMessage>
+public class ApplyStage : IStage
 {
     private readonly ModuleStageOptions _options;
 
-    public ApplyStage(ModuleStageOptions options, ILogger<TerraformStreamCommand<FullMessage>>? logger = null)
+    public ApplyStage(ModuleStageOptions options, IOptions<TerraformEnvironmentOptions> envOptions, ILogger<TerraformStreamCommand>? logger = null)
     {
         _options = options;
         Command = new Apply(
-            options.ExePath,
+            envOptions.Value.BinaryPath,
             options.ModuleLocation,
             logger: logger
         );
     }
     
     public Apply Command { get; private set; }
-    public ChannelReader<FullMessage> Output => Command.Output;
+    public ChannelReader<TerraformMessage> Output => Command.Output;
 
     public string Name => "Apply";
     public bool Retryable => true;
