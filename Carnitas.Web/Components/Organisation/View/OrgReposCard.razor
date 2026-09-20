@@ -1,7 +1,18 @@
+@using Carnitas.Model
 @using Carnitas.Model.Governance
+@using Carnitas.Model.Source.SourceControl
+@using Carnitas.Web.Components.Repository
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject IDialogService DialogService
+
 <MudGrid>
     <MudItem xs="12">
-        <MudTable Items="@Organisation.Repositories" Dense="true" Hover="true" Class="mt-4">
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create"
+                   Color="Color.Primary" OnClick="@OpenNewRepoDialogAsync">Add Repository</MudButton>
+    </MudItem>
+    <MudItem xs="12">
+        <MudTable Items="@_repositories" Dense="true" Hover="true" Class="mt-4">
             <HeaderContent>
                 <MudTh>Name</MudTh>
                 <MudTh>Type</MudTh>
@@ -22,4 +33,36 @@
 
 @code {
     [Parameter] public required Organisation Organisation { get; set; }
+
+    private List<Repository> _repositories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRepositoriesAsync();
+    }
+
+    private async Task LoadRepositoriesAsync()
+    {
+        _repositories = await DbContext.Repository
+            .Where(r => r.OrganisationId == Organisation.Id)
+            .OrderBy(r => r.Name)
+            .ToListAsync();
+    }
+
+    private async Task OpenNewRepoDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters { { "OrganisationId", Organisation.Id } };
+
+        var dialog = await DialogService.ShowAsync<NewRepoDialog>("Add Repository", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Canceled || result.Data is not Repository repo)
+        {
+            return;
+        }
+
+        Organisation.Repositories.Add(repo);
+        await LoadRepositoriesAsync();
+    }
 }

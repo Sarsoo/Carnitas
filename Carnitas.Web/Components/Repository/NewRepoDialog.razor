@@ -1,0 +1,64 @@
+@using Carnitas.Model
+@using Carnitas.Model.Source.SourceControl
+@using Carnitas.Web.Model
+@inject ApplicationDbContext DbContext
+
+<MudDialog>
+    <TitleContent>
+        Add Repository
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem>
+                <MudCard>
+                    <MudCardContent>
+                        <MudTextField Label="Name" @bind-Value="model.Name" For="@(() => model.Name)"/>
+                        <MudSelect T="RepositoryType" Label="Type" @bind-Value="model.Type" For="@(() => model.Type)">
+                            @foreach (var type in Enum.GetValues<RepositoryType>())
+                            {
+                                <MudSelectItem Value="@type">@type</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudTextField Label="Git URL" @bind-Value="model.GitUrl" For="@(() => model.GitUrl)"/>
+                        <MudTextField Label="Repository URL (optional)" @bind-Value="model.RepositoryUrl" For="@(() => model.RepositoryUrl)"/>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" OnClick="@OnSubmit">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    NewRepository model = new();
+
+    [Parameter]
+    public string OrganisationId { get; set; }
+
+    private async Task OnSubmit()
+    {
+        var repo = new Repository
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = model.Name,
+            Type = model.Type,
+            GitUrl = model.GitUrl,
+            RepositoryUrl = model.RepositoryUrl,
+            OrganisationId = OrganisationId,
+            Description = ""
+        };
+
+        DbContext.Repository.Add(repo);
+        await DbContext.SaveChangesAsync();
+
+        MudDialog.Close(DialogResult.Ok(repo));
+    }
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private void Cancel() => MudDialog.Cancel();
+}
