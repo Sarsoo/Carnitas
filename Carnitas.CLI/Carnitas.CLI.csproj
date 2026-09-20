@@ -22,10 +22,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Carnitas.Grpc\Carnitas.Grpc.csproj" />
       <ProjectReference Include="..\Carnitas\Carnitas.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Grpc.Net.Client" Version="2.83.0" />
       <PackageReference Include="LibGit2Sharp" Version="0.32.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
       <PackageReference Include="NLog.Extensions.Logging" Version="6.2.1" />

@@ -62,6 +62,8 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
+        builder.BuildInstanceSettings();
+
         builder.BuildOrganisation()
             .BuildRepository()
             .BuildCheckout();

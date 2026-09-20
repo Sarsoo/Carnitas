@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerraformDotnet.Hcl", "Sars
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{62A25006-108E-4EEB-8E95-42E4B4D3D958}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carnitas.Grpc", "Carnitas.Grpc\Carnitas.Grpc.csproj", "{978B6468-FE6C-4315-AF9A-FD3F58CE68F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{7F558146-4CF7-47E8-A4E4-9F03255D643C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F558146-4CF7-47E8-A4E4-9F03255D643C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F558146-4CF7-47E8-A4E4-9F03255D643C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{978B6468-FE6C-4315-AF9A-FD3F58CE68F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{978B6468-FE6C-4315-AF9A-FD3F58CE68F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{978B6468-FE6C-4315-AF9A-FD3F58CE68F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{978B6468-FE6C-4315-AF9A-FD3F58CE68F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{57D3E362-2715-4769-BFFD-037AB64F0420} = {62A25006-108E-4EEB-8E95-42E4B4D3D958}
