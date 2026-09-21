@@ -5,7 +5,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Carnitas.Workflow.Orchestration;
 
-public class WorkflowOrchestrator(IWorkflowOutputCapture workflowOutputCapture, ILogger<WorkflowOrchestrator> logger): IWorkflowOrchestrator, IDisposable
+public class WorkflowOrchestrator(
+    IWorkflowOutputCapture workflowOutputCapture, 
+    ILogger<WorkflowOrchestrator> logger
+): IWorkflowOrchestrator, IDisposable
 {
     private Queue<IStage> _stages = new();
     private Queue<IStage> _completedStages = new();

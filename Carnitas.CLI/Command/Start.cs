@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Carnitas.CLI.Backend;
 using Carnitas.CLI.Host;
 using Carnitas.CLI.Operation;
 using Carnitas.CLI.Options;
@@ -6,11 +7,15 @@ using Carnitas.CLI.Services;
 using Carnitas.Extensions;
 using Carnitas.Grpc;
 using Carnitas.Options;
+using Carnitas.Workflow.Output;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 namespace Carnitas.CLI.Command;
 
@@ -38,7 +43,30 @@ public class Start: System.CommandLine.Command
         host.Services.AddSingleton<OperationQueue>()
             .AddHostedService<OperationRequester>()
             .AddHostedService<OperationDispatcher>()
+            .AddSingleton<IPlanReporter, PlanReporter>()
             .AddCarnitas(host.Configuration);
+        
+        ///////////////////////
+        //   OBSERVABILITY
+        ///////////////////////
+
+        host.Services.AddOpenTelemetry()
+            .WithLogging(b =>
+            {
+                b.AddOtlpExporter();
+            })
+            .WithMetrics(b =>
+            {
+                b.AddMeter("Sarsoo.*");
+                b.AddMeter("Carnitas.*");
+                b.AddOtlpExporter();
+            })
+            .WithTracing(b =>
+            {
+                b.AddSource("Sarsoo.*");
+                b.AddSource("Carnitas.*");
+                b.AddOtlpExporter();
+            });
 
         await host.Build().RunAsync();
 

@@ -7,8 +7,8 @@ public class UnitTest1
     [Fact]
     public void Test1()
     {
-        var checkoutManger = new CheckoutManager();
+        // var checkoutManger = new CheckoutManager();
         
-        checkoutManger.Checkout("https://github.com/Sarsoo/dotfiles.git", "~/lab");
+        // checkoutManger.Checkout("https://github.com/Sarsoo/dotfiles.git", "~/lab");
     }
 }

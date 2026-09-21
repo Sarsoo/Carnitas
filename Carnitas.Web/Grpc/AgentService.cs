@@ -5,11 +5,6 @@ namespace Carnitas.Web.Grpc;
 
 public class AgentService: Agent.AgentBase
 {
-    public override Task<PingResponse> Ping(PingRequest request, ServerCallContext context)
-    {
-        return Task.FromResult(new PingResponse() { Id = request.Id});
-    }
-
     public override Task<OperationLogResponse> ReportOperationLogs(IAsyncStreamReader<OperationLog> requestStream, ServerCallContext context)
     {
         return base.ReportOperationLogs(requestStream, context);
@@ -28,7 +23,6 @@ public class AgentService: Agent.AgentBase
         {
             Id = Guid.NewGuid().ToString(),
         });
-
         return resp;
     }
 }

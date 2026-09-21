@@ -28,8 +28,8 @@
         <PackageReference Include="MudBlazor" Version="9.10.0" />
         <PackageReference Include="NLog.Extensions.Logging" Version="6.2.1" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.0" />
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.19.0" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.19.0" />
         <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.15.1-beta.1" />
 <!--        <PackageReference Include="Sarsoo.Terraform" Version="0.0.3" />-->

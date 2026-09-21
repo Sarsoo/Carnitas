@@ -31,6 +31,8 @@
       <PackageReference Include="LibGit2Sharp" Version="0.32.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
       <PackageReference Include="NLog.Extensions.Logging" Version="6.2.1" />
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
 <!--      <PackageReference Include="Sarsoo.Terraform" Version="0.0.3" />-->
       <PackageReference Include="System.CommandLine" Version="2.0.12" />
     </ItemGroup>
@@ -46,10 +48,6 @@
       <None Update="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Extensions\" />
     </ItemGroup>
 
 </Project>

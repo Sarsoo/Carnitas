@@ -1,9 +1,10 @@
 using System.Threading.Channels;
+using Carnitas.Job;
 using Sarsoo.Terraform.MachineReadableUI;
 
 namespace Carnitas.Workflow.Stage;
 
-public interface IStage
+public interface IStage: IJob
 {
     string Id { get; }
     string Name { get; }

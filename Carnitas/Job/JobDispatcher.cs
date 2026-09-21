@@ -8,6 +8,8 @@ namespace Carnitas.Job;
 
 public interface IJobDispatcher
 {
+    int JobCapacity { get; }
+    int JobCount { get; }
     bool QueueJob(IJob job);
     Task Start(CancellationToken token);
 }
@@ -16,6 +18,9 @@ public class JobDispatcher(IOptions<WorkerOptions> options, ILogger<JobDispatche
 {
     private readonly SemaphoreSlim _semaphore = new(options.Value.ConcurrentJobs, options.Value.ConcurrentJobs);
     private readonly Channel<IJob> _channel = Channel.CreateUnbounded<IJob>();
+
+    public int JobCapacity => _semaphore.CurrentCount;
+    public int JobCount => _channel.Reader.Count;
 
     public bool QueueJob(IJob job) => _channel.Writer.TryWrite(job);
 

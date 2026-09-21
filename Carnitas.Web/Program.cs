@@ -67,11 +67,15 @@ builder.Services.AddOpenTelemetry()
     })
     .WithMetrics(b =>
     {
+        b.AddMeter("Sarsoo.*");
+        b.AddMeter("Carnitas.*");
         b.AddAspNetCoreInstrumentation()
             .AddOtlpExporter();
     })
     .WithTracing(b =>
     {
+        b.AddSource("Sarsoo.*");
+        b.AddSource("Carnitas.*");
         b.AddAspNetCoreInstrumentation()
             .AddEntityFrameworkCoreInstrumentation()
             .AddOtlpExporter();

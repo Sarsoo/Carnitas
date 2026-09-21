@@ -7,9 +7,14 @@ package agent;
 service Agent {
   rpc ReportOperationLogs(stream OperationLog) returns (OperationLogResponse);
   rpc ReportOperationStatus(OperationStatusRequest) returns (OperationStatusResponse);
+  rpc SubmitOperationPlan(OperationPlanReport) returns (OperationPlanResponse);
+  
   rpc RequestWorkflow(OperationRequest) returns (WorkflowRequestResponse);
-  rpc Ping(PingRequest) returns (PingResponse);
 }
+
+/////////////////////////
+// ReportOperationLogs
+////////////////////////
 
 message OperationLog {
   string operation_id = 1;
@@ -19,6 +24,10 @@ message OperationLog {
 message OperationLogResponse {
   
 }
+
+////////////////////////////////
+//   ReportOperationStatus
+///////////////////////////////
 
 enum OperationStatusState {
   OPERATION_SUCCESS = 0;
@@ -35,6 +44,24 @@ message OperationStatusResponse {
   string operation_id = 1;
 }
 
+////////////////////////////////
+//   ReportOperationStatus
+///////////////////////////////
+
+message OperationPlanReport {
+  string operation_id = 1;
+  string plan = 2;
+  string plan_file_path = 3;
+}
+
+message OperationPlanResponse {
+
+}
+
+////////////////////////////////
+//     RequestWorkflow
+///////////////////////////////
+
 message OperationRequest {
   string worker_id = 1;
 }
@@ -49,12 +76,4 @@ message WorkflowRequestResponse {
 message OperationResponse {
   string id = 1;
   string operation = 2;
-}
-
-message PingRequest {
-  string id = 1;
-}
-
-message PingResponse {
-  string id = 1;
 }

@@ -6,4 +6,6 @@ public class WorkerOptions
     
     public string Name { get; set; }
     public int ConcurrentJobs { get; set; } = 5;
+    public string WorkspaceRoot { get; set; } = "/tmp/cns";
+    public string PlanStorageRoot { get; set; } = "/tmp/cns-plan";
 }
