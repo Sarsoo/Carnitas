@@ -6,8 +6,6 @@ namespace Carnitas.Workflow.Orchestration;
 
 public interface IWorkflowOrchestrator: IJob
 {
-    string Id { get; }
-    
     IWorkflowOrchestrator WithId(string id);
     IWorkflowOrchestrator WithOutputCapture(IWorkflowOutputCapture outputCapture);
     IWorkflowOrchestrator AddStage(IStage stage);

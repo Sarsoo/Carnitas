@@ -29,6 +29,19 @@ public class WorkflowOrchestrator(
         private set;
     }
 
+    public string? BasePath
+    {
+        get;
+        set
+        {
+            field = value;
+            foreach (var stage in _stages)
+            {
+                stage.BasePath = field;
+            }
+        }
+    }
+
     private IWorkflowOutputCapture _outputCapture = workflowOutputCapture;
     
     public IWorkflowOrchestrator WithOutputCapture(IWorkflowOutputCapture outputCapture)
@@ -40,10 +53,6 @@ public class WorkflowOrchestrator(
     
     public IWorkflowOrchestrator WithId(string id)
     {
-        if (Id is not null)
-        {
-            throw new  InvalidOperationException("Id for workflow has already been set");
-        }
         Id = id;
 
         return this;

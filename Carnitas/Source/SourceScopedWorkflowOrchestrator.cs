@@ -49,6 +49,17 @@ public class SourceScopedWorkflowOrchestrator(
     }
 
     public string Id => _workflowOrchestrator.Id;
+
+    public string? BasePath
+    {
+        get;
+        set
+        {
+            field = value;
+            _workflowOrchestrator.BasePath = field;
+        }
+    }
+
     public IWorkflowOrchestrator WithId(string id)
     {
         _workflowOrchestrator = _workflowOrchestrator.WithId(id);
@@ -70,18 +81,30 @@ public class SourceScopedWorkflowOrchestrator(
     public Task<IStageResult> RunNextStage(CancellationToken token = default)
     { 
         Validate();
+        if (string.IsNullOrEmpty(_checkoutPath))
+        {
+            throw new InvalidOperationException("Source has not been checked out");
+        }
         return _workflowOrchestrator.RunNextStage(token);
     }
 
     public IAsyncEnumerable<IStageResult> RunAll(CancellationToken token = default)
     {
         Validate();
+        if (string.IsNullOrEmpty(_checkoutPath))
+        {
+            PrepareSource();
+        }
         return _workflowOrchestrator.RunAll(token);
     }
 
     public Task Execute(CancellationToken token)
     {
         Validate();
+        if (string.IsNullOrEmpty(_checkoutPath))
+        {
+            PrepareSource();
+        }
         return _workflowOrchestrator.Execute(token);
     }
     
@@ -102,6 +125,8 @@ public class SourceScopedWorkflowOrchestrator(
         var checkoutPath = Path.Join(_sourceRoot, Id);
         logger.LogInformation("Checking out source at {Path}", checkoutPath);
         _checkoutPath = Repository.Clone(_gitUrl, checkoutPath, _cloneOptions);
+        
+        BasePath = checkoutPath;
         
         return this;
     }

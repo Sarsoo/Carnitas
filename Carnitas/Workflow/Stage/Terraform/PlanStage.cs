@@ -11,6 +11,7 @@ namespace Carnitas.Workflow.Stage.Terraform;
 
 public class PlanStage(
     IPlanReporter? planReporter,
+    IOptions<WorkerOptions> workerOptions,
     IOptions<TerraformEnvironmentOptions> envOptions,
     ILogger<PlanGenerator> logger,
     ILogger<TerraformStreamCommand> subLogger
@@ -20,21 +21,24 @@ public class PlanStage(
     public PlanGenerator Command { get; private set; }
     public override ChannelReader<TerraformMessage>? MessageOutput => Command.PlanOutput;
     public override ChannelReader<string>? JsonOutput => Command.PlanJsonOutput;
-    
+
+    protected override void CreateCommand()
+    {
+        Command = new PlanGenerator(
+            envOptions.Value.BinaryPath,
+            FullWorkingDirectory,
+            planFileName: Path.Join(workerOptions.Value.PlanStorageRoot, $"{Id}.tfplan"),
+            outputFormat: OutputFormat.Parsed | OutputFormat.Json,
+            logger: logger,
+            subLogger: subLogger
+        );
+    }
+
     public override string Name => "Plan";
     public override bool Retryable => true;
     
     public override async Task<IStageResult> Run(CancellationToken ct = default)
     {
-        Command = new PlanGenerator(
-            envOptions.Value.BinaryPath,
-            _workingDirectory,
-            planFileName: "",
-            outputFormat: OutputFormat.Parsed | OutputFormat.Json,
-            logger: logger,
-            subLogger: subLogger
-        );
-        
         try
         {
             var planJson = await Command.Run(ct).ConfigureAwait(false);

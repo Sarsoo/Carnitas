@@ -16,18 +16,21 @@ public class InitStage(
     public Init Command { get; private set; }
     public override ChannelReader<TerraformMessage>? MessageOutput => Command.Output;
     public override ChannelReader<string>? JsonOutput => Command.JsonOutput;
-    
+
+    protected override void CreateCommand()
+    {
+        Command = new Init(
+            envOptions.Value.BinaryPath,
+            FullWorkingDirectory,
+            logger: logger
+        );
+    }
+
     public override string Name => "Init";
     public override bool Retryable => true;
     
     public override async Task<IStageResult> Run(CancellationToken ct = default)
     {
-        Command = new Init(
-            envOptions.Value.BinaryPath,
-            _workingDirectory,
-            logger: logger
-        );
-        
         try
         {
             await Command.Run(ct).ConfigureAwait(false);

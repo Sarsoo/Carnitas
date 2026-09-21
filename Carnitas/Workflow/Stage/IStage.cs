@@ -6,7 +6,6 @@ namespace Carnitas.Workflow.Stage;
 
 public interface IStage: IJob
 {
-    string Id { get; }
     string Name { get; }
     bool Retryable { get; }
     Task<IStageResult> Run(CancellationToken ct = default);

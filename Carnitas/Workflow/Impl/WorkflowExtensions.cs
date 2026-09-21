@@ -12,7 +12,7 @@ public static class WorkflowExtensions
             string planId)
             => sp.GetPlanWorkflow<IWorkflowOrchestrator>(moduleDirectory,  workflowId, initId, planId);
         
-        public IWorkflowOrchestrator GetPlanWorkflow<T>(string moduleDirectory, string workflowId, string initId, string planId) where T: IWorkflowOrchestrator
+        public T GetPlanWorkflow<T>(string moduleDirectory, string workflowId, string initId, string planId) where T: IWorkflowOrchestrator
         {
             var orchestrator = sp.GetRequiredService<T>();
         
@@ -27,6 +27,33 @@ public static class WorkflowExtensions
                 .WithId(workflowId)
                 .AddStage(init)
                 .AddStage(plan);
+        
+            return orchestrator;
+        }
+        
+        public IWorkflowOrchestrator GetApplyWorkflow(string moduleDirectory, string workflowId, string initId,
+            string planId)
+            => sp.GetPlanWorkflow<IWorkflowOrchestrator>(moduleDirectory,  workflowId, initId, planId);
+        
+        public T GetApplyWorkflow<T>(string moduleDirectory, string workflowId, string initId, string planId, string applyId) where T: IWorkflowOrchestrator
+        {
+            var orchestrator = sp.GetRequiredService<T>();
+        
+            var init = sp.GetRequiredService<InitStage>()
+                .WithWorkingDirectory(moduleDirectory)
+                .WithId(initId);
+            var plan = sp.GetRequiredService<PlanStage>()
+                .WithWorkingDirectory(moduleDirectory)
+                .WithId(planId);
+            var apply = sp.GetRequiredService<ApplyStage>()
+                .WithWorkingDirectory(moduleDirectory)
+                .WithId(applyId);
+
+            orchestrator
+                .WithId(workflowId)
+                .AddStage(init)
+                .AddStage(plan)
+                .AddStage(apply);
         
             return orchestrator;
         }

@@ -68,12 +68,18 @@ message OperationRequest {
 
 message WorkflowRequestResponse {
   string id = 1;
-  string repo = 2;
+  string repo_url = 2;
   string module_path = 3;
   repeated OperationResponse operations = 4;
 }
 
 message OperationResponse {
   string id = 1;
-  string operation = 2;
+  OperationType operation = 2;
+}
+
+enum OperationType {
+  OPERATION_INIT = 0;
+  OPERATION_PLAN = 1;
+  OPERATION_APPLY = 2;
 }

@@ -16,18 +16,21 @@ public class ApplyStage(
     public Apply Command { get; private set; }
     public override ChannelReader<TerraformMessage>? MessageOutput => Command.Output;
     public override ChannelReader<string>? JsonOutput => Command.JsonOutput;
-    
+
+    protected override void CreateCommand()
+    {
+        Command = new Apply(
+            envOptions.Value.BinaryPath,
+            FullWorkingDirectory,
+            logger: logger
+        );
+    }
+
     public override string Name => "Apply";
     public override bool Retryable => true;
     
     public override async Task<IStageResult> Run(CancellationToken ct = default)
     {
-        Command = new Apply(
-            envOptions.Value.BinaryPath,
-            _workingDirectory,
-            logger: logger
-        );
-        
         try
         {
             await Command.Run(ct).ConfigureAwait(false);

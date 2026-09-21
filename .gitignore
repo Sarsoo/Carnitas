@@ -4,6 +4,8 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 
+MudBlazor
+
 .idea
 
 ## Ignore Visual Studio temporary files, build results, and
