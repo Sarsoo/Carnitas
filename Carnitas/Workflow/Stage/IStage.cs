@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using Carnitas.Job;
+using Sarsoo.Terraform.Command;
 using Sarsoo.Terraform.MachineReadableUI;
 
 namespace Carnitas.Workflow.Stage;
@@ -11,7 +12,7 @@ public interface IStage: IJob
     Task<IStageResult> Run(CancellationToken ct = default);
 }
 
-public interface ITerraformStage: IStage
+public interface ITerraformStage: IStage, ITerraformCommand
 {
     public ChannelReader<TerraformMessage>? MessageOutput { get; }
     public ChannelReader<string>? JsonOutput { get; }

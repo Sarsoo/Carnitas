@@ -55,4 +55,7 @@ public abstract class TerraformStageBuilder<TSelf>: IJob, ITerraformStage
     public abstract Task<IStageResult> Run(CancellationToken ct = default);
     public abstract ChannelReader<TerraformMessage>? MessageOutput { get; }
     public abstract ChannelReader<string>? JsonOutput { get; }
+    
+    public abstract bool Errored { get; }
+    public abstract int ExitCode { get; }
 }

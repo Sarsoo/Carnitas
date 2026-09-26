@@ -19,8 +19,11 @@ public class PlanTerraformStage(
     : TerraformStageBuilder<PlanTerraformStage>, IStage
 {
     public PlanGenerator Command { get; private set; }
-    public override ChannelReader<TerraformMessage>? MessageOutput => Command.PlanOutput;
-    public override ChannelReader<string>? JsonOutput => Command.PlanJsonOutput;
+    public override ChannelReader<TerraformMessage>? MessageOutput => Command.Output;
+    public override ChannelReader<string>? JsonOutput => Command.JsonOutput;
+    
+    public override bool Errored => Command.Errored;
+    public override int ExitCode => Command.ExitCode;
 
     protected override void CreateCommand()
     {
