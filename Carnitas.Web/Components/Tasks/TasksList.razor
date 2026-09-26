@@ -13,7 +13,7 @@
                StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary">Enqueue</MudButton>
 </MudToolBar>
 
-<MudDataGrid Items="_tasks" Filterable="true" Hover="true" Dense="true">
+<MudDataGrid T="QueuedTask" Items="_tasks" Filterable="true" Hover="true" Dense="true" RowClick="OnRowClick" RowClass="cursor-pointer">
     <Columns>
         <TemplateColumn Title="State">
             <CellTemplate>
@@ -51,6 +51,11 @@
         .ThenInclude(m => m.Repository)
         .ThenInclude(r => r.Organisation)
         .Include(t => t.Operations);
+    
+    void OnRowClick(DataGridRowClickEventArgs<QueuedTask> args)
+    {
+        Navigation.NavigateTo($"/Task/{args.Item.Id}");
+    }
 
     private async Task OpenDialogAsync()
     {

@@ -14,6 +14,7 @@
 }
 else
 {
+    <MudBreadcrumbs Items="breadcrumbs"></MudBreadcrumbs>
     <MudCard Elevation="0" Class="mb-4">
         <MudCardContent>
             <MudText Typo="Typo.h5">@run.GetType().Name</MudText>
@@ -37,26 +38,9 @@ else
             {
                 <MudText Typo="Typo.body2">Log: @run.LogPath</MudText>
             }
-            @if (run.Module is not null)
-            {
-                var moduleLink = $"/Repo/{run.Module.RepositoryId}/Module/{run.ModuleId}";
-
-                <MudButton Variant="Variant.Text" Color="Color.Primary"
-                           Href=@moduleLink >
-                    @run.Module.Name
-                </MudButton>
-            }
             @if (run.Checkout is not null)
             {
                 <MudText Typo="Typo.body2">Checkout: @run.Checkout.Path</MudText>
-            }
-            @if (run.QueuedTaskId is not null)
-            {
-                var taskLink = $"/Task/{run.QueuedTaskId}";
-
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@taskLink>
-                    Queued Task
-                </MudButton>
             }
         </MudCardContent>
     </MudCard>
@@ -87,6 +71,13 @@ else
     private OperationRun? run;
     private List<OperationRunLogEntry> logEntries = new();
 
+    private List<BreadcrumbItem> breadcrumbs => [
+        new(run.Module.Repository?.Organisation?.Name, $"/Org/{run.Module.Repository.OrganisationId}", icon: Icons.Material.Filled.Domain),
+        new(run.Module.Repository?.Name, $"/Repo/{run.Module.RepositoryId}", icon: Icons.Material.Filled.Code),
+        new(run.Module.Name, $"/Repo/{run.Module.RepositoryId}/Module/{run.ModuleId}", icon: Icons.Material.Filled.SnippetFolder),
+        new(run.GetType().Name, $"/Task/{run.QueuedTaskId}"),
+    ];
+
     private static string InitiatorLabel(InitiatorType type, ApplicationUser? user, string? userId) =>
         type == InitiatorType.User
             ? user?.UserName ?? user?.Email ?? userId ?? "Unknown user"
@@ -96,6 +87,8 @@ else
     {
         run = await Db.OperationRuns
             .Include(r => r.Module)
+            .ThenInclude(m => m.Repository)
+            .ThenInclude(r => r.Organisation)
             .Include(r => r.Checkout)
             .Include(r => r.InitiatorUser)
             .SingleOrDefaultAsync(r => r.Id == Id);

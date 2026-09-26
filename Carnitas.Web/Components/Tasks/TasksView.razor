@@ -14,6 +14,7 @@
 }
 else
 {
+    <MudBreadcrumbs Items="breadcrumbs"></MudBreadcrumbs>
     <MudCard Elevation="0" Class="mb-4">
         <MudCardContent>
             <MudText Typo="Typo.h5">@task.Module?.Name</MudText>
@@ -42,26 +43,6 @@ else
             {
                 <MudText Typo="Typo.body2" Color="Color.Error">Error: @task.LastError</MudText>
             }
-            <MudStack Row="true" Class="pt-5">
-                @if (task.Module is not null)
-                {
-                    var orgLink = $"/Org/{task.Module.Repository.OrganisationId}";
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Domain" Href=@orgLink>
-                        @task.Repository?.Organisation?.Name
-                    </MudButton>
-                    
-                    var repoLink = $"/Repo/{task.Module.RepositoryId}";
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Code" Href=@repoLink>
-                        @task.Repository?.Name
-                    </MudButton>
-                    
-                    var moduleLink = $"/Repo/{task.Module.RepositoryId}/Module/{task.ModuleId}";
-
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.SnippetFolder" Href=@moduleLink>
-                        @task.Module.Name
-                    </MudButton>
-                }
-            </MudStack>
         </MudCardContent>
     </MudCard>
 
@@ -115,6 +96,12 @@ else
 
     private QueuedTask? task;
     private List<OperationRun> runs = new();
+
+    private List<BreadcrumbItem> breadcrumbs => [
+        new(task.Module.Repository?.Organisation?.Name, $"/Org/{task.Module.Repository.OrganisationId}", icon: Icons.Material.Filled.Domain),
+        new(task.Module.Repository?.Name, $"/Repo/{task.Module.RepositoryId}", icon: Icons.Material.Filled.Code),
+        new(task.Module.Name, $"/Repo/{task.Module.RepositoryId}/Module/{task.ModuleId}", icon: Icons.Material.Filled.SnippetFolder),
+    ];
 
     private static string InitiatorLabel(InitiatorType type, ApplicationUser? user, string? userId) =>
         type == InitiatorType.User

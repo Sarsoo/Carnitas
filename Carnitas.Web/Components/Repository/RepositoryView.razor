@@ -17,6 +17,7 @@
 }
 else
 {
+    <MudBreadcrumbs Items="breadcrumbs"></MudBreadcrumbs>
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-4"
                StartIcon="@Icons.Material.Filled.Add" OnClick="EnqueueAsync">Enqueue Task</MudButton>
 
@@ -36,6 +37,9 @@ else
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="Module" />
+                </PagerContent>
             </MudDataGrid>
         </MudTabPanel>
         <MudTabPanel Text="Drift">
@@ -53,6 +57,10 @@ else
 
     private Repository? repo;
 
+    private List<BreadcrumbItem> breadcrumbs => [
+        new(repo?.Organisation?.Name, $"/Org/{repo.OrganisationId}", icon: Icons.Material.Filled.Domain),
+    ];
+
     private MudDataGrid<Module> _elementGrid = null!;
     private IQueryable<Module> RootModules => Db.Repository
         .Where(r => r.Id == Id)
@@ -67,6 +75,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         repo = await Db.Repository.FindAsync([Id]);
+        repo.Organisation = await Db.Organisations.FindAsync([repo.OrganisationId]);
     }
 
     private async Task ReloadRepo()

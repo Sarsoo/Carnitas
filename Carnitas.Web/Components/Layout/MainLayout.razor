@@ -1,6 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using Carnitas.Web.Theme
+@inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode="true" />
+<MudThemeProvider Theme="new Catpuccin()"  @ref="_mudThemeProvider" @bind-IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -28,5 +29,25 @@
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+    
+    private bool _isDarkMode;
+    private MudThemeProvider _mudThemeProvider;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await _mudThemeProvider.GetSystemDarkModeAsync();
+            await _mudThemeProvider.WatchSystemDarkModeAsync(OnSystemDarkModeChanged);
+            StateHasChanged();
+        }
+    }
+
+    private Task OnSystemDarkModeChanged(bool newValue)
+    {
+        _isDarkMode = newValue;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 }

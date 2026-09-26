@@ -16,6 +16,7 @@
 }
 else
 {
+    <MudBreadcrumbs Items="breadcrumbs"></MudBreadcrumbs>
     <MudCard Elevation="0" Class="mb-4">
         <MudCardHeader>
             <CardHeaderContent>
@@ -28,21 +29,6 @@ else
             {
                 <MudText Typo="Typo.body2">Tracking Branch: @module.TrackingBranch</MudText>
             }
-            
-            <MudStack Row="true" Class="pt-5">
-                @if (module?.Repository is not null)
-                {
-                    var orgLink = $"/Org/{module.Repository.OrganisationId}";
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Domain" Href=@orgLink>
-                        @module.Repository?.Organisation?.Name
-                    </MudButton>
-                    
-                    var repoLink = $"/Repo/{module.RepositoryId}";
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Code" Href=@repoLink>
-                        @module.Repository?.Name
-                    </MudButton>
-                }
-            </MudStack>
         </MudCardContent>
         <MudCardActions>
             <MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -84,6 +70,11 @@ else
 
     private RootModule? module;
     private List<OperationRun> runs = new();
+
+    private List<BreadcrumbItem> breadcrumbs => [
+        new(module.Repository?.Organisation?.Name, $"/Org/{module.Repository.OrganisationId}", icon: Icons.Material.Filled.Domain),
+        new(module.Repository?.Name, $"/Repo/{module.RepositoryId}", icon: Icons.Material.Filled.Code)
+    ];
 
     private async Task EnqueueAsync()
     {
