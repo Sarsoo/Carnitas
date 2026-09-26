@@ -1,10 +1,12 @@
 using System.Threading.Channels;
 using Carnitas.Workflow.Stage;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Carnitas.Workflow.Output;
 
 public class TerraformStageOutputCapture(
+    ILogger<TerraformStageOutputCapture> logger,
     ILogReporter? logReporter = null
 ): BackgroundService, ITerraformStageOutputCapture
 {
@@ -35,19 +37,20 @@ public class TerraformStageOutputCapture(
             return;
         }
 
-        var batch = new List<StageLogLine>(BatchSize);
+        // var batch = new List<StageLogLine>(BatchSize);
 
         await foreach (var message in stage.MessageOutput.ReadAllAsync(cancel).ConfigureAwait(false))
         {
-            batch.Add(new StageLogLine(stage.Id, message?.ToString() ?? string.Empty, "Information", "Message"));
-
-            if (batch.Count >= BatchSize)
-            {
-                await Flush(batch, cancel).ConfigureAwait(false);
-            }
+            logger.LogDebug(message.ToString());
+            // batch.Add(new StageLogLine(stage.Id, message?.ToString() ?? string.Empty, "Information", "Message"));
+            //
+            // if (batch.Count >= BatchSize)
+            // {
+            //     await Flush(batch, cancel).ConfigureAwait(false);
+            // }
         }
 
-        await Flush(batch, cancel).ConfigureAwait(false);
+        // await Flush(batch, cancel).ConfigureAwait(false);
     }
 
     private async Task ProcessStageJson(ITerraformStage stage, CancellationToken cancel)

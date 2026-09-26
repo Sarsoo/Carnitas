@@ -22,7 +22,8 @@ public class InitTerraformStage(
         Command = new Init(
             envOptions.Value.BinaryPath,
             FullWorkingDirectory,
-            logger: logger
+            logger: logger,
+            outputFormat: OutputFormat.Json | OutputFormat.Parsed
         );
     }
 
@@ -34,7 +35,7 @@ public class InitTerraformStage(
         try
         {
             await Command.Run(ct).ConfigureAwait(false);
-            return new StageResult(Id, StageState.Success);
+            return Command.Errored ? new StageResult(Id, StageState.Failure) : new StageResult(Id, StageState.Success);
         }
         catch (Exception)
         {

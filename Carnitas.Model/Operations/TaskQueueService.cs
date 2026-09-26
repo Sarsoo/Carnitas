@@ -174,7 +174,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
                     Timestamp = DateTime.UtcNow,
                     Level = string.IsNullOrWhiteSpace(line.Level) ? "Information" : line.Level,
                     Type = string.IsNullOrWhiteSpace(line.Type) ? "Output" : line.Type,
-                    Payload = JsonSerializer.SerializeToElement(line.Log)
+                    Payload = JsonElement.Parse(line.Log)
                 });
             }
         }
