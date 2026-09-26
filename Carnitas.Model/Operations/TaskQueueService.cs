@@ -1,14 +1,16 @@
 using System.Text.Json;
 using Carnitas.Model.Source;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Carnitas.Model.Operations;
 
-public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options): ITaskQueue
+public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options, ILogger<TaskQueueService>? logger = null): ITaskQueue
 {
     public async Task<QueuedTask> EnqueueAsync(EnqueueTaskRequest request, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
+        var initiatorUserId = request.InitiatorType == InitiatorType.User ? request.InitiatorUserId : null;
 
         var task = new QueuedTask
         {
@@ -19,7 +21,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
             ModuleId = request.ModuleId,
             RepositoryId = request.RepositoryId,
             InitiatorType = request.InitiatorType,
-            InitiatorUserId = request.InitiatorType == InitiatorType.User ? request.InitiatorUserId : null,
+            InitiatorUserId = initiatorUserId,
             State = QueuedTaskState.Queued,
             Priority = request.Priority,
             ScheduledAt = request.ScheduledAt ?? now,
@@ -28,16 +30,43 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
             MaxAttempts = request.MaxAttempts ?? options.MaxAttempts
         };
 
+        string? moduleRepositoryId = null;
+        if (string.IsNullOrWhiteSpace(request.RepositoryId) && !string.IsNullOrWhiteSpace(request.ModuleId))
+        {
+            moduleRepositoryId = await db.Modules
+                .Where(m => m.Id == request.ModuleId)
+                .Select(m => m.RepositoryId)
+                .SingleOrDefaultAsync(ct)
+                .ConfigureAwait(false);
+        }
+
         var sequence = 0;
         foreach (var kind in request.Operations)
         {
+            var operationId = Guid.NewGuid().ToString();
+
             task.Operations.Add(new QueuedTaskOperation
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = operationId,
                 QueuedTaskId = task.Id,
                 Kind = kind,
                 Sequence = sequence++
             });
+
+            var run = CreateRun(kind);
+            run.Id = operationId;
+            run.ModuleId = request.ModuleId;
+            run.QueuedTaskId = task.Id;
+            run.GitReference = request.GitReference;
+            run.InitiatorType = request.InitiatorType;
+            run.InitiatorUserId = initiatorUserId;
+
+            if (run is SourceDiscoveryRun discoveryRun)
+            {
+                discoveryRun.RepositoryId = request.RepositoryId ?? moduleRepositoryId;
+            }
+
+            db.OperationRuns.Add(run);
         }
 
         db.QueuedTasks.Add(task);
@@ -82,6 +111,17 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
         task.Attempts += 1;
         task.StartedAt ??= now;
 
+        var operationIds = task.Operations.Select(o => o.Id).ToList();
+        var runs = await db.OperationRuns
+            .Where(r => operationIds.Contains(r.Id))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        foreach (var run in runs)
+        {
+            run.StartTime ??= now;
+        }
+
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);
 
@@ -117,7 +157,14 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
         }
 
         var now = DateTime.UtcNow;
-        var run = await EnsureRunAsync(operation, ct).ConfigureAwait(false);
+        var run = await GetRunAsync(operation.Id, ct).ConfigureAwait(false);
+
+        if (run is null)
+        {
+            logger?.LogWarning("No operation run found for operation {operationId}; status not recorded", operationId);
+            return;
+        }
+
         run.EndTime = now;
         run.ExitCode = exitCode ?? (success ? 0 : 1);
 
@@ -155,7 +202,13 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
                 continue;
             }
 
-            var run = await EnsureRunAsync(operation, ct).ConfigureAwait(false);
+            var run = await GetRunAsync(operation.Id, ct).ConfigureAwait(false);
+
+            if (run is null)
+            {
+                logger?.LogWarning("No operation run found for operation {operationId}; logs dropped", operation.Id);
+                continue;
+            }
 
             var lastSequence = await db.OperationRunLogEntries
                 .Where(e => e.OperationRunId == run.Id)
@@ -195,7 +248,13 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
             return;
         }
 
-        var run = await EnsureRunAsync(operation, ct).ConfigureAwait(false);
+        var run = await GetRunAsync(operation.Id, ct).ConfigureAwait(false);
+
+        if (run is null)
+        {
+            logger?.LogWarning("No operation run found for operation {operationId}; plan not recorded", operationId);
+            return;
+        }
 
         if (!string.IsNullOrWhiteSpace(planFilePath))
         {
@@ -342,34 +401,9 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
             .ConfigureAwait(false);
     }
 
-    private async Task<OperationRun> EnsureRunAsync(QueuedTaskOperation operation, CancellationToken ct)
+    private async Task<OperationRun?> GetRunAsync(string operationId, CancellationToken ct)
     {
-        var run = await db.OperationRuns.FindAsync(new object?[] { operation.Id }, ct).ConfigureAwait(false);
-
-        if (run is not null)
-        {
-            return run;
-        }
-
-        run = CreateRun(operation.Kind);
-        run.Id = operation.Id;
-        run.ModuleId = operation.QueuedTask.ModuleId;
-        run.QueuedTaskId = operation.QueuedTask.Id;
-        run.GitReference = operation.QueuedTask.GitReference;
-
-        if (run is SourceDiscoveryRun discoveryRun)
-        {
-            discoveryRun.RepositoryId = operation.QueuedTask.RepositoryId
-                ?? operation.QueuedTask.Module?.RepositoryId;
-        }
-        run.InitiatorType = operation.QueuedTask.InitiatorType;
-        run.InitiatorUserId = operation.QueuedTask.InitiatorUserId;
-        run.StartTime = operation.QueuedTask.StartedAt ?? DateTime.UtcNow;
-        run.EndTime = DateTime.UtcNow;
-
-        db.OperationRuns.Add(run);
-
-        return run;
+        return await db.OperationRuns.FindAsync(new object?[] { operationId }, ct).ConfigureAwait(false);
     }
 
     private async Task RecomputeTaskStateAsync(string taskId, string? error, CancellationToken ct)

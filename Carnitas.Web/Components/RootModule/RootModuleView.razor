@@ -56,8 +56,8 @@ else
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context.GetType().Name</MudTd>
-            <MudTd>@context.StartTime</MudTd>
-            <MudTd>@context.EndTime</MudTd>
+            <MudTd>@(context.StartTime?.ToString() ?? "—")</MudTd>
+            <MudTd>@(context.EndTime?.ToString() ?? "—")</MudTd>
             <MudTd>@context.ExitCode?.ToString()</MudTd>
             <MudTd>@context.CommitSha</MudTd>
             <MudTd>

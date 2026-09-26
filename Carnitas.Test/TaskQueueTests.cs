@@ -346,9 +346,9 @@ public class TaskQueueTests
 
         await queueService.AppendLogsAsync(new[]
         {
-            new LogLine(operationId, "one", "Information", "Output"),
-            new LogLine(operationId, "two", "Information", "Output"),
-            new LogLine(operationId, "three", "Information", "Output")
+            new LogLine(operationId, "{\"message\":\"one\"}", "Information", "Output"),
+            new LogLine(operationId, "{\"message\":\"two\"}", "Information", "Output"),
+            new LogLine(operationId, "{\"message\":\"three\"}", "Information", "Output")
         });
 
         var entries = await db.OperationRunLogEntries
@@ -429,5 +429,200 @@ public class TaskQueueTests
         Assert.Equal(operationIds.Count, runs.Count);
         Assert.All(runs, r => Assert.Equal(InitiatorType.User, r.InitiatorType));
         Assert.All(runs, r => Assert.Equal(userId, r.InitiatorUserId));
+    }
+
+    [Fact]
+    public async Task EnqueueCreatesOperationRuns()
+    {
+        if (!TryGetConnectionString(out var connectionString))
+        {
+            Assert.Skip("CARNITAS_TEST_DB is not set");
+            return;
+        }
+
+        await PrepareDatabaseAsync(connectionString);
+
+        await using var db = CreateContext(connectionString);
+        var moduleId = await CreateModuleAsync(db, "enqueue-runs-module");
+        var queue = new TaskQueueService(db, new TaskQueueOptions());
+
+        var task = await queue.EnqueueAsync(Request(moduleId, OperationKind.Init, OperationKind.Plan) with
+        {
+            GitReference = "feature/x",
+            RepositoryId = RepositoryId
+        });
+
+        Assert.Equal(2, task.Operations.Count);
+
+        var runs = await db.OperationRuns
+            .Where(r => r.QueuedTaskId == task.Id)
+            .ToListAsync();
+
+        Assert.Equal(2, runs.Count);
+        Assert.Contains(runs, r => r is InitRun);
+        Assert.Contains(runs, r => r is PlanRun);
+
+        foreach (var operation in task.Operations)
+        {
+            var run = runs.Single(r => r.Id == operation.Id);
+            Assert.Equal(task.Id, run.QueuedTaskId);
+            Assert.Equal(moduleId, run.ModuleId);
+            Assert.Equal("feature/x", run.GitReference);
+            Assert.Equal(InitiatorType.System, run.InitiatorType);
+            Assert.Null(run.InitiatorUserId);
+            Assert.Null(run.StartTime);
+            Assert.Null(run.EndTime);
+        }
+    }
+
+    [Fact]
+    public async Task ConcurrentLogBatchesDoNotDuplicateRuns()
+    {
+        if (!TryGetConnectionString(out var connectionString))
+        {
+            Assert.Skip("CARNITAS_TEST_DB is not set");
+            return;
+        }
+
+        await PrepareDatabaseAsync(connectionString);
+
+        string operationId;
+
+        await using (var seed = CreateContext(connectionString))
+        {
+            var moduleId = await CreateModuleAsync(seed, "concurrent-logs-module");
+            var queue = new TaskQueueService(seed, new TaskQueueOptions());
+            var task = await queue.EnqueueAsync(Request(moduleId));
+            operationId = task.Operations.OrderBy(o => o.Sequence).First().Id;
+        }
+
+        var contexts = Enumerable.Range(0, 2)
+            .Select(_ => CreateContext(connectionString))
+            .ToList();
+
+        try
+        {
+            await Task.WhenAll(contexts.Select((context, index) => Task.Run(async () =>
+            {
+                var queue = new TaskQueueService(context, new TaskQueueOptions());
+                await queue.AppendLogsAsync(new[]
+                {
+                    new LogLine(operationId, $"{{\"message\":\"batch-{index}\"}}", "Information", "Output")
+                });
+            })));
+        }
+        finally
+        {
+            foreach (var context in contexts)
+            {
+                await context.DisposeAsync();
+            }
+        }
+
+        await using var db = CreateContext(connectionString);
+
+        var runCount = await db.OperationRuns.CountAsync(r => r.Id == operationId);
+        Assert.Equal(1, runCount);
+
+        var logCount = await db.OperationRunLogEntries.CountAsync(e => e.OperationRunId == operationId);
+        Assert.Equal(2, logCount);
+    }
+
+    [Fact]
+    public async Task ClaimStampsRunStartTime()
+    {
+        if (!TryGetConnectionString(out var connectionString))
+        {
+            Assert.Skip("CARNITAS_TEST_DB is not set");
+            return;
+        }
+
+        await PrepareDatabaseAsync(connectionString);
+
+        await using var db = CreateContext(connectionString);
+        var moduleId = await CreateModuleAsync(db, "claim-start-module");
+        var queue = new TaskQueueService(db, new TaskQueueOptions());
+        var task = await queue.EnqueueAsync(Request(moduleId));
+        var operationId = task.Operations.OrderBy(o => o.Sequence).First().Id;
+
+        var claimed = await queue.ClaimNextAsync("worker", TimeSpan.FromMinutes(5));
+        Assert.NotNull(claimed);
+
+        var firstRun = await db.OperationRuns.SingleAsync(r => r.Id == operationId);
+        Assert.NotNull(firstRun.StartTime);
+        var firstStart = firstRun.StartTime;
+
+        claimed!.LockedUntil = DateTime.UtcNow.AddMinutes(-5);
+        await db.SaveChangesAsync();
+
+        var reclaimed = await queue.ClaimNextAsync("worker-2", TimeSpan.FromMinutes(5));
+        Assert.NotNull(reclaimed);
+
+        var secondRun = await db.OperationRuns.SingleAsync(r => r.Id == operationId);
+        Assert.Equal(firstStart, secondRun.StartTime);
+    }
+
+    [Fact]
+    public async Task SourceDiscoveryRunGetsRepositoryIdAtEnqueue()
+    {
+        if (!TryGetConnectionString(out var connectionString))
+        {
+            Assert.Skip("CARNITAS_TEST_DB is not set");
+            return;
+        }
+
+        await PrepareDatabaseAsync(connectionString);
+
+        await using var db = CreateContext(connectionString);
+        var moduleId = await CreateModuleAsync(db, "discovery-repo-module");
+        var queue = new TaskQueueService(db, new TaskQueueOptions());
+
+        var explicitRepo = await queue.EnqueueAsync(
+            Request(moduleId, OperationKind.DiscoverSource) with { RepositoryId = RepositoryId });
+
+        var explicitRun = Assert.IsType<SourceDiscoveryRun>(await db.OperationRuns
+            .SingleAsync(r => r.QueuedTaskId == explicitRepo.Id));
+        Assert.Equal(RepositoryId, explicitRun.RepositoryId);
+
+        var inferredRepo = await queue.EnqueueAsync(Request(moduleId, OperationKind.DiscoverSource));
+
+        var inferredRun = Assert.IsType<SourceDiscoveryRun>(await db.OperationRuns
+            .SingleAsync(r => r.QueuedTaskId == inferredRepo.Id));
+        Assert.Equal(RepositoryId, inferredRun.RepositoryId);
+    }
+
+    [Fact]
+    public async Task MissingRunIsSkipped()
+    {
+        if (!TryGetConnectionString(out var connectionString))
+        {
+            Assert.Skip("CARNITAS_TEST_DB is not set");
+            return;
+        }
+
+        await PrepareDatabaseAsync(connectionString);
+
+        await using var db = CreateContext(connectionString);
+        var moduleId = await CreateModuleAsync(db, "missing-run-module");
+        var queue = new TaskQueueService(db, new TaskQueueOptions());
+        var task = await queue.EnqueueAsync(Request(moduleId));
+        var operationId = task.Operations.OrderBy(o => o.Sequence).First().Id;
+
+        var run = await db.OperationRuns.SingleAsync(r => r.Id == operationId);
+        db.OperationRuns.Remove(run);
+        await db.SaveChangesAsync();
+
+        await queue.AppendLogsAsync(new[]
+        {
+            new LogLine(operationId, "{\"message\":\"orphan\"}", "Information", "Output")
+        });
+        await queue.SubmitPlanAsync(operationId, "{\"plan\":true}", "/tmp/plan", CancellationToken.None);
+        await queue.ReportOperationStatusAsync(operationId, true, 0, null);
+
+        var runCount = await db.OperationRuns.CountAsync(r => r.Id == operationId);
+        Assert.Equal(0, runCount);
+
+        var logCount = await db.OperationRunLogEntries.CountAsync(e => e.OperationRunId == operationId);
+        Assert.Equal(0, logCount);
     }
 }
