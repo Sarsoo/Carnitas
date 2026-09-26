@@ -16,10 +16,10 @@ public static class WorkflowExtensions
         {
             var orchestrator = sp.GetRequiredService<T>();
         
-            var init = sp.GetRequiredService<InitStage>()
+            var init = sp.GetRequiredService<InitTerraformStage>()
                 .WithWorkingDirectory(moduleDirectory)
                 .WithId(initId);
-            var plan = sp.GetRequiredService<PlanStage>()
+            var plan = sp.GetRequiredService<PlanTerraformStage>()
                 .WithWorkingDirectory(moduleDirectory)
                 .WithId(planId);
 
@@ -39,13 +39,13 @@ public static class WorkflowExtensions
         {
             var orchestrator = sp.GetRequiredService<T>();
         
-            var init = sp.GetRequiredService<InitStage>()
+            var init = sp.GetRequiredService<InitTerraformStage>()
                 .WithWorkingDirectory(moduleDirectory)
                 .WithId(initId);
-            var plan = sp.GetRequiredService<PlanStage>()
+            var plan = sp.GetRequiredService<PlanTerraformStage>()
                 .WithWorkingDirectory(moduleDirectory)
                 .WithId(planId);
-            var apply = sp.GetRequiredService<ApplyStage>()
+            var apply = sp.GetRequiredService<ApplyTerraformStage>()
                 .WithWorkingDirectory(moduleDirectory)
                 .WithId(applyId);
 

@@ -7,11 +7,11 @@ using Sarsoo.Terraform.MachineReadableUI;
 
 namespace Carnitas.Workflow.Stage.Terraform;
 
-public class InitStage(
+public class InitTerraformStage(
     IOptions<TerraformEnvironmentOptions> envOptions,
     ILogger<TerraformStreamCommand>? logger = null
 )
-    : StageBuilder<InitStage>, IStage
+    : TerraformStageBuilder<InitTerraformStage>, IStage
 {
     public Init Command { get; private set; }
     public override ChannelReader<TerraformMessage>? MessageOutput => Command.Output;

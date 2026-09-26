@@ -4,15 +4,15 @@ using Microsoft.Extensions.Hosting;
 
 namespace Carnitas.Workflow.Output;
 
-public class WorkflowOutputCapture(
+public class TerraformStageOutputCapture(
     ILogReporter? logReporter = null
-): BackgroundService, IWorkflowOutputCapture
+): BackgroundService, ITerraformStageOutputCapture
 {
     private const int BatchSize = 50;
 
-    private readonly Channel<IStage> _stageQueue = Channel.CreateUnbounded<IStage>();
+    private readonly Channel<ITerraformStage> _stageQueue = Channel.CreateUnbounded<ITerraformStage>();
 
-    public ValueTask AddStage(IStage stage)
+    public ValueTask AddStage(ITerraformStage stage)
     {
         return _stageQueue.Writer.WriteAsync(stage);
     }
@@ -28,7 +28,7 @@ public class WorkflowOutputCapture(
         }
     }
 
-    private async Task ProcessStageMessages(IStage stage, CancellationToken cancel)
+    private async Task ProcessStageMessages(ITerraformStage stage, CancellationToken cancel)
     {
         if (stage.MessageOutput is null)
         {
@@ -50,7 +50,7 @@ public class WorkflowOutputCapture(
         await Flush(batch, cancel).ConfigureAwait(false);
     }
 
-    private async Task ProcessStageJson(IStage stage, CancellationToken cancel)
+    private async Task ProcessStageJson(ITerraformStage stage, CancellationToken cancel)
     {
         if (stage.JsonOutput is null)
         {

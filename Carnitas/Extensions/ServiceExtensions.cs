@@ -30,9 +30,9 @@ public static class ServiceExtensions
         public IServiceCollection AddWorkflow()
         {
             serviceCollection
-                .AddSingleton<WorkflowOutputCapture>()
-                .AddSingleton<IWorkflowOutputCapture, WorkflowOutputCapture>(sp => sp.GetRequiredService<WorkflowOutputCapture>())
-                .AddHostedService<WorkflowOutputCapture>(sp => sp.GetRequiredService<WorkflowOutputCapture>())
+                .AddSingleton<TerraformStageOutputCapture>()
+                .AddSingleton<ITerraformStageOutputCapture, TerraformStageOutputCapture>(sp => sp.GetRequiredService<TerraformStageOutputCapture>())
+                .AddHostedService<TerraformStageOutputCapture>(sp => sp.GetRequiredService<TerraformStageOutputCapture>())
                 
                 .AddSingleton<JobDispatcher>()
                 .AddSingleton<IJobDispatcher, JobDispatcher>(sp => sp.GetRequiredService<JobDispatcher>())
@@ -47,14 +47,14 @@ public static class ServiceExtensions
         public IServiceCollection AddWorkflowStages()
         {
             serviceCollection
-                .AddTransient<InitStage>()
-                .AddTransient<IStage, InitStage>()
+                .AddTransient<InitTerraformStage>()
+                .AddTransient<IStage, InitTerraformStage>()
                 
-                .AddTransient<PlanStage>()
-                .AddTransient<IStage, PlanStage>()
+                .AddTransient<PlanTerraformStage>()
+                .AddTransient<IStage, PlanTerraformStage>()
                 
-                .AddTransient<ApplyStage>()
-                .AddTransient<IStage, ApplyStage>();
+                .AddTransient<ApplyTerraformStage>()
+                .AddTransient<IStage, ApplyTerraformStage>();
             
             return serviceCollection;
         }

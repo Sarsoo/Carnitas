@@ -1,6 +1,4 @@
-using System.Threading.Channels;
 using Carnitas.Job;
-using Sarsoo.Terraform.MachineReadableUI;
 
 namespace Carnitas.Workflow.Stage.Terraform;
 
@@ -41,7 +39,7 @@ public abstract class StageBuilder<TSelf>: IJob, IStage
         return (TSelf) this;
     }
     
-    protected string FullWorkingDirectory => Path.Join(BasePath, _workingDirectory);
+    protected string FullWorkingDirectory => !string.IsNullOrWhiteSpace(_workingDirectory) ? Path.Join(BasePath, _workingDirectory) : BasePath;
 
     public async Task Execute(CancellationToken token)
     {
@@ -53,6 +51,4 @@ public abstract class StageBuilder<TSelf>: IJob, IStage
     public abstract string Name { get; }
     public abstract bool Retryable { get; }
     public abstract Task<IStageResult> Run(CancellationToken ct = default);
-    public abstract ChannelReader<TerraformMessage>? MessageOutput { get; }
-    public abstract ChannelReader<string>? JsonOutput { get; }
 }

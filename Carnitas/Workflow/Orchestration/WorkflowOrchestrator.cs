@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Carnitas.Workflow.Orchestration;
 
 public class WorkflowOrchestrator(
-    IWorkflowOutputCapture workflowOutputCapture, 
+    ITerraformStageOutputCapture terraformStageOutputCapture, 
     ILogger<WorkflowOrchestrator> logger
 ): IWorkflowOrchestrator, IDisposable
 {
@@ -42,9 +42,9 @@ public class WorkflowOrchestrator(
         }
     }
 
-    private IWorkflowOutputCapture _outputCapture = workflowOutputCapture;
+    private ITerraformStageOutputCapture _outputCapture = terraformStageOutputCapture;
     
-    public IWorkflowOrchestrator WithOutputCapture(IWorkflowOutputCapture outputCapture)
+    public IWorkflowOrchestrator WithOutputCapture(ITerraformStageOutputCapture outputCapture)
     {
         _outputCapture = outputCapture;
 
@@ -73,8 +73,11 @@ public class WorkflowOrchestrator(
         try
         {
             logger.LogInformation("Starting stage {stage}", nextStage.Name);
-            
-            await _outputCapture.AddStage(nextStage).ConfigureAwait(false);
+
+            if (nextStage is ITerraformStage tfStage)
+            {
+                await _outputCapture.AddStage(tfStage).ConfigureAwait(false);
+            }
             
             var result = await nextStage.Run(token).ConfigureAwait(false);
 

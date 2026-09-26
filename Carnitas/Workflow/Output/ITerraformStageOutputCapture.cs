@@ -2,8 +2,8 @@ using Carnitas.Workflow.Stage;
 
 namespace Carnitas.Workflow.Output;
 
-public interface IWorkflowOutputCapture
+public interface ITerraformStageOutputCapture
 {
-    ValueTask AddStage(IStage stage);
+    ValueTask AddStage(ITerraformStage stage);
     Task Process(CancellationToken cancel = default);
 }

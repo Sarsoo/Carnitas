@@ -9,14 +9,14 @@ using Sarsoo.Terraform.Plan;
 
 namespace Carnitas.Workflow.Stage.Terraform;
 
-public class PlanStage(
+public class PlanTerraformStage(
     IPlanReporter? planReporter,
     IOptions<WorkerOptions> workerOptions,
     IOptions<TerraformEnvironmentOptions> envOptions,
     ILogger<PlanGenerator> logger,
     ILogger<TerraformStreamCommand> subLogger
 )
-    : StageBuilder<PlanStage>, IStage
+    : TerraformStageBuilder<PlanTerraformStage>, IStage
 {
     public PlanGenerator Command { get; private set; }
     public override ChannelReader<TerraformMessage>? MessageOutput => Command.PlanOutput;

@@ -66,7 +66,7 @@ public class SourceScopedWorkflowOrchestrator(
         return this;
     }
 
-    public IWorkflowOrchestrator WithOutputCapture(IWorkflowOutputCapture outputCapture)
+    public IWorkflowOrchestrator WithOutputCapture(ITerraformStageOutputCapture outputCapture)
     {
         _workflowOrchestrator = _workflowOrchestrator.WithOutputCapture(outputCapture);
         return this;

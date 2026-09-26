@@ -6,7 +6,7 @@ namespace Carnitas.Workflow.Output;
 
 public class WorkflowOutputProcessor
 {
-    public async Task ProcessMessage(IStage stage, CancellationToken cancel)
+    public async Task ProcessMessage(ITerraformStage stage, CancellationToken cancel)
     {
         await foreach (var line in stage.MessageOutput.ReadAllAsync(cancel).ConfigureAwait(false))
         {
