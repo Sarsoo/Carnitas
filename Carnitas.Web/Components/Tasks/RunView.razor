@@ -1,0 +1,100 @@
+@page "/Task/Run/{id}"
+@using Carnitas.Model
+@using Carnitas.Model.Operations
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+
+<h3>Operation Run</h3>
+
+@if (run is null)
+{
+    <MudText>Not found</MudText>
+}
+else
+{
+    <MudCard Elevation="0" Class="mb-4">
+        <MudCardContent>
+            <MudText Typo="Typo.h5">@run.GetType().Name</MudText>
+            <MudText Typo="Typo.body2">Id: @run.Id</MudText>
+            <MudText Typo="Typo.body2">Started: @run.StartTime</MudText>
+            <MudText Typo="Typo.body2">Ended: @run.EndTime</MudText>
+            <MudText Typo="Typo.body2">Exit Code: @run.ExitCode?.ToString()</MudText>
+            @if (run.GitReference is not null)
+            {
+                <MudText Typo="Typo.body2">Git Reference: @run.GitReference</MudText>
+            }
+            @if (run.CommitSha is not null)
+            {
+                <MudText Typo="Typo.body2">Commit: @run.CommitSha</MudText>
+            }
+            @if (run.LogPath is not null)
+            {
+                <MudText Typo="Typo.body2">Log: @run.LogPath</MudText>
+            }
+            @if (run.Module is not null)
+            {
+                var moduleLink = $"/Repo/{run.Module.RepositoryId}/Module/{run.ModuleId}";
+
+                <MudButton Variant="Variant.Text" Color="Color.Primary"
+                           Href=@moduleLink >
+                    @run.Module.Name
+                </MudButton>
+            }
+            @if (run.Checkout is not null)
+            {
+                <MudText Typo="Typo.body2">Checkout: @run.Checkout.Path</MudText>
+            }
+            @if (run.QueuedTaskId is not null)
+            {
+                var taskLink = $"/Task/{run.QueuedTaskId}";
+
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@taskLink>
+                    Queued Task
+                </MudButton>
+            }
+        </MudCardContent>
+    </MudCard>
+
+    <MudText Typo="Typo.h6">Log</MudText>
+    <MudTable Items="@logEntries" Dense="true" Hover="true" Class="mt-2">
+        <HeaderContent>
+            <MudTh>Sequence</MudTh>
+            <MudTh>Timestamp</MudTh>
+            <MudTh>Level</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Payload</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Sequence</MudTd>
+            <MudTd>@context.Timestamp</MudTd>
+            <MudTd>@context.Level</MudTd>
+            <MudTd>@context.Type</MudTd>
+            <MudTd>@context.Payload.GetRawText()</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private OperationRun? run;
+    private List<OperationRunLogEntry> logEntries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        run = await Db.OperationRuns
+            .Include(r => r.Module)
+            .Include(r => r.Checkout)
+            .SingleOrDefaultAsync(r => r.Id == Id);
+
+        if (run is not null)
+        {
+            logEntries = await Db.OperationRunLogEntries
+                .Where(e => e.OperationRunId == run.Id)
+                .OrderBy(e => e.Sequence)
+                .ToListAsync();
+        }
+    }
+}

@@ -44,6 +44,8 @@ public class Start: System.CommandLine.Command
             .AddHostedService<OperationRequester>()
             .AddHostedService<OperationDispatcher>()
             .AddSingleton<IPlanReporter, PlanReporter>()
+            .AddSingleton<IStatusReporter, AgentStatusReporter>()
+            .AddSingleton<ILogReporter, AgentLogReporter>()
             .AddCarnitas(host.Configuration);
         
         ///////////////////////

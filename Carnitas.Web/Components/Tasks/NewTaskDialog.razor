@@ -1,0 +1,141 @@
+@using Carnitas.Model
+@using Carnitas.Model.Operations
+@using Carnitas.Model.Source
+@using Carnitas.Model.Source.SourceControl
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject ITaskQueue TaskQueue
+
+<MudDialog>
+    <TitleContent>
+        Enqueue Task
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudSelect T="string" Label="Repository" @bind-Value="_repositoryId"
+                           @bind-Value:after="OnRepositoryChanged">
+                    @foreach (var repository in _repositories)
+                    {
+                        <MudSelectItem Value="@repository.Id">@repository.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="string" Label="Module" @bind-Value="_moduleId">
+                    @foreach (var module in _modules)
+                    {
+                        <MudSelectItem Value="@module.Id">@module.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField Label="Module Path" @bind-Value="_modulePath"
+                              HelperText="Path of the module within the repository checkout"/>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle2">Operations</MudText>
+                <MudCheckBox T="bool" Label="Init" @bind-Value="_init"/>
+                <MudCheckBox T="bool" Label="Plan" @bind-Value="_plan"/>
+                <MudCheckBox T="bool" Label="Apply" @bind-Value="_apply"/>
+            </MudItem>
+            <MudItem xs="12">
+                <MudNumericField T="int" Label="Priority" @bind-Value="_priority"/>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Disabled="@(!CanSubmit)" OnClick="Submit">Enqueue</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public string? RepositoryId { get; set; }
+
+    [Parameter]
+    public string? ModuleId { get; set; }
+
+    [Parameter]
+    public string? ModulePath { get; set; }
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private List<Repository> _repositories = new();
+    private List<Module> _modules = new();
+
+    private string? _repositoryId;
+    private string? _moduleId;
+    private string _modulePath = string.Empty;
+    private bool _init = true;
+    private bool _plan = true;
+    private bool _apply;
+    private int _priority;
+
+    private bool CanSubmit => !string.IsNullOrWhiteSpace(_repositoryId)
+                              && !string.IsNullOrWhiteSpace(_moduleId)
+                              && !string.IsNullOrWhiteSpace(_modulePath)
+                              && (_init || _plan || _apply);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _repositoryId = RepositoryId;
+        _moduleId = ModuleId;
+        _modulePath = ModulePath ?? string.Empty;
+
+        _repositories = await Db.Repository.OrderBy(r => r.Name).ToListAsync();
+
+        if (!string.IsNullOrWhiteSpace(_repositoryId))
+        {
+            await LoadModules();
+        }
+    }
+
+    private async Task OnRepositoryChanged()
+    {
+        _moduleId = null;
+        await LoadModules();
+    }
+
+    private async Task LoadModules()
+    {
+        _modules = await Db.Modules
+            .Where(m => m.RepositoryId == _repositoryId)
+            .OrderBy(m => m.Name)
+            .ToListAsync();
+    }
+
+    private async Task Submit()
+    {
+        var repository = _repositories.Single(r => r.Id == _repositoryId);
+
+        var operations = new List<OperationKind>();
+        if (_init)
+        {
+            operations.Add(OperationKind.Init);
+        }
+
+        if (_plan)
+        {
+            operations.Add(OperationKind.Plan);
+        }
+
+        if (_apply)
+        {
+            operations.Add(OperationKind.Apply);
+        }
+
+        var task = await TaskQueue.EnqueueAsync(new EnqueueTaskRequest(
+            repository.GitUrl,
+            _modulePath,
+            _moduleId!,
+            operations,
+            _priority));
+
+        MudDialog.Close(DialogResult.Ok(task));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

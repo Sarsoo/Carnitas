@@ -6,4 +6,5 @@ public class BackendOptions
     
     public string Url { get; set; }
     public int WorkPollDelay { get; set; } = 5;
+    public int LeaseRenewSeconds { get; set; } = 60;
 }

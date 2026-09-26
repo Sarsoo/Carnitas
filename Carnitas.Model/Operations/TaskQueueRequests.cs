@@ -1,0 +1,12 @@
+namespace Carnitas.Model.Operations;
+
+public record EnqueueTaskRequest(
+    string RepoUrl,
+    string ModulePath,
+    string ModuleId,
+    IReadOnlyList<OperationKind> Operations,
+    int Priority = 0,
+    int? MaxAttempts = null,
+    DateTime? ScheduledAt = null);
+
+public record LogLine(string OperationId, string Log, string Level, string Type);

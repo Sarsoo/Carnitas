@@ -1,6 +1,99 @@
 @page "/Task"
-<h3>Tasks</h3>
+@using Carnitas.Model
+@using Carnitas.Model.Operations
+@using Microsoft.EntityFrameworkCore
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+@inject ApplicationDbContext Db
+
+<MudToolBar>
+    <MudText Typo="Typo.h6">Tasks</MudText>
+    <MudSpacer />
+    <MudSelect T="QueuedTaskState?" Label="State" @bind-Value="_stateFilter" Clearable="true"
+               Class="mr-2" Style="min-width: 160px;">
+        @foreach (var state in Enum.GetValues<QueuedTaskState>())
+        {
+            <MudSelectItem Value="@((QueuedTaskState?) state)">@state</MudSelectItem>
+        }
+    </MudSelect>
+    <MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled"
+               StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary">Enqueue</MudButton>
+</MudToolBar>
+
+<MudTable Items="@Tasks" Dense="true" Hover="true" Loading="@_loading" Class="mt-2">
+    <HeaderContent>
+        <MudTh>State</MudTh>
+        <MudTh>Module</MudTh>
+        <MudTh>Operations</MudTh>
+        <MudTh>Priority</MudTh>
+        <MudTh>Attempts</MudTh>
+        <MudTh>Created</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            <MudChip T="string" Size="Size.Small" Color="@StateColor(context.State)">@context.State</MudChip>
+        </MudTd>
+        <MudTd>@(context.Module?.Name ?? context.ModuleId)</MudTd>
+        <MudTd>@string.Join(", ", context.Operations.OrderBy(o => o.Sequence).Select(o => o.Kind))</MudTd>
+        <MudTd>@context.Priority</MudTd>
+        <MudTd>@context.Attempts / @context.MaxAttempts</MudTd>
+        <MudTd>@context.CreatedAt</MudTd>
+        <MudTd>
+            @{ var taskLink = $"/Task/{context.Id}"; }
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@taskLink/>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
 
 @code {
+    private List<QueuedTask> _allTasks = new();
+    private QueuedTaskState? _stateFilter;
+    private bool _loading = true;
 
+    private IEnumerable<QueuedTask> Tasks => _stateFilter is null
+        ? _allTasks
+        : _allTasks.Where(t => t.State == _stateFilter);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+
+        _allTasks = await Db.QueuedTasks
+            .Include(t => t.Module)
+            .Include(t => t.Operations)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+
+        _loading = false;
+    }
+
+    private async Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialog = await DialogService.ShowAsync<NewTaskDialog>("Enqueue Task", options);
+        var result = await dialog.Result;
+
+        if (result.Canceled || result.Data is not QueuedTask task)
+        {
+            return;
+        }
+
+        Navigation.NavigateTo($"/Task/{task.Id}");
+    }
+
+    private static Color StateColor(QueuedTaskState state) => state switch
+    {
+        QueuedTaskState.Queued => Color.Default,
+        QueuedTaskState.Processing => Color.Info,
+        QueuedTaskState.Completed => Color.Success,
+        QueuedTaskState.Failed => Color.Error,
+        _ => Color.Default
+    };
 }

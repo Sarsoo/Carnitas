@@ -6,9 +6,12 @@ package agent;
 
 service Agent {
   rpc ReportOperationLogs(stream OperationLog) returns (OperationLogResponse);
+  rpc ReportOperationLogBatch(OperationLogBatch) returns (OperationLogBatchResponse);
   rpc ReportOperationStatus(OperationStatusRequest) returns (OperationStatusResponse);
   rpc SubmitOperationPlan(OperationPlanReport) returns (OperationPlanResponse);
-  
+
+  rpc RenewLease(TaskLeaseRequest) returns (TaskLeaseResponse);
+
   rpc RequestWorkflow(OperationRequest) returns (WorkflowRequestResponse);
 }
 
@@ -19,10 +22,20 @@ service Agent {
 message OperationLog {
   string operation_id = 1;
   string log = 2;
+  string level = 3;
+  string type = 4;
 }
 
 message OperationLogResponse {
   
+}
+
+message OperationLogBatch {
+  repeated OperationLog logs = 1;
+}
+
+message OperationLogBatchResponse {
+
 }
 
 ////////////////////////////////
@@ -38,10 +51,25 @@ enum OperationStatusState {
 message OperationStatusRequest {
   string operation_id = 1;
   OperationStatusState state = 2;
+  int32 exit_code = 3;
+  string error = 4;
 }
 
 message OperationStatusResponse {
   string operation_id = 1;
+}
+
+////////////////////////////////
+//        RenewLease
+///////////////////////////////
+
+message TaskLeaseRequest {
+  string task_id = 1;
+  string worker_id = 2;
+}
+
+message TaskLeaseResponse {
+  bool renewed = 1;
 }
 
 ////////////////////////////////
@@ -71,6 +99,7 @@ message WorkflowRequestResponse {
   string repo_url = 2;
   string module_path = 3;
   repeated OperationResponse operations = 4;
+  bool has_work = 5;
 }
 
 message OperationResponse {

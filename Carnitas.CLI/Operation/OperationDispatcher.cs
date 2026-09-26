@@ -1,8 +1,11 @@
+using Carnitas.CLI.Options;
 using Carnitas.Grpc;
 using Carnitas.Job;
 using Carnitas.Options;
 using Carnitas.Source;
 using Carnitas.Workflow.Impl;
+using Carnitas.Workflow.Output;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -33,6 +36,12 @@ public class OperationDispatcher(
                     });
                 logger.LogInformation("Processing operation");
 
+                if (work.Operations.Count == 0)
+                {
+                    logger.LogWarning("Received empty workflow {id}, skipping", work.Id);
+                    continue;
+                }
+
                 var maxOp = work.Operations.Select(o => o.Operation).Max();
 
                 if (maxOp is OperationType.OperationPlan)
@@ -49,7 +58,7 @@ public class OperationDispatcher(
                     .WithId(work.Id);
 
                     logger.LogInformation("Queueing plan workflow");
-                    jobDispatcher.QueueJob(workflow);
+                    jobDispatcher.QueueJob(Wrap(workflow, work));
                 }
                 else if (maxOp is OperationType.OperationApply)
                 {
@@ -66,7 +75,7 @@ public class OperationDispatcher(
                         .WithId(work.Id);
 
                     logger.LogInformation("Queueing apply workflow");
-                    jobDispatcher.QueueJob(workflow);
+                    jobDispatcher.QueueJob(Wrap(workflow, work));
                 }
             }
             catch (Exception e)
@@ -74,5 +83,15 @@ public class OperationDispatcher(
                 logger.LogError(e, "Error occured while executing work");
             }
         }
+    }
+
+    private OperationReportingJob Wrap(Carnitas.Workflow.Orchestration.IWorkflowOrchestrator orchestrator, WorkflowRequestResponse work)
+    {
+        return new OperationReportingJob(
+            orchestrator,
+            work,
+            sp.GetRequiredService<IStatusReporter>(),
+            sp.GetRequiredService<IOptions<BackendOptions>>(),
+            sp.GetRequiredService<ILogger<OperationReportingJob>>());
     }
 }

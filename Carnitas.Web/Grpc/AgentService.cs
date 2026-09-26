@@ -1,56 +1,129 @@
 using Carnitas.Grpc;
+using Carnitas.Model.Operations;
 using Grpc.Core;
 
 namespace Carnitas.Web.Grpc;
 
-public class AgentService: Agent.AgentBase
+public class AgentService(ITaskQueue taskQueue, TaskQueueOptions options): Agent.AgentBase
 {
-    public override Task<OperationLogResponse> ReportOperationLogs(IAsyncStreamReader<OperationLog> requestStream, ServerCallContext context)
+    private TimeSpan LockDuration => TimeSpan.FromSeconds(options.LockDurationSeconds);
+
+    public override async Task<OperationLogResponse> ReportOperationLogs(
+        IAsyncStreamReader<OperationLog> requestStream, ServerCallContext context)
     {
-        return Task.FromResult(new OperationLogResponse());
+        var entries = await ReadLogsAsync(requestStream, context.CancellationToken);
+
+        await taskQueue.AppendLogsAsync(entries, context.CancellationToken);
+
+        return new OperationLogResponse();
     }
 
-    public override Task<OperationStatusResponse> ReportOperationStatus(OperationStatusRequest request, ServerCallContext context)
+    public override async Task<OperationLogBatchResponse> ReportOperationLogBatch(
+        OperationLogBatch request, ServerCallContext context)
     {
-        return Task.FromResult(new OperationStatusResponse()
+        var entries = request.Logs
+            .Select(MapLog)
+            .ToList();
+
+        await taskQueue.AppendLogsAsync(entries, context.CancellationToken);
+
+        return new OperationLogBatchResponse();
+    }
+
+    public override async Task<OperationStatusResponse> ReportOperationStatus(
+        OperationStatusRequest request, ServerCallContext context)
+    {
+        var success = request.State == OperationStatusState.OperationSuccess;
+        var exitCode = request.ExitCode;
+
+        await taskQueue.ReportOperationStatusAsync(
+            request.OperationId,
+            success,
+            exitCode,
+            request.Error,
+            context.CancellationToken);
+
+        return new OperationStatusResponse
         {
             OperationId = request.OperationId
-        });
+        };
     }
 
-    public override Task<OperationPlanResponse> SubmitOperationPlan(OperationPlanReport request, ServerCallContext context)
+    public override async Task<OperationPlanResponse> SubmitOperationPlan(
+        OperationPlanReport request, ServerCallContext context)
     {
-        return Task.FromResult(new OperationPlanResponse());
+        await taskQueue.SubmitPlanAsync(
+            request.OperationId,
+            request.Plan,
+            request.PlanFilePath,
+            context.CancellationToken);
+
+        return new OperationPlanResponse();
     }
 
-    private static int count = 0;
-
-    public override async Task<WorkflowRequestResponse> RequestWorkflow(OperationRequest request, ServerCallContext context)
+    public override async Task<TaskLeaseResponse> RenewLease(TaskLeaseRequest request, ServerCallContext context)
     {
-        if (count < 1)
+        var renewed = await taskQueue.RenewLeaseAsync(
+            request.TaskId,
+            request.WorkerId,
+            LockDuration,
+            context.CancellationToken);
+
+        return new TaskLeaseResponse
         {
-            var resp = new WorkflowRequestResponse()
-            {
-                Id = Guid.NewGuid().ToString(),
-                RepoUrl = "git@github.com:Sarsoo/infra.git",
-                ModulePath = "/terraform/PROXMOX/biggie"
-            };
-        
-            resp.Operations.Add(new OperationResponse
-            {
-                Id = Guid.NewGuid().ToString(),
-                Operation = OperationType.OperationInit
-            });
-            resp.Operations.Add(new OperationResponse
-            {
-                Id = Guid.NewGuid().ToString(),
-                Operation = OperationType.OperationPlan
-            });
-            count++;
-            return resp;
+            Renewed = renewed
+        };
+    }
 
+    public override async Task<WorkflowRequestResponse> RequestWorkflow(
+        OperationRequest request, ServerCallContext context)
+    {
+        var task = await taskQueue.ClaimNextAsync(request.WorkerId, LockDuration, context.CancellationToken);
+
+        if (task is null)
+        {
+            return new WorkflowRequestResponse
+            {
+                HasWork = false
+            };
         }
 
-        return null;
+        var response = new WorkflowRequestResponse
+        {
+            Id = task.Id,
+            RepoUrl = task.RepoUrl,
+            ModulePath = task.ModulePath,
+            HasWork = true
+        };
+
+        foreach (var operation in task.Operations.OrderBy(o => o.Sequence))
+        {
+            response.Operations.Add(new OperationResponse
+            {
+                Id = operation.Id,
+                Operation = (OperationType) (int) operation.Kind
+            });
+        }
+
+        return response;
     }
+
+    private static async Task<List<LogLine>> ReadLogsAsync(
+        IAsyncStreamReader<OperationLog> requestStream, CancellationToken ct)
+    {
+        var entries = new List<LogLine>();
+
+        while (await requestStream.MoveNext(ct))
+        {
+            entries.Add(MapLog(requestStream.Current));
+        }
+
+        return entries;
+    }
+
+    private static LogLine MapLog(OperationLog log) => new(
+        log.OperationId,
+        log.Log,
+        string.IsNullOrWhiteSpace(log.Level) ? "Information" : log.Level,
+        string.IsNullOrWhiteSpace(log.Type) ? "Output" : log.Type);
 }

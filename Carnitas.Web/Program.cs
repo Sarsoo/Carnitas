@@ -1,6 +1,7 @@
 using Carnitas.Extensions;
 using Carnitas.Model;
 using Carnitas.Model.Identity;
+using Carnitas.Model.Operations;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +56,16 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+///////////////////////
+//   TASK QUEUE
+///////////////////////
+
+var taskQueueOptions = builder.Configuration.GetSection(TaskQueueOptions.Key).Get<TaskQueueOptions>()
+                       ?? new TaskQueueOptions();
+builder.Services.AddSingleton(taskQueueOptions);
+builder.Services.AddScoped<ITaskQueue, TaskQueueService>();
+builder.Services.AddHostedService<TaskQueueMaintenanceService>();
 
 ///////////////////////
 //   OBSERVABILITY

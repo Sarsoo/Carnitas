@@ -20,6 +20,9 @@ public class OperationRun
 
     public string? CheckoutId { get; set; }
     public Checkout? Checkout { get; set; }
+
+    public string? QueuedTaskId { get; set; }
+    public QueuedTask? QueuedTask { get; set; }
     
     public ICollection<OperationRunLogEntry> LogEntries { get; set; }
 }

@@ -29,7 +29,10 @@ public class OperationRequester(
                     WorkerId = workerOptions.Value.Name
                 }, cancellationToken:  stoppingToken).ConfigureAwait(false);
 
-                await queue.AddAsync(resp).ConfigureAwait(false);
+                if (resp is { HasWork: true } && resp.Operations.Count > 0)
+                {
+                    await queue.AddAsync(resp).ConfigureAwait(false);
+                }
             }
             catch (Exception e)
             {

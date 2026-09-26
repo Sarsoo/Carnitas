@@ -5,9 +5,9 @@
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 
-<h3>Operation Run</h3>
+<h3>Queued Task</h3>
 
-@if (run is null)
+@if (task is null)
 {
     <MudText>Not found</MudText>
 }
@@ -15,54 +15,82 @@ else
 {
     <MudCard Elevation="0" Class="mb-4">
         <MudCardContent>
-            <MudText Typo="Typo.h5">@run.GetType().Name</MudText>
-            <MudText Typo="Typo.body2">Id: @run.Id</MudText>
-            <MudText Typo="Typo.body2">Started: @run.StartTime</MudText>
-            <MudText Typo="Typo.body2">Ended: @run.EndTime</MudText>
-            <MudText Typo="Typo.body2">Exit Code: @run.ExitCode?.ToString()</MudText>
-            @if (run.GitReference is not null)
+            <MudText Typo="Typo.h5">@task.Id</MudText>
+            <MudText Typo="Typo.body2">State: @task.State</MudText>
+            <MudText Typo="Typo.body2">Repository: @task.RepoUrl</MudText>
+            <MudText Typo="Typo.body2">Module Path: @task.ModulePath</MudText>
+            <MudText Typo="Typo.body2">Priority: @task.Priority</MudText>
+            <MudText Typo="Typo.body2">Attempts: @task.Attempts / @task.MaxAttempts</MudText>
+            <MudText Typo="Typo.body2">Scheduled: @task.ScheduledAt</MudText>
+            <MudText Typo="Typo.body2">Created: @task.CreatedAt</MudText>
+            @if (task.StartedAt is not null)
             {
-                <MudText Typo="Typo.body2">Git Reference: @run.GitReference</MudText>
+                <MudText Typo="Typo.body2">Started: @task.StartedAt</MudText>
             }
-            @if (run.CommitSha is not null)
+            @if (task.CompletedAt is not null)
             {
-                <MudText Typo="Typo.body2">Commit: @run.CommitSha</MudText>
+                <MudText Typo="Typo.body2">Completed: @task.CompletedAt</MudText>
             }
-            @if (run.LogPath is not null)
+            @if (task.LockedBy is not null)
             {
-                <MudText Typo="Typo.body2">Log: @run.LogPath</MudText>
+                <MudText Typo="Typo.body2">Locked By: @task.LockedBy</MudText>
+                <MudText Typo="Typo.body2">Locked Until: @task.LockedUntil</MudText>
             }
-            @if (run.Module is not null)
+            @if (task.LastError is not null)
             {
-                var moduleLink = $"/Repo/{run.Module.RepositoryId}/Module/{run.ModuleId}";
-                
-                <MudButton Variant="Variant.Text" Color="Color.Primary"
-                           Href=@moduleLink >
-                    @run.Module.Name
+                <MudText Typo="Typo.body2" Color="Color.Error">Error: @task.LastError</MudText>
+            }
+            @if (task.Module is not null)
+            {
+                var moduleLink = $"/Repo/{task.Module.RepositoryId}/Module/{task.ModuleId}";
+
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@moduleLink>
+                    @task.Module.Name
                 </MudButton>
-            }
-            @if (run.Checkout is not null)
-            {
-                <MudText Typo="Typo.body2">Checkout: @run.Checkout.Path</MudText>
             }
         </MudCardContent>
     </MudCard>
 
-    <MudText Typo="Typo.h6">Log</MudText>
-    <MudTable Items="@logEntries" Dense="true" Hover="true" Class="mt-2">
+    <MudText Typo="Typo.h6">Operations</MudText>
+    <MudTable Items="@task.Operations.OrderBy(o => o.Sequence)" Dense="true" Hover="true" Class="mt-2">
         <HeaderContent>
             <MudTh>Sequence</MudTh>
-            <MudTh>Timestamp</MudTh>
-            <MudTh>Level</MudTh>
-            <MudTh>Type</MudTh>
-            <MudTh>Payload</MudTh>
+            <MudTh>Operation</MudTh>
+            <MudTh>Operation Id</MudTh>
+            <MudTh>Run</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context.Sequence</MudTd>
-            <MudTd>@context.Timestamp</MudTd>
-            <MudTd>@context.Level</MudTd>
-            <MudTd>@context.Type</MudTd>
-            <MudTd>@context.Payload.GetRawText()</MudTd>
+            <MudTd>@context.Kind</MudTd>
+            <MudTd>@context.Id</MudTd>
+            <MudTd>
+                @if (runs.Any(r => r.Id == context.Id))
+                {
+                    var runLink = $"/Task/Run/{context.Id}";
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@runLink/>
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudText Typo="Typo.h6" Class="mt-4">Runs</MudText>
+    <MudTable Items="@runs" Dense="true" Hover="true" Class="mt-2">
+        <HeaderContent>
+            <MudTh>Type</MudTh>
+            <MudTh>Started</MudTh>
+            <MudTh>Ended</MudTh>
+            <MudTh>Exit Code</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.GetType().Name</MudTd>
+            <MudTd>@context.StartTime</MudTd>
+            <MudTd>@context.EndTime</MudTd>
+            <MudTd>@context.ExitCode?.ToString()</MudTd>
+            <MudTd>
+                @{ var runLink = $"/Task/Run/{context.Id}"; }
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@runLink/>
+            </MudTd>
         </RowTemplate>
     </MudTable>
 }
@@ -71,21 +99,21 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    private OperationRun? run;
-    private List<OperationRunLogEntry> logEntries = new();
+    private QueuedTask? task;
+    private List<OperationRun> runs = new();
 
     protected override async Task OnInitializedAsync()
     {
-        run = await Db.OperationRuns
-            .Include(r => r.Module)
-            .Include(r => r.Checkout)
-            .SingleOrDefaultAsync(r => r.Id == Id);
+        task = await Db.QueuedTasks
+            .Include(t => t.Module)
+            .Include(t => t.Operations)
+            .SingleOrDefaultAsync(t => t.Id == Id);
 
-        if (run is not null)
+        if (task is not null)
         {
-            logEntries = await Db.OperationRunLogEntries
-                .Where(e => e.OperationRunId == run.Id)
-                .OrderBy(e => e.Sequence)
+            runs = await Db.OperationRuns
+                .Where(r => r.QueuedTaskId == task.Id)
+                .OrderBy(r => r.StartTime)
                 .ToListAsync();
         }
     }

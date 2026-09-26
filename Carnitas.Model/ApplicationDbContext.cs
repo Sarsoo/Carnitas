@@ -51,6 +51,9 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
     public DbSet<OperationRun> OperationRuns { get; set; }
     public DbSet<OperationRunLogEntry> OperationRunLogEntries { get; set; }
 
+    public DbSet<QueuedTask> QueuedTasks { get; set; }
+    public DbSet<QueuedTaskOperation> QueuedTaskOperations { get; set; }
+
     public DbSet<GitHubApp> GitHubApps { get; set; }
 
     public DbSet<Function> Functions { get; set; }
@@ -73,7 +76,8 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
 
         builder.BuildModule()
             .BuildOperationRun()
-            .BuildOperationLogs();
+            .BuildOperationLogs()
+            .BuildTaskQueue();
     }
 }
 
@@ -124,6 +128,13 @@ internal static class ModelBuilderExtensions
                 .HasPrincipalKey(e => e.Id)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            builder.Entity<OperationRun>()
+                .HasOne(e => e.QueuedTask)
+                .WithMany()
+                .HasForeignKey(e => e.QueuedTaskId)
+                .HasPrincipalKey(e => e.Id)
+                .OnDelete(DeleteBehavior.SetNull);
+
             builder.Entity<InitRun>().ToTable("InitRuns");
             builder.Entity<ApplyRun>().ToTable("ApplyRuns");
             builder.Entity<PlanRun>().ToTable("PlanRuns");
@@ -158,6 +169,52 @@ internal static class ModelBuilderExtensions
                 .HasIndex(e => e.Level);
             builder.Entity<OperationRunLogEntry>()
                 .HasIndex(e => e.Type);
+
+            return builder;
+        }
+    }
+
+    extension(ModelBuilder builder)
+    {
+        public ModelBuilder BuildTaskQueue()
+        {
+            builder.Entity<QueuedTask>()
+                .ToTable("QueuedTasks")
+                .HasKey(e => e.Id);
+
+            builder.Entity<QueuedTask>()
+                .HasOne(e => e.Module)
+                .WithMany()
+                .HasForeignKey(e => e.ModuleId)
+                .HasPrincipalKey(e => e.Id);
+
+            builder.Entity<QueuedTask>()
+                .HasMany(e => e.Operations)
+                .WithOne(e => e.QueuedTask)
+                .HasForeignKey(e => e.QueuedTaskId)
+                .HasPrincipalKey(e => e.Id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<QueuedTask>()
+                .HasIndex(e => new { e.State, e.LockedUntil });
+
+            builder.Entity<QueuedTask>()
+                .HasIndex(e => new { e.State, e.ScheduledAt, e.Priority, e.CreatedAt });
+
+            builder.Entity<QueuedTask>()
+                .HasIndex(e => e.ModuleId);
+
+            builder.Entity<QueuedTaskOperation>()
+                .ToTable("QueuedTaskOperations")
+                .HasKey(e => e.Id);
+
+            builder.Entity<QueuedTaskOperation>()
+                .HasIndex(e => new { e.QueuedTaskId, e.Kind })
+                .IsUnique();
+
+            builder.Entity<QueuedTaskOperation>()
+                .HasIndex(e => new { e.QueuedTaskId, e.Sequence })
+                .IsUnique();
 
             return builder;
         }
