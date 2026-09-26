@@ -1,3 +1,4 @@
+using Carnitas.Model.Identity;
 using Carnitas.Model.Source;
 using Carnitas.Model.Source.SourceControl;
 
@@ -17,6 +18,10 @@ public class OperationRun
 
     public string ModuleId { get; set; }
     public Module Module { get; set; }
+
+    public InitiatorType InitiatorType { get; set; }
+    public string? InitiatorUserId { get; set; }
+    public ApplicationUser? InitiatorUser { get; set; }
 
     public string? CheckoutId { get; set; }
     public Checkout? Checkout { get; set; }

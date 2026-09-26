@@ -7,6 +7,8 @@ public record EnqueueTaskRequest(
     IReadOnlyList<OperationKind> Operations,
     int Priority = 0,
     int? MaxAttempts = null,
-    DateTime? ScheduledAt = null);
+    DateTime? ScheduledAt = null,
+    InitiatorType InitiatorType = InitiatorType.System,
+    string? InitiatorUserId = null);
 
 public record LogLine(string OperationId, string Log, string Level, string Type);

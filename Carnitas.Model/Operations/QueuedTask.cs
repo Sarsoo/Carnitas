@@ -1,3 +1,4 @@
+using Carnitas.Model.Identity;
 using Carnitas.Model.Source;
 
 namespace Carnitas.Model.Operations;
@@ -11,6 +12,10 @@ public class QueuedTask
 
     public string ModuleId { get; set; }
     public Module Module { get; set; }
+
+    public InitiatorType InitiatorType { get; set; }
+    public string? InitiatorUserId { get; set; }
+    public ApplicationUser? InitiatorUser { get; set; }
 
     public QueuedTaskState State { get; set; }
 

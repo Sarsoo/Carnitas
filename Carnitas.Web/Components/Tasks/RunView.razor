@@ -1,5 +1,6 @@
 @page "/Task/Run/{id}"
 @using Carnitas.Model
+@using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
@@ -17,6 +18,7 @@ else
         <MudCardContent>
             <MudText Typo="Typo.h5">@run.GetType().Name</MudText>
             <MudText Typo="Typo.body2">Id: @run.Id</MudText>
+            <MudText Typo="Typo.body2">Initiated By: @InitiatorLabel(run.InitiatorType, run.InitiatorUser, run.InitiatorUserId)</MudText>
             <MudText Typo="Typo.body2">Started: @run.StartTime</MudText>
             <MudText Typo="Typo.body2">Ended: @run.EndTime</MudText>
             <MudText Typo="Typo.body2">Exit Code: @run.ExitCode?.ToString()</MudText>
@@ -82,11 +84,17 @@ else
     private OperationRun? run;
     private List<OperationRunLogEntry> logEntries = new();
 
+    private static string InitiatorLabel(InitiatorType type, ApplicationUser? user, string? userId) =>
+        type == InitiatorType.User
+            ? user?.UserName ?? user?.Email ?? userId ?? "Unknown user"
+            : "System";
+
     protected override async Task OnInitializedAsync()
     {
         run = await Db.OperationRuns
             .Include(r => r.Module)
             .Include(r => r.Checkout)
+            .Include(r => r.InitiatorUser)
             .SingleOrDefaultAsync(r => r.Id == Id);
 
         if (run is not null)

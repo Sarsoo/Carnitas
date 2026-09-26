@@ -1,5 +1,6 @@
 using Carnitas.Model;
 using Carnitas.Model.Governance;
+using Carnitas.Model.Identity;
 using Carnitas.Model.Operations;
 using Carnitas.Model.Source;
 using Carnitas.Model.Source.SourceControl;
@@ -69,6 +70,27 @@ public class TaskQueueTests
         await db.SaveChangesAsync();
 
         return OrganisationId;
+    }
+
+    private static async Task<string> CreateUserAsync(ApplicationDbContext db, string userId)
+    {
+        if (!await db.Users.AnyAsync(u => u.Id == userId))
+        {
+            db.Users.Add(new ApplicationUser
+            {
+                Id = userId,
+                UserName = userId,
+                NormalizedUserName = userId.ToUpperInvariant(),
+                Email = $"{userId}@example.com",
+                NormalizedEmail = $"{userId}@example.com".ToUpperInvariant(),
+                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            });
+
+            await db.SaveChangesAsync();
+        }
+
+        return userId;
     }
 
     private static async Task<string> CreateModuleAsync(ApplicationDbContext db, string moduleId)
@@ -336,5 +358,76 @@ public class TaskQueueTests
 
         Assert.Equal(3, entries.Count);
         Assert.Equal(new[] { 1, 2, 3 }, entries.Select(e => e.Sequence).ToArray());
+    }
+
+    [Fact]
+    public async Task DefaultEnqueueIsAttributedToSystem()
+    {
+        if (!TryGetConnectionString(out var connectionString))
+        {
+            Assert.Skip("CARNITAS_TEST_DB is not set");
+            return;
+        }
+
+        await PrepareDatabaseAsync(connectionString);
+
+        await using var db = CreateContext(connectionString);
+        var moduleId = await CreateModuleAsync(db, "system-attribution-module");
+        var queue = new TaskQueueService(db, new TaskQueueOptions());
+
+        var task = await queue.EnqueueAsync(Request(moduleId));
+
+        Assert.Equal(InitiatorType.System, task.InitiatorType);
+        Assert.Null(task.InitiatorUserId);
+    }
+
+    [Fact]
+    public async Task UserInitiatorPropagatesToOperationRuns()
+    {
+        if (!TryGetConnectionString(out var connectionString))
+        {
+            Assert.Skip("CARNITAS_TEST_DB is not set");
+            return;
+        }
+
+        await PrepareDatabaseAsync(connectionString);
+
+        const string userId = "attribution-user";
+        string taskId;
+        List<string> operationIds;
+
+        await using (var seed = CreateContext(connectionString))
+        {
+            var moduleId = await CreateModuleAsync(seed, "attribution-module");
+            await CreateUserAsync(seed, userId);
+
+            var queue = new TaskQueueService(seed, new TaskQueueOptions());
+            var task = await queue.EnqueueAsync(Request(moduleId) with
+            {
+                InitiatorType = InitiatorType.User,
+                InitiatorUserId = userId
+            });
+
+            taskId = task.Id;
+            operationIds = task.Operations.OrderBy(o => o.Sequence).Select(o => o.Id).ToList();
+
+            Assert.Equal(InitiatorType.User, task.InitiatorType);
+            Assert.Equal(userId, task.InitiatorUserId);
+        }
+
+        await using var db = CreateContext(connectionString);
+        var queueService = new TaskQueueService(db, new TaskQueueOptions());
+        await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5));
+
+        foreach (var operationId in operationIds)
+        {
+            await queueService.ReportOperationStatusAsync(operationId, true, 0, null);
+        }
+
+        var runs = await db.OperationRuns.Where(r => r.QueuedTaskId == taskId).ToListAsync();
+
+        Assert.Equal(operationIds.Count, runs.Count);
+        Assert.All(runs, r => Assert.Equal(InitiatorType.User, r.InitiatorType));
+        Assert.All(runs, r => Assert.Equal(userId, r.InitiatorUserId));
     }
 }

@@ -1,10 +1,14 @@
 @using Carnitas.Model
+@using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
 @using Carnitas.Model.Source
 @using Carnitas.Model.Source.SourceControl
+@using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject ITaskQueue TaskQueue
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
 
 <MudDialog>
     <TitleContent>
@@ -127,12 +131,28 @@
             operations.Add(OperationKind.Apply);
         }
 
+        var initiatorType = InitiatorType.System;
+        string? initiatorUserId = null;
+
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (state.User.Identity?.IsAuthenticated == true)
+        {
+            var userId = UserManager.GetUserId(state.User);
+            if (userId is not null)
+            {
+                initiatorType = InitiatorType.User;
+                initiatorUserId = userId;
+            }
+        }
+
         var task = await TaskQueue.EnqueueAsync(new EnqueueTaskRequest(
             repository.GitUrl,
             _modulePath,
             _moduleId!,
             operations,
-            _priority));
+            _priority,
+            InitiatorType: initiatorType,
+            InitiatorUserId: initiatorUserId));
 
         MudDialog.Close(DialogResult.Ok(task));
     }

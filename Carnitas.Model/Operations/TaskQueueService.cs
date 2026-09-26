@@ -15,6 +15,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
             RepoUrl = request.RepoUrl,
             ModulePath = request.ModulePath,
             ModuleId = request.ModuleId,
+            InitiatorType = request.InitiatorType,
+            InitiatorUserId = request.InitiatorType == InitiatorType.User ? request.InitiatorUserId : null,
             State = QueuedTaskState.Queued,
             Priority = request.Priority,
             ScheduledAt = request.ScheduledAt ?? now,
@@ -222,6 +224,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
         run.Id = operation.Id;
         run.ModuleId = operation.QueuedTask.ModuleId;
         run.QueuedTaskId = operation.QueuedTask.Id;
+        run.InitiatorType = operation.QueuedTask.InitiatorType;
+        run.InitiatorUserId = operation.QueuedTask.InitiatorUserId;
         run.StartTime = operation.QueuedTask.StartedAt ?? DateTime.UtcNow;
         run.EndTime = DateTime.UtcNow;
 

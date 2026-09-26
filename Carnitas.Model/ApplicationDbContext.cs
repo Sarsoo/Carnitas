@@ -135,6 +135,16 @@ internal static class ModelBuilderExtensions
                 .HasPrincipalKey(e => e.Id)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            builder.Entity<OperationRun>()
+                .HasOne(e => e.InitiatorUser)
+                .WithMany()
+                .HasForeignKey(e => e.InitiatorUserId)
+                .HasPrincipalKey(e => e.Id)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<OperationRun>()
+                .HasIndex(e => e.InitiatorUserId);
+
             builder.Entity<InitRun>().ToTable("InitRuns");
             builder.Entity<ApplyRun>().ToTable("ApplyRuns");
             builder.Entity<PlanRun>().ToTable("PlanRuns");
@@ -187,6 +197,16 @@ internal static class ModelBuilderExtensions
                 .WithMany()
                 .HasForeignKey(e => e.ModuleId)
                 .HasPrincipalKey(e => e.Id);
+
+            builder.Entity<QueuedTask>()
+                .HasOne(e => e.InitiatorUser)
+                .WithMany()
+                .HasForeignKey(e => e.InitiatorUserId)
+                .HasPrincipalKey(e => e.Id)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<QueuedTask>()
+                .HasIndex(e => e.InitiatorUserId);
 
             builder.Entity<QueuedTask>()
                 .HasMany(e => e.Operations)

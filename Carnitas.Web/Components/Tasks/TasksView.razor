@@ -1,5 +1,6 @@
 @page "/Task/{id}"
 @using Carnitas.Model
+@using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
@@ -19,6 +20,7 @@ else
             <MudText Typo="Typo.body2">State: @task.State</MudText>
             <MudText Typo="Typo.body2">Repository: @task.RepoUrl</MudText>
             <MudText Typo="Typo.body2">Module Path: @task.ModulePath</MudText>
+            <MudText Typo="Typo.body2">Initiated By: @InitiatorLabel(task.InitiatorType, task.InitiatorUser, task.InitiatorUserId)</MudText>
             <MudText Typo="Typo.body2">Priority: @task.Priority</MudText>
             <MudText Typo="Typo.body2">Attempts: @task.Attempts / @task.MaxAttempts</MudText>
             <MudText Typo="Typo.body2">Scheduled: @task.ScheduledAt</MudText>
@@ -102,11 +104,17 @@ else
     private QueuedTask? task;
     private List<OperationRun> runs = new();
 
+    private static string InitiatorLabel(InitiatorType type, ApplicationUser? user, string? userId) =>
+        type == InitiatorType.User
+            ? user?.UserName ?? user?.Email ?? userId ?? "Unknown user"
+            : "System";
+
     protected override async Task OnInitializedAsync()
     {
         task = await Db.QueuedTasks
             .Include(t => t.Module)
             .Include(t => t.Operations)
+            .Include(t => t.InitiatorUser)
             .SingleOrDefaultAsync(t => t.Id == Id);
 
         if (task is not null)
