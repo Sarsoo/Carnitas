@@ -11,14 +11,16 @@ public class AgentStatusReporter(
 ): IStatusReporter
 {
     public async Task ReportStatus(string operationId, bool success, int exitCode, string? error = null,
-        CancellationToken ct = default)
+        string? gitReference = null, string? commitSha = null, CancellationToken ct = default)
     {
         await client.ReportOperationStatusAsync(new OperationStatusRequest
         {
             OperationId = operationId,
             State = success ? OperationStatusState.OperationSuccess : OperationStatusState.OperationFailure,
             ExitCode = exitCode,
-            Error = error ?? string.Empty
+            Error = error ?? string.Empty,
+            GitReference = gitReference ?? string.Empty,
+            CommitSha = commitSha ?? string.Empty
         }, cancellationToken: ct).ConfigureAwait(false);
     }
 

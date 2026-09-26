@@ -33,10 +33,13 @@
                     }
                 </MudSelect>
             </MudItem>
-            <MudItem xs="12">
-                <MudTextField Label="Module Path" @bind-Value="_modulePath"
-                              HelperText="Path of the module within the repository checkout"/>
-            </MudItem>
+            @if (!_discover)
+            {
+                <MudItem xs="12">
+                    <MudTextField Label="Git Reference" @bind-Value="_gitReference"
+                                  HelperText="Branch, tag, or commit SHA. Leave blank for the default branch."/>
+                </MudItem>
+            }
             <MudItem xs="12">
                 <MudText Typo="Typo.subtitle2">Operations</MudText>
                 <MudCheckBox T="bool" Label="Init" @bind-Value="_init"/>
@@ -63,9 +66,6 @@
     [Parameter]
     public string? ModuleId { get; set; }
 
-    [Parameter]
-    public string? ModulePath { get; set; }
-
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
 
@@ -74,24 +74,25 @@
 
     private string? _repositoryId;
     private string? _moduleId;
-    private string _modulePath = string.Empty;
+    private string? _gitReference;
     private bool _init = true;
     private bool _plan = true;
     private bool _apply;
     private bool _discover;
     private int _priority;
 
+    private Module? SelectedModule => _modules.FirstOrDefault(m => m.Id == _moduleId);
+
+    private bool HasUsableModule => !string.IsNullOrWhiteSpace(SelectedModule?.RelativePath);
+
     private bool CanSubmit => !string.IsNullOrWhiteSpace(_repositoryId)
                               && (_discover
-                                  || (!string.IsNullOrWhiteSpace(_moduleId)
-                                      && !string.IsNullOrWhiteSpace(_modulePath)
-                                      && (_init || _plan || _apply)));
+                                  || (HasUsableModule && (_init || _plan || _apply)));
 
     protected override async Task OnInitializedAsync()
     {
         _repositoryId = RepositoryId;
         _moduleId = ModuleId;
-        _modulePath = ModulePath ?? string.Empty;
 
         _repositories = await Db.Repository.OrderBy(r => r.Name).ToListAsync();
 
@@ -156,15 +157,18 @@
             }
         }
 
+        var modulePath = _discover ? string.Empty : SelectedModule?.RelativePath ?? string.Empty;
+
         var task = await TaskQueue.EnqueueAsync(new EnqueueTaskRequest(
             repository.GitUrl,
-            _modulePath,
+            modulePath,
             _moduleId,
             operations,
             _priority,
             InitiatorType: initiatorType,
             InitiatorUserId: initiatorUserId,
-            RepositoryId: _repositoryId));
+            RepositoryId: _repositoryId,
+            GitReference: string.IsNullOrWhiteSpace(_gitReference) ? null : _gitReference.Trim()));
 
         MudDialog.Close(DialogResult.Ok(task));
     }

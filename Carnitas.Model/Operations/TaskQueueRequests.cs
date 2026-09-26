@@ -10,6 +10,7 @@ public record EnqueueTaskRequest(
     DateTime? ScheduledAt = null,
     InitiatorType InitiatorType = InitiatorType.System,
     string? InitiatorUserId = null,
-    string? RepositoryId = null);
+    string? RepositoryId = null,
+    string? GitReference = null);
 
 public record LogLine(string OperationId, string Log, string Level, string Type);

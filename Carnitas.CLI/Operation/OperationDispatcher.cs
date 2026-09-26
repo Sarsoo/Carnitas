@@ -55,6 +55,7 @@ public class OperationDispatcher(
                     )
                     .WithSourceRoot(options.Value.WorkspaceRoot)
                     .WithSourceUrl(work.RepoUrl)
+                    .WithGitReference(work.GitReference)
                     .WithId(work.Id);
 
                     logger.LogInformation("Queueing plan workflow");
@@ -72,6 +73,7 @@ public class OperationDispatcher(
                         )
                         .WithSourceRoot(options.Value.WorkspaceRoot)
                         .WithSourceUrl(work.RepoUrl)
+                        .WithGitReference(work.GitReference)
                         .WithId(work.Id);
 
                     logger.LogInformation("Queueing apply workflow");

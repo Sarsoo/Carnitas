@@ -8,9 +8,12 @@ namespace Carnitas.Source;
 
 public interface ISourceScopedWorkflowOrchestrator: IWorkflowOrchestrator
 {
+    string? GitReference { get; }
+    string? CommitSha { get; }
     ISourceScopedWorkflowOrchestrator PrepareSource();
     ISourceScopedWorkflowOrchestrator WithSourceUrl(string sourceUrl);
     ISourceScopedWorkflowOrchestrator WithSourceRoot(string sourceRoot);
+    ISourceScopedWorkflowOrchestrator WithGitReference(string? gitReference);
     ISourceScopedWorkflowOrchestrator WithCloneOptions(CloneOptions options);
 }
 
@@ -26,9 +29,13 @@ public class SourceScopedWorkflowOrchestrator(
     private CloneOptions? _cloneOptions;
 
     private string? _checkoutPath;
+    private string? _gitReference;
     private bool _disposed = false;
     
     public bool IsDisposed => _disposed;
+
+    public string? GitReference { get; private set; }
+    public string? CommitSha { get; private set; }
 
     private void Validate()
     {
@@ -125,10 +132,53 @@ public class SourceScopedWorkflowOrchestrator(
         var checkoutPath = Path.Join(_sourceRoot, Id);
         logger.LogInformation("Checking out source at {Path}", checkoutPath);
         _checkoutPath = Repository.Clone(_gitUrl, checkoutPath, _cloneOptions);
+
+        ResolveGitReference(checkoutPath);
         
         BasePath = checkoutPath;
         
         return this;
+    }
+
+    private void ResolveGitReference(string checkoutPath)
+    {
+        using var repository = new Repository(checkoutPath);
+
+        Commit? commit;
+
+        if (!string.IsNullOrWhiteSpace(_gitReference))
+        {
+            try
+            {
+                commit = repository.Lookup(_gitReference)?.Peel<Commit>();
+            }
+            catch (LibGit2SharpException)
+            {
+                commit = null;
+            }
+
+            if (commit is null)
+            {
+                throw new InvalidOperationException($"Git reference '{_gitReference}' could not be resolved");
+            }
+
+            GitReference = _gitReference;
+            logger.LogInformation("Resolved git reference {Reference} to commit {Commit}", _gitReference, commit.Sha);
+        }
+        else
+        {
+            commit = repository.Head.Tip;
+
+            if (commit is null)
+            {
+                throw new InvalidOperationException("The source checkout has no commits");
+            }
+
+            GitReference = repository.Head.FriendlyName;
+        }
+
+        Commands.Checkout(repository, commit);
+        CommitSha = commit.Sha;
     }
 
     public ISourceScopedWorkflowOrchestrator WithSourceUrl(string sourceUrl)
@@ -146,6 +196,12 @@ public class SourceScopedWorkflowOrchestrator(
     public ISourceScopedWorkflowOrchestrator WithSubOrchestrator(IWorkflowOrchestrator workflowOrchestrator)
     {
         _workflowOrchestrator = workflowOrchestrator;
+        return this;
+    }
+
+    public ISourceScopedWorkflowOrchestrator WithGitReference(string? gitReference)
+    {
+        _gitReference = gitReference;
         return this;
     }
 

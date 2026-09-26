@@ -15,6 +15,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
             Id = Guid.NewGuid().ToString(),
             RepoUrl = request.RepoUrl,
             ModulePath = request.ModulePath,
+            GitReference = request.GitReference,
             ModuleId = request.ModuleId,
             RepositoryId = request.RepositoryId,
             InitiatorType = request.InitiatorType,
@@ -103,7 +104,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
     }
 
     public async Task ReportOperationStatusAsync(string operationId, bool success, int? exitCode, string? error,
-        CancellationToken ct = default)
+        string? gitReference = null, string? commitSha = null, CancellationToken ct = default)
     {
         var operation = await db.QueuedTaskOperations
             .Include(o => o.QueuedTask)
@@ -119,6 +120,16 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
         var run = await EnsureRunAsync(operation, ct).ConfigureAwait(false);
         run.EndTime = now;
         run.ExitCode = exitCode ?? (success ? 0 : 1);
+
+        if (!string.IsNullOrWhiteSpace(gitReference))
+        {
+            run.GitReference = gitReference;
+        }
+
+        if (!string.IsNullOrWhiteSpace(commitSha))
+        {
+            run.CommitSha = commitSha;
+        }
 
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
 
@@ -344,6 +355,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
         run.Id = operation.Id;
         run.ModuleId = operation.QueuedTask.ModuleId;
         run.QueuedTaskId = operation.QueuedTask.Id;
+        run.GitReference = operation.QueuedTask.GitReference;
 
         if (run is SourceDiscoveryRun discoveryRun)
         {

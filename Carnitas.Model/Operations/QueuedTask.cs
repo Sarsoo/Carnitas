@@ -11,6 +11,8 @@ public class QueuedTask
     public string RepoUrl { get; set; }
     public string ModulePath { get; set; }
 
+    public string? GitReference { get; set; }
+
     public string? ModuleId { get; set; }
     public Module? Module { get; set; }
 

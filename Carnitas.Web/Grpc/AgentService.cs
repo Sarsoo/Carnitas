@@ -41,7 +41,9 @@ public class AgentService(ITaskQueue taskQueue, TaskQueueOptions options): Agent
             success,
             exitCode,
             request.Error,
-            context.CancellationToken);
+            gitReference: request.GitReference,
+            commitSha: request.CommitSha,
+            ct: context.CancellationToken);
 
         return new OperationStatusResponse
         {
@@ -109,6 +111,7 @@ public class AgentService(ITaskQueue taskQueue, TaskQueueOptions options): Agent
             RepoUrl = task.RepoUrl,
             ModulePath = task.ModulePath,
             RepositoryId = task.RepositoryId ?? string.Empty,
+            GitReference = task.GitReference ?? string.Empty,
             HasWork = true
         };
 

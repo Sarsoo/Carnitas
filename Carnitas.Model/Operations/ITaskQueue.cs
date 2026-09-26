@@ -9,7 +9,7 @@ public interface ITaskQueue
     Task<bool> RenewLeaseAsync(string taskId, string workerId, TimeSpan lockDuration, CancellationToken ct = default);
 
     Task ReportOperationStatusAsync(string operationId, bool success, int? exitCode, string? error,
-        CancellationToken ct = default);
+        string? gitReference = null, string? commitSha = null, CancellationToken ct = default);
 
     Task AppendLogsAsync(IReadOnlyList<LogLine> entries, CancellationToken ct = default);
 

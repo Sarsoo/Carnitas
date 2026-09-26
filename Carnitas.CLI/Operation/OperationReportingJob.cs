@@ -1,6 +1,7 @@
 using Carnitas.CLI.Options;
 using Carnitas.Grpc;
 using Carnitas.Job;
+using Carnitas.Source;
 using Carnitas.Workflow.Orchestration;
 using Carnitas.Workflow.Output;
 using Carnitas.Workflow.Stage;
@@ -31,6 +32,7 @@ public class OperationReportingJob(
         var leaseTask = RenewLeaseAsync(leaseCts.Token);
 
         var currentOperationId = request.Operations.FirstOrDefault()?.Id;
+        var sourceScoped = orchestrator as ISourceScopedWorkflowOrchestrator;
 
         try
         {
@@ -45,7 +47,9 @@ public class OperationReportingJob(
                     success,
                     success ? 0 : 1,
                     success ? null : $"stage {result.Id} failed",
-                    token).ConfigureAwait(false);
+                    gitReference: sourceScoped?.GitReference,
+                    commitSha: sourceScoped?.CommitSha,
+                    ct: token).ConfigureAwait(false);
 
                 if (!success)
                 {
@@ -60,7 +64,10 @@ public class OperationReportingJob(
 
             if (currentOperationId is not null)
             {
-                await statusReporter.ReportStatus(currentOperationId, false, 1, ex.Message, CancellationToken.None)
+                await statusReporter.ReportStatus(currentOperationId, false, 1, ex.Message,
+                        gitReference: sourceScoped?.GitReference,
+                        commitSha: sourceScoped?.CommitSha,
+                        ct: CancellationToken.None)
                     .ConfigureAwait(false);
             }
         }

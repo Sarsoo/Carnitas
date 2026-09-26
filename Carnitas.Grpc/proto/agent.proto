@@ -55,6 +55,8 @@ message OperationStatusRequest {
   OperationStatusState state = 2;
   int32 exit_code = 3;
   string error = 4;
+  string git_reference = 5;
+  string commit_sha = 6;
 }
 
 message OperationStatusResponse {
@@ -118,6 +120,7 @@ message WorkflowRequestResponse {
   repeated OperationResponse operations = 4;
   bool has_work = 5;
   string repository_id = 6;
+  string git_reference = 7;
 }
 
 message OperationResponse {
