@@ -7,7 +7,20 @@ public class AgentService: Agent.AgentBase
 {
     public override Task<OperationLogResponse> ReportOperationLogs(IAsyncStreamReader<OperationLog> requestStream, ServerCallContext context)
     {
-        return base.ReportOperationLogs(requestStream, context);
+        return Task.FromResult(new OperationLogResponse());
+    }
+
+    public override Task<OperationStatusResponse> ReportOperationStatus(OperationStatusRequest request, ServerCallContext context)
+    {
+        return Task.FromResult(new OperationStatusResponse()
+        {
+            OperationId = request.OperationId
+        });
+    }
+
+    public override Task<OperationPlanResponse> SubmitOperationPlan(OperationPlanReport request, ServerCallContext context)
+    {
+        return Task.FromResult(new OperationPlanResponse());
     }
 
     private static int count = 0;
