@@ -5,6 +5,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext DbContext
 @inject IDialogService DialogService
+@inject NavigationManager NavigationManager
 
 <MudGrid>
     <MudItem xs="12">
@@ -12,41 +13,35 @@
                    Color="Color.Primary" OnClick="@OpenNewRepoDialogAsync">Add Repository</MudButton>
     </MudItem>
     <MudItem xs="12">
-        <MudTable Items="@_repositories" Dense="true" Hover="true" Class="mt-4">
-            <HeaderContent>
-                <MudTh>Name</MudTh>
-                <MudTh>Type</MudTh>
-                <MudTh></MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd>@context.Name</MudTd>
-                <MudTd>@context.Type</MudTd>
-                <MudTd>
-                    @{ var repoLink = $"/Repo/{context.Id}"; }
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
-                                   Href=@repoLink />
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
+        <MudDataGrid T="Repository" @ref="_elementGrid" Items="Repositories" RowClick="OnRowClick" Hover="true" Dense="true" RowClass="cursor-pointer">
+            <Columns>
+                <PropertyColumn Property="x => x.Name"/>
+                <PropertyColumn Property="x => x.Type"/>
+                <PropertyColumn Property="x => x.Description"/>
+                <TemplateColumn>
+                    <CellTemplate>
+                        @{ var repoLink = $"/Repo/{context.Item.Id}"; }
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                                       Href=@repoLink/>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
     </MudItem>
 </MudGrid>
 
 @code {
+    private MudDataGrid<Repository> _elementGrid = null!;
+    
     [Parameter] public required Organisation Organisation { get; set; }
 
-    private List<Repository> _repositories = new();
+    private IQueryable<Repository> Repositories => DbContext.Repository
+        .Where(r => r.OrganisationId == Organisation.Id)
+        .OrderBy(r => r.Name);
 
-    protected override async Task OnInitializedAsync()
+    void OnRowClick(DataGridRowClickEventArgs<Repository> args)
     {
-        await LoadRepositoriesAsync();
-    }
-
-    private async Task LoadRepositoriesAsync()
-    {
-        _repositories = await DbContext.Repository
-            .Where(r => r.OrganisationId == Organisation.Id)
-            .OrderBy(r => r.Name)
-            .ToListAsync();
+        NavigationManager.NavigateTo($"/Repo/{args.Item.Id}");
     }
 
     private async Task OpenNewRepoDialogAsync()
@@ -63,6 +58,6 @@
         }
 
         Organisation.Repositories.Add(repo);
-        await LoadRepositoriesAsync();
+        await _elementGrid.ReloadServerData();
     }
 }

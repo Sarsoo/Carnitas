@@ -25,22 +25,18 @@ else
             <RepoOverviewCard Repository=@repo />
         </MudTabPanel>
         <MudTabPanel Text="Root Modules">
-            <MudTable Items="@repo.Modules" Dense="true" Hover="true" Class="mt-4">
-                <HeaderContent>
-                    <MudTh>Name</MudTh>
-                    <MudTh>Tracking Branch</MudTh>
-                    <MudTh></MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd>@context.Name</MudTd>
-                    @* <MudTd>@context.TrackingBranch</MudTd> *@
-                    <MudTd>
-                        @{ var moduleLink = $"/Repo/{repo.Id}/Module/{context.Id}"; }
-                        <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
-                                       Href=@moduleLink />
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
+            <MudDataGrid @ref="_elementGrid" T="Module" Items="RootModules" RowClick="OnRowClick" Hover="true" Dense="true" RowClass="cursor-pointer">
+                <Columns>
+                    <PropertyColumn Property="r => r.Name"/>
+                    <TemplateColumn>
+                        <CellTemplate>
+                            @{ var moduleLink = $"/Repo/{repo.Id}/Module/{context.Item.Id}"; }
+                            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                                           Href=@moduleLink />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
         </MudTabPanel>
         <MudTabPanel Text="Drift">
             <MudText>Coming soon</MudText>
@@ -57,17 +53,25 @@ else
 
     private Repository? repo;
 
+    private MudDataGrid<Module> _elementGrid = null!;
+    private IQueryable<Module> RootModules => Db.Repository
+        .Where(r => r.Id == Id)
+        .Include(r => r.Modules)
+        .SelectMany(r => r.Modules);
+    
+    void OnRowClick(DataGridRowClickEventArgs<Module> args)
+    {
+        Navigation.NavigateTo($"/Repo/{repo!.Id}/Module/{args.Item.Id}");
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        await ReloadRepo();
+        repo = await Db.Repository.FindAsync([Id]);
     }
 
     private async Task ReloadRepo()
     {
-        repo = await Db.Repository
-            .Include(r => r.Organisation)
-            .Include(r => r.Modules)
-            .SingleOrDefaultAsync(r => r.Id == Id);
+        await _elementGrid.ReloadServerData();
     }
 
     private async Task EnqueueAsync()

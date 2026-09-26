@@ -20,6 +20,7 @@
                 <MudChip T="string" Size="Size.Small" Color="@StateColor(context.Item.State)">@context.Item.State</MudChip>
             </CellTemplate>
         </TemplateColumn>
+        <PropertyColumn Property="x => x.Repository.Organisation.Name" Title="Repository"/>
         <PropertyColumn Property="x => x.Repository.Name" Title="Repository"/>
         <PropertyColumn Property="x => x.Module.Name" Title="Module"/>
         <TemplateColumn Title="Operations">
@@ -28,7 +29,6 @@
                 <MudText>@ops</MudText>
             </CellTemplate>
         </TemplateColumn>
-        <PropertyColumn Property="x => x.Priority"/>
         <TemplateColumn Title="Attempts">
             <CellTemplate>
                 @{ var attempts = $"{context.Item.Attempts} / {context.Item.MaxAttempts}"; }
@@ -48,6 +48,8 @@
 @code {
     private IQueryable<QueuedTask> _tasks => Db.QueuedTasks
         .Include(t => t.Module)
+        .ThenInclude(m => m.Repository)
+        .ThenInclude(r => r.Organisation)
         .Include(t => t.Operations);
 
     private async Task OpenDialogAsync()

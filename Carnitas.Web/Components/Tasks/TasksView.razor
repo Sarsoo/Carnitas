@@ -16,7 +16,7 @@ else
 {
     <MudCard Elevation="0" Class="mb-4">
         <MudCardContent>
-            <MudText Typo="Typo.h5">@task.Id</MudText>
+            <MudText Typo="Typo.h5">@task.Module?.Name</MudText>
             <MudText Typo="Typo.body2">State: @task.State</MudText>
             <MudText Typo="Typo.body2">Repository: @task.RepoUrl</MudText>
             <MudText Typo="Typo.body2">Module Path: @task.ModulePath</MudText>
@@ -42,14 +42,26 @@ else
             {
                 <MudText Typo="Typo.body2" Color="Color.Error">Error: @task.LastError</MudText>
             }
-            @if (task.Module is not null)
-            {
-                var moduleLink = $"/Repo/{task.Module.RepositoryId}/Module/{task.ModuleId}";
+            <MudStack Row="true" Class="pt-5">
+                @if (task.Module is not null)
+                {
+                    var orgLink = $"/Org/{task.Module.Repository.OrganisationId}";
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Domain" Href=@orgLink>
+                        @task.Repository?.Organisation?.Name
+                    </MudButton>
+                    
+                    var repoLink = $"/Repo/{task.Module.RepositoryId}";
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Code" Href=@repoLink>
+                        @task.Repository?.Name
+                    </MudButton>
+                    
+                    var moduleLink = $"/Repo/{task.Module.RepositoryId}/Module/{task.ModuleId}";
 
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@moduleLink>
-                    @task.Module.Name
-                </MudButton>
-            }
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.SnippetFolder" Href=@moduleLink>
+                        @task.Module.Name
+                    </MudButton>
+                }
+            </MudStack>
         </MudCardContent>
     </MudCard>
 
@@ -113,6 +125,8 @@ else
     {
         task = await Db.QueuedTasks
             .Include(t => t.Module)
+            .ThenInclude(m => m.Repository)
+            .ThenInclude(r => r.Organisation)
             .Include(t => t.Operations)
             .Include(t => t.InitiatorUser)
             .SingleOrDefaultAsync(t => t.Id == Id);

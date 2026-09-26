@@ -18,9 +18,9 @@ else
 {
     <MudCard Elevation="0" Class="mb-4">
         <MudCardHeader>
-            <MudCardHeaderContent>
+            <CardHeaderContent>
                 <MudText Typo="Typo.h5">@module.Name</MudText>
-            </MudCardHeaderContent>
+            </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
             <MudText Typo="Typo.body2">Id: @module.Id</MudText>
@@ -28,15 +28,21 @@ else
             {
                 <MudText Typo="Typo.body2">Tracking Branch: @module.TrackingBranch</MudText>
             }
-            @if (module.Repository is not null)
-            {
-                var repoLink = $"/Repo/{module.RepositoryId}";
-                
-                <MudButton Variant="Variant.Text" Color="Color.Primary"
-                           Href=@repoLink >
-                    @module.Repository.Name
-                </MudButton>
-            }
+            
+            <MudStack Row="true" Class="pt-5">
+                @if (module?.Repository is not null)
+                {
+                    var orgLink = $"/Org/{module.Repository.OrganisationId}";
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Domain" Href=@orgLink>
+                        @module.Repository?.Organisation?.Name
+                    </MudButton>
+                    
+                    var repoLink = $"/Repo/{module.RepositoryId}";
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Code" Href=@repoLink>
+                        @module.Repository?.Name
+                    </MudButton>
+                }
+            </MudStack>
         </MudCardContent>
         <MudCardActions>
             <MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -109,6 +115,7 @@ else
     {
         module = await Db.RootModules
             .Include(m => m.Repository)
+            .ThenInclude(r => r.Organisation)
             .Include(m => m.OperationRuns)
             .SingleOrDefaultAsync(m => m.Id == Id && m.RepositoryId == RepoId);
 
