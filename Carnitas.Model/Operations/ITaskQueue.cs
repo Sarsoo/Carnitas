@@ -15,5 +15,8 @@ public interface ITaskQueue
 
     Task SubmitPlanAsync(string operationId, string planJson, string planFilePath, CancellationToken ct = default);
 
+    Task<int> RecordRootModulesAsync(string operationId, string? repositoryId,
+        IReadOnlyList<string> relativePaths, CancellationToken ct = default);
+
     Task<int> SweepExpiredAsync(CancellationToken ct = default);
 }

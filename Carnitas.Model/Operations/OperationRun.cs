@@ -16,8 +16,8 @@ public class OperationRun
     public string? GitReference { get; set; }
     public string? CommitSha { get; set; }
 
-    public string ModuleId { get; set; }
-    public Module Module { get; set; }
+    public string? ModuleId { get; set; }
+    public Module? Module { get; set; }
 
     public InitiatorType InitiatorType { get; set; }
     public string? InitiatorUserId { get; set; }

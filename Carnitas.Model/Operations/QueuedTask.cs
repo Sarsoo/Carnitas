@@ -1,5 +1,6 @@
 using Carnitas.Model.Identity;
 using Carnitas.Model.Source;
+using Carnitas.Model.Source.SourceControl;
 
 namespace Carnitas.Model.Operations;
 
@@ -10,8 +11,11 @@ public class QueuedTask
     public string RepoUrl { get; set; }
     public string ModulePath { get; set; }
 
-    public string ModuleId { get; set; }
-    public Module Module { get; set; }
+    public string? ModuleId { get; set; }
+    public Module? Module { get; set; }
+
+    public string? RepositoryId { get; set; }
+    public Repository? Repository { get; set; }
 
     public InitiatorType InitiatorType { get; set; }
     public string? InitiatorUserId { get; set; }

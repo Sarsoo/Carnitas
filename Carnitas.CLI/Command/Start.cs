@@ -46,6 +46,7 @@ public class Start: System.CommandLine.Command
             .AddSingleton<IPlanReporter, PlanReporter>()
             .AddSingleton<IStatusReporter, AgentStatusReporter>()
             .AddSingleton<ILogReporter, AgentLogReporter>()
+            .AddSingleton<IRootModuleReporter, AgentRootModuleReporter>()
             .AddCarnitas(host.Configuration);
         
         ///////////////////////

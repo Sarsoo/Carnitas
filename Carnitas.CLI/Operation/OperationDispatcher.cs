@@ -77,6 +77,21 @@ public class OperationDispatcher(
                     logger.LogInformation("Queueing apply workflow");
                     jobDispatcher.QueueJob(Wrap(workflow, work));
                 }
+                else if (maxOp is OperationType.OperationDiscoverSource)
+                {
+                    logger.LogInformation("Max operation is DiscoverSource, generating a source discovery workflow");
+                    var workflow = sp.GetSourceDiscoveryWorkflow<ISourceScopedWorkflowOrchestrator>(
+                            work.Id,
+                            work.Operations.First(o => o.Operation is OperationType.OperationDiscoverSource).Id,
+                            work.RepositoryId
+                        )
+                        .WithSourceRoot(options.Value.WorkspaceRoot)
+                        .WithSourceUrl(work.RepoUrl)
+                        .WithId(work.Id);
+
+                    logger.LogInformation("Queueing source discovery workflow");
+                    jobDispatcher.QueueJob(Wrap(workflow, work));
+                }
             }
             catch (Exception e)
             {

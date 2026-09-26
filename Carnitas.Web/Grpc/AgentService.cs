@@ -61,6 +61,21 @@ public class AgentService(ITaskQueue taskQueue, TaskQueueOptions options): Agent
         return new OperationPlanResponse();
     }
 
+    public override async Task<RootModuleReportResponse> RecordRootModules(
+        RootModuleContents request, ServerCallContext context)
+    {
+        var recorded = await taskQueue.RecordRootModulesAsync(
+            request.OperationId,
+            request.RepositoryId,
+            request.ModulePaths,
+            context.CancellationToken);
+
+        return new RootModuleReportResponse
+        {
+            Recorded = recorded
+        };
+    }
+
     public override async Task<TaskLeaseResponse> RenewLease(TaskLeaseRequest request, ServerCallContext context)
     {
         var renewed = await taskQueue.RenewLeaseAsync(
@@ -93,6 +108,7 @@ public class AgentService(ITaskQueue taskQueue, TaskQueueOptions options): Agent
             Id = task.Id,
             RepoUrl = task.RepoUrl,
             ModulePath = task.ModulePath,
+            RepositoryId = task.RepositoryId ?? string.Empty,
             HasWork = true
         };
 

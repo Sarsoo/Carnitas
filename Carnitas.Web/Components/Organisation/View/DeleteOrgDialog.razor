@@ -1,5 +1,6 @@
 @using Carnitas.Model
 @using Carnitas.Model.Governance
+@using Carnitas.Model.Operations
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext DbContext
 
@@ -52,7 +53,8 @@
         var checkoutCount = await DbContext.Checkouts
             .CountAsync(c => c.Repository.OrganisationId == Organisation.Id);
         var operationRunCount = await DbContext.OperationRuns
-            .CountAsync(o => o.Module.Repository.OrganisationId == Organisation.Id);
+            .CountAsync(o => (o.Module != null && o.Module.Repository.OrganisationId == Organisation.Id)
+                             || (o is SourceDiscoveryRun && ((SourceDiscoveryRun) o).Repository!.OrganisationId == Organisation.Id));
 
         _impact = new Dictionary<string, int>
         {

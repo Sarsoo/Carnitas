@@ -57,5 +57,21 @@ public static class WorkflowExtensions
         
             return orchestrator;
         }
+        
+        public T GetSourceDiscoveryWorkflow<T>(string workflowId, string discoveryId, string? repositoryId)
+            where T: IWorkflowOrchestrator
+        {
+            var orchestrator = sp.GetRequiredService<T>();
+        
+            var discover = sp.GetRequiredService<SourceDiscoveryTerraformStage>()
+                .WithId(discoveryId)
+                .WithRepositoryId(repositoryId);
+
+            orchestrator
+                .WithId(workflowId)
+                .AddStage(discover);
+        
+            return orchestrator;
+        }
     }
 }

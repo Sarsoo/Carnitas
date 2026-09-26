@@ -54,7 +54,10 @@ public static class ServiceExtensions
                 .AddTransient<IStage, PlanTerraformStage>()
                 
                 .AddTransient<ApplyTerraformStage>()
-                .AddTransient<IStage, ApplyTerraformStage>();
+                .AddTransient<IStage, ApplyTerraformStage>()
+
+                .AddTransient<SourceDiscoveryTerraformStage>()
+                .AddTransient<IStage, SourceDiscoveryTerraformStage>();
             
             return serviceCollection;
         }

@@ -9,6 +9,8 @@ service Agent {
   rpc ReportOperationLogBatch(OperationLogBatch) returns (OperationLogBatchResponse);
   rpc ReportOperationStatus(OperationStatusRequest) returns (OperationStatusResponse);
   rpc SubmitOperationPlan(OperationPlanReport) returns (OperationPlanResponse);
+  
+  rpc RecordRootModules(RootModuleContents) returns (RootModuleReportResponse);
 
   rpc RenewLease(TaskLeaseRequest) returns (TaskLeaseResponse);
 
@@ -73,6 +75,21 @@ message TaskLeaseResponse {
 }
 
 ////////////////////////////////
+//     RecordRootModules
+///////////////////////////////
+
+message RootModuleContents {
+  string operation_id = 1;
+  string repository_id = 2;
+
+  repeated string module_paths = 3;
+}
+
+message RootModuleReportResponse {
+  int32 recorded = 1;
+}
+
+////////////////////////////////
 //   ReportOperationStatus
 ///////////////////////////////
 
@@ -100,6 +117,7 @@ message WorkflowRequestResponse {
   string module_path = 3;
   repeated OperationResponse operations = 4;
   bool has_work = 5;
+  string repository_id = 6;
 }
 
 message OperationResponse {
@@ -111,4 +129,5 @@ enum OperationType {
   OPERATION_INIT = 0;
   OPERATION_PLAN = 1;
   OPERATION_APPLY = 2;
+  OPERATION_DISCOVER_SOURCE = 3;
 }

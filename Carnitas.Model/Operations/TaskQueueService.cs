@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Carnitas.Model.Source;
 using Microsoft.EntityFrameworkCore;
 
 namespace Carnitas.Model.Operations;
@@ -15,6 +16,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
             RepoUrl = request.RepoUrl,
             ModulePath = request.ModulePath,
             ModuleId = request.ModuleId,
+            RepositoryId = request.RepositoryId,
             InitiatorType = request.InitiatorType,
             InitiatorUserId = request.InitiatorType == InitiatorType.User ? request.InitiatorUserId : null,
             State = QueuedTaskState.Queued,
@@ -195,6 +197,124 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
             .ConfigureAwait(false);
     }
 
+    public async Task<int> RecordRootModulesAsync(string operationId, string? repositoryId,
+        IReadOnlyList<string> relativePaths, CancellationToken ct = default)
+    {
+        var operation = await db.QueuedTaskOperations
+            .Include(o => o.QueuedTask)
+            .ThenInclude(t => t.Module)
+            .SingleOrDefaultAsync(o => o.Id == operationId, ct)
+            .ConfigureAwait(false);
+
+        if (operation is null)
+        {
+            return 0;
+        }
+
+        var task = operation.QueuedTask;
+
+        var resolvedRepositoryId = !string.IsNullOrWhiteSpace(repositoryId)
+            ? repositoryId
+            : task.RepositoryId ?? task.Module?.RepositoryId;
+
+        if (string.IsNullOrWhiteSpace(resolvedRepositoryId))
+        {
+            return 0;
+        }
+
+        var repositoryExists = await db.Repository
+            .AnyAsync(r => r.Id == resolvedRepositoryId, ct)
+            .ConfigureAwait(false);
+
+        if (!repositoryExists)
+        {
+            return 0;
+        }
+
+        var paths = relativePaths
+            .Select(NormalizeRelativePath)
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        var existing = await db.RootModules
+            .Where(m => m.RepositoryId == resolvedRepositoryId)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        var existingByPath = existing
+            .Where(m => !string.IsNullOrWhiteSpace(m.RelativePath))
+            .GroupBy(m => m.RelativePath!, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
+
+        var desired = new HashSet<string>(paths, StringComparer.Ordinal);
+
+        foreach (var path in paths)
+        {
+            var name = Path.GetFileName(path);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = path;
+            }
+
+            if (existingByPath.TryGetValue(path, out var module))
+            {
+                module.Name = name;
+                continue;
+            }
+
+            db.RootModules.Add(new RootModule
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = name,
+                RelativePath = path,
+                RepositoryId = resolvedRepositoryId
+            });
+        }
+
+        var toRemove = existing
+            .Where(m => !string.IsNullOrWhiteSpace(m.RelativePath) && !desired.Contains(m.RelativePath!))
+            .ToList();
+
+        if (toRemove.Count > 0)
+        {
+            var removableIds = toRemove.Select(m => m.Id).ToList();
+
+            var referencedByRuns = await db.OperationRuns
+                .Where(r => r.ModuleId != null && removableIds.Contains(r.ModuleId))
+                .Select(r => r.ModuleId!)
+                .Distinct()
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+
+            var referencedByTasks = await db.QueuedTasks
+                .Where(t => t.ModuleId != null && removableIds.Contains(t.ModuleId))
+                .Select(t => t.ModuleId!)
+                .Distinct()
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+
+            var retained = new HashSet<string>(referencedByRuns.Concat(referencedByTasks), StringComparer.Ordinal);
+
+            db.RootModules.RemoveRange(toRemove.Where(m => !retained.Contains(m.Id)));
+        }
+
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        return paths.Count;
+    }
+
+    private static string NormalizeRelativePath(string path)
+    {
+        var normalized = path.Replace('\\', '/').Trim();
+        while (normalized.StartsWith("./", StringComparison.Ordinal))
+        {
+            normalized = normalized[2..];
+        }
+
+        return normalized.Trim('/');
+    }
+
     public async Task<int> SweepExpiredAsync(CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
@@ -224,6 +344,12 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
         run.Id = operation.Id;
         run.ModuleId = operation.QueuedTask.ModuleId;
         run.QueuedTaskId = operation.QueuedTask.Id;
+
+        if (run is SourceDiscoveryRun discoveryRun)
+        {
+            discoveryRun.RepositoryId = operation.QueuedTask.RepositoryId
+                ?? operation.QueuedTask.Module?.RepositoryId;
+        }
         run.InitiatorType = operation.QueuedTask.InitiatorType;
         run.InitiatorUserId = operation.QueuedTask.InitiatorUserId;
         run.StartTime = operation.QueuedTask.StartedAt ?? DateTime.UtcNow;
@@ -286,6 +412,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options)
         OperationKind.Init => new InitRun(),
         OperationKind.Plan => new PlanRun(),
         OperationKind.Apply => new ApplyRun(),
+        OperationKind.DiscoverSource => new SourceDiscoveryRun(),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown operation kind")
     };
 }

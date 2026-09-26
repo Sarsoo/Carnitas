@@ -42,6 +42,8 @@
                 <MudCheckBox T="bool" Label="Init" @bind-Value="_init"/>
                 <MudCheckBox T="bool" Label="Plan" @bind-Value="_plan"/>
                 <MudCheckBox T="bool" Label="Apply" @bind-Value="_apply"/>
+                <MudCheckBox T="bool" Label="Discover Sources" @bind-Value="_discover"
+                             HelperText="Scans the repository for Terraform root modules. Runs on its own."/>
             </MudItem>
             <MudItem xs="12">
                 <MudNumericField T="int" Label="Priority" @bind-Value="_priority"/>
@@ -76,12 +78,14 @@
     private bool _init = true;
     private bool _plan = true;
     private bool _apply;
+    private bool _discover;
     private int _priority;
 
     private bool CanSubmit => !string.IsNullOrWhiteSpace(_repositoryId)
-                              && !string.IsNullOrWhiteSpace(_moduleId)
-                              && !string.IsNullOrWhiteSpace(_modulePath)
-                              && (_init || _plan || _apply);
+                              && (_discover
+                                  || (!string.IsNullOrWhiteSpace(_moduleId)
+                                      && !string.IsNullOrWhiteSpace(_modulePath)
+                                      && (_init || _plan || _apply)));
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,19 +120,26 @@
         var repository = _repositories.Single(r => r.Id == _repositoryId);
 
         var operations = new List<OperationKind>();
-        if (_init)
+        if (_discover)
         {
-            operations.Add(OperationKind.Init);
+            operations.Add(OperationKind.DiscoverSource);
         }
-
-        if (_plan)
+        else
         {
-            operations.Add(OperationKind.Plan);
-        }
+            if (_init)
+            {
+                operations.Add(OperationKind.Init);
+            }
 
-        if (_apply)
-        {
-            operations.Add(OperationKind.Apply);
+            if (_plan)
+            {
+                operations.Add(OperationKind.Plan);
+            }
+
+            if (_apply)
+            {
+                operations.Add(OperationKind.Apply);
+            }
         }
 
         var initiatorType = InitiatorType.System;
@@ -148,11 +159,12 @@
         var task = await TaskQueue.EnqueueAsync(new EnqueueTaskRequest(
             repository.GitUrl,
             _modulePath,
-            _moduleId!,
+            _moduleId,
             operations,
             _priority,
             InitiatorType: initiatorType,
-            InitiatorUserId: initiatorUserId));
+            InitiatorUserId: initiatorUserId,
+            RepositoryId: _repositoryId));
 
         MudDialog.Close(DialogResult.Ok(task));
     }

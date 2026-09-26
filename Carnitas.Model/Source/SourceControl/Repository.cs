@@ -26,4 +26,5 @@ public class Repository
     public ICollection<Operations.InitRun> InitRuns { get; }
     public ICollection<Operations.PlanRun> PlanRuns { get; }
     public ICollection<Operations.ApplyRun> ApplyRuns { get; }
+    public ICollection<Operations.SourceDiscoveryRun> SourceDiscoveryRuns { get; }
 }

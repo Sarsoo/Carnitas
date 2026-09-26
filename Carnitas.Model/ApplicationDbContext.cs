@@ -104,6 +104,10 @@ internal static class ModelBuilderExtensions
             builder.Entity<Module>()
                 .HasKey(e => e.Id);
 
+            builder.Entity<Module>()
+                .HasIndex(e => new { e.RepositoryId, e.RelativePath })
+                .IsUnique();
+
             builder.Entity<RootModule>().ToTable("RootModule");
 
             return builder;
@@ -119,7 +123,8 @@ internal static class ModelBuilderExtensions
                 .HasOne(e => e.Module)
                 .WithMany(e => e.OperationRuns)
                 .HasForeignKey(e => e.ModuleId)
-                .HasPrincipalKey(e => e.Id);
+                .HasPrincipalKey(e => e.Id)
+                .IsRequired(false);
 
             builder.Entity<OperationRun>()
                 .HasOne(e => e.Checkout)
@@ -148,6 +153,7 @@ internal static class ModelBuilderExtensions
             builder.Entity<InitRun>().ToTable("InitRuns");
             builder.Entity<ApplyRun>().ToTable("ApplyRuns");
             builder.Entity<PlanRun>().ToTable("PlanRuns");
+            builder.Entity<SourceDiscoveryRun>().ToTable("SourceDiscoveryRuns");
 
             return builder;
         }
@@ -197,6 +203,13 @@ internal static class ModelBuilderExtensions
                 .WithMany()
                 .HasForeignKey(e => e.ModuleId)
                 .HasPrincipalKey(e => e.Id);
+
+            builder.Entity<QueuedTask>()
+                .HasOne(e => e.Repository)
+                .WithMany()
+                .HasForeignKey(e => e.RepositoryId)
+                .HasPrincipalKey(e => e.Id)
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<QueuedTask>()
                 .HasOne(e => e.InitiatorUser)
