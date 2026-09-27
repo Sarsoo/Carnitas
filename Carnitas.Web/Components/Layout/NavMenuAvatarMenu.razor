@@ -1,18 +1,49 @@
+@using Carnitas.Model.Identity
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthState
+@inject SignInManager<ApplicationUser> SignInManager
+
 <MudMenu
     AnchorOrigin="Origin.BottomRight"
     TransformOrigin="Origin.TopRight"
     AriaLabel="Open user menu">
     <ActivatorContent>
         <div @onclick="@context.ToggleAsync" style="cursor: pointer">
-            <MudAvatar Color="Color.Primary">U</MudAvatar>
+            @if (_authState is null || (!_authState.User.Identity?.IsAuthenticated ?? true))
+            {
+                <MudAvatar Color="Color.Primary">U</MudAvatar>
+            }
+            else
+            {
+                <MudAvatar Color="Color.Primary">@_authState.User.Identity?.Name?.ToUpper().First()</MudAvatar>
+            }
         </div>
     </ActivatorContent>
     <ChildContent>
-        <MudMenuItem Label="Profile" Icon="@Icons.Material.Filled.Person" Href="/Account/Manage" />
-        <MudMenuItem Label="Logout" Icon="@Icons.Material.Filled.Logout" Href="/Account/Login" ForceLoad="true"/>
+        @if (_authState is null || (!_authState.User.Identity?.IsAuthenticated ?? true))
+        {
+            <MudMenuItem Label="Login" Icon="@Icons.Material.Filled.Login" Href="/Account/Login" ForceLoad="true"/>
+        }
+        else
+        {
+            <MudMenuItem Label="Profile" Icon="@Icons.Material.Filled.Person" Href="/Account/Manage"/>
+            <MudMenuItem Label="Logout" Icon="@Icons.Material.Filled.Logout" OnClick="@LogOut" ForceLoad="true"/>
+        }
     </ChildContent>
 </MudMenu>
 
 @code {
+    private AuthenticationState? _authState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _authState = await AuthState.GetAuthenticationStateAsync();
+    }
+
+    private async Task LogOut()
+    {
+        await SignInManager.SignOutAsync();
+    }
 
 }
