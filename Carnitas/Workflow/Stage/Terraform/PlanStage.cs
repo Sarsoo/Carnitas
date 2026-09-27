@@ -4,6 +4,7 @@ using Carnitas.Options;
 using Carnitas.Workflow.Output;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenTelemetry;
 using Sarsoo.Terraform.Command;
 using Sarsoo.Terraform.MachineReadableUI;
 using Sarsoo.Terraform.Plan;
@@ -43,7 +44,8 @@ public class PlanTerraformStage(
     
     public override async Task<IStageResult> Run(CancellationToken ct = default)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("PlanStage::Run");
+        Baggage.SetBaggage(ObservabilityConstants.StageId, Id);
         try
         {
             var planJson = await Command.Run(ct).ConfigureAwait(false);

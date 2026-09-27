@@ -4,5 +4,5 @@ namespace Carnitas.Observability;
 
 public static class Tracing
 {
-    public static readonly ActivitySource Source = new ActivitySource("Carnitas.Observability");
+    public static readonly ActivitySource Source = new("Carnitas.Observability");
 }

@@ -2,6 +2,7 @@ using Carnitas.Observability;
 using Carnitas.Workflow.Output;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
 using Sarsoo.Terraform.Source.FileSystem;
 
 namespace Carnitas.Workflow.Stage.Terraform;
@@ -29,7 +30,7 @@ public class SourceDiscoveryTerraformStage(
 
     public override async Task<IStageResult> Run(CancellationToken ct = default)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("SourceDiscovery::Run");
         try
         {
             var root = BasePath;
@@ -66,7 +67,7 @@ public class SourceDiscoveryTerraformStage(
 
     private static IReadOnlyList<string> Discover(string root, CancellationToken ct)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("SourceDiscovery::Discover");
         using var repository = new Repository(root);
 
         var tips = repository.Branches

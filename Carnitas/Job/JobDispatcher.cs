@@ -32,7 +32,7 @@ public class JobDispatcher(IOptions<WorkerOptions> options, ILogger<JobDispatche
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
             Task.Run(async () =>
             {
-                using var trace = Tracing.Source.StartActivity();
+                using var trace = Tracing.Source.StartActivity("JobDispatcher::Start");
                 try
                 {
                     logger.LogInformation("Starting job {job}", job.Id);

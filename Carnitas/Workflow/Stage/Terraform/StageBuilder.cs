@@ -1,5 +1,6 @@
 using Carnitas.Job;
 using Carnitas.Observability;
+using OpenTelemetry;
 
 namespace Carnitas.Workflow.Stage.Terraform;
 
@@ -45,6 +46,7 @@ public abstract class StageBuilder<TSelf>: IJob, IStage
     public async Task Execute(CancellationToken token)
     {
         using var trace = Tracing.Source.StartActivity();
+        Baggage.SetBaggage(ObservabilityConstants.StageId, Id);
         await Run(token);
     }
 

@@ -11,6 +11,7 @@ using Carnitas.Web.Components.Account;
 using Carnitas.Web.Grpc;
 using MudBlazor.Services;
 using NLog.Extensions.Logging;
+using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -76,25 +77,24 @@ builder.Services.AddHostedService<TaskQueueMaintenanceService>();
 ///////////////////////
 
 builder.Services.AddOpenTelemetry()
+    .UseOtlpExporter()
     .WithLogging(b =>
     {
-        b.AddOtlpExporter();
+        
     })
     .WithMetrics(b =>
     {
         b.AddMeter("Sarsoo.*");
         b.AddMeter("Carnitas.*");
         b.AddAspNetCoreInstrumentation()
-            .AddRuntimeInstrumentation()
-            .AddOtlpExporter();
+            .AddRuntimeInstrumentation();
     })
     .WithTracing(b =>
     {
         b.AddSource("Sarsoo.*");
         b.AddSource("Carnitas.*");
         b.AddAspNetCoreInstrumentation()
-            .AddEntityFrameworkCoreInstrumentation()
-            .AddOtlpExporter();
+            .AddEntityFrameworkCoreInstrumentation();
     });
 
 BaggageTagMapper.MapBaggageToTags();

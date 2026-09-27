@@ -3,6 +3,7 @@ using Carnitas.Observability;
 using Carnitas.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenTelemetry;
 using Sarsoo.Terraform.Command;
 using Sarsoo.Terraform.MachineReadableUI;
 
@@ -36,7 +37,9 @@ public class ApplyTerraformStage(
     
     public override async Task<IStageResult> Run(CancellationToken ct = default)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("ApplyStage::Run");
+        Baggage.SetBaggage(ObservabilityConstants.StageId, Id);
+        
         try
         {
             await Command.Run(ct).ConfigureAwait(false);

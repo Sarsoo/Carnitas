@@ -14,7 +14,8 @@ public class HostInit
         var host = Microsoft.Extensions.Hosting.Host.CreateEmptyApplicationBuilder(settings);
         
         host.Configuration.SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json");
+            .AddJsonFile("appsettings.json")
+            .AddEnvironmentVariables();
 
         host.Logging.ClearProviders().AddNLog(host.Configuration);
 

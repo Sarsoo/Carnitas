@@ -88,7 +88,7 @@ public class SourceScopedWorkflowOrchestrator(
 
     public Task<IStageResult> RunNextStage(CancellationToken token = default)
     { 
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("SourceWorkflowOrch::RunNextStage");
         Validate();
         if (string.IsNullOrEmpty(_checkoutPath))
         {
@@ -99,7 +99,7 @@ public class SourceScopedWorkflowOrchestrator(
 
     public IAsyncEnumerable<IStageResult> RunAll(CancellationToken token = default)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("SourceWorkflowOrch::RunAll");
         Validate();
         if (string.IsNullOrEmpty(_checkoutPath))
         {
@@ -110,7 +110,7 @@ public class SourceScopedWorkflowOrchestrator(
 
     public Task Execute(CancellationToken token)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("SourceWorkflowOrch::Execute");
         Validate();
         if (string.IsNullOrEmpty(_checkoutPath))
         {
@@ -131,7 +131,7 @@ public class SourceScopedWorkflowOrchestrator(
 
     public ISourceScopedWorkflowOrchestrator PrepareSource()
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("SourceWorkflowOrch::PrepareSource");
         Validate();
 
         var checkoutPath = Path.Join(_sourceRoot, Id);
@@ -147,7 +147,7 @@ public class SourceScopedWorkflowOrchestrator(
 
     private void ResolveGitReference(string checkoutPath)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("SourceWorkflowOrch::ResolveGitRef");
         using var repository = new Repository(checkoutPath);
 
         Commit? commit;

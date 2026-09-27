@@ -3,6 +3,7 @@ using Carnitas.Observability;
 using Carnitas.Workflow.Output;
 using Carnitas.Workflow.Stage;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
 
 namespace Carnitas.Workflow.Orchestration;
 
@@ -68,7 +69,8 @@ public class WorkflowOrchestrator(
     
     public async Task<IStageResult> RunNextStage(CancellationToken token = default)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("WorkflowOrch::RunNextStage");
+        Baggage.SetBaggage(ObservabilityConstants.WorkflowId, Id);
         
         if (Id is null) throw new InvalidOperationException("Id for the orchestrator has not been set");
         
@@ -96,7 +98,8 @@ public class WorkflowOrchestrator(
 
     public async IAsyncEnumerable<IStageResult> RunAll([EnumeratorCancellation] CancellationToken token = default)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("WorkflowOrch::RunAll");
+        Baggage.SetBaggage(ObservabilityConstants.WorkflowId, Id);
         if (Id is null) throw new InvalidOperationException("Id for the orchestrator has not been set");
         
         while (_stages.Count > 0 && !_disposed && !token.IsCancellationRequested)
@@ -108,7 +111,8 @@ public class WorkflowOrchestrator(
 
     private void HandleWorkflowResult(IStage stage, IStageResult? result = null, Exception? e = null)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("WorkflowOrch::HandleWorkflowResult");
+        Baggage.SetBaggage(ObservabilityConstants.WorkflowId, Id);
         if (result is { Status: StageState.Failure })
         {
             if (!stage.Retryable)
@@ -134,7 +138,8 @@ public class WorkflowOrchestrator(
 
     public async Task Execute(CancellationToken token)
     {
-        using var trace = Tracing.Source.StartActivity();
+        using var trace = Tracing.Source.StartActivity("WorkflowOrch::Execute");
+        Baggage.SetBaggage(ObservabilityConstants.WorkflowId, Id);
         await RunAll(token).ToListAsync(token).ConfigureAwait(false);
     }
 }

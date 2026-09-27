@@ -12,6 +12,7 @@
       <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.12" />
       <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.12" />
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
+      <PackageReference Include="OpenTelemetry.Api" Version="1.19.1" />
 <!--      <PackageReference Include="Sarsoo.Terraform" Version="0.0.3" />-->
     </ItemGroup>
 

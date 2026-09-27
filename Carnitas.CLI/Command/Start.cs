@@ -14,6 +14,7 @@ using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -38,8 +39,12 @@ public class Start: System.CommandLine.Command
         
         var options = host.Configuration.GetSection(BackendOptions.Key).Get<BackendOptions>();
 
-        host.Services.AddSingleton<ChannelBase>(sp => GrpcChannel.ForAddress(options.Url));
-        host.Services.AddTransient<Agent.AgentClient>();
+        host.Services.AddServiceDiscovery();
+
+        host.Services.AddGrpcClient<Agent.AgentClient>(o =>
+        {
+            o.Address = new Uri("http://backend");
+        }).AddServiceDiscovery();
 
         host.Services.AddSingleton<OperationQueue>()
             .AddHostedService<OperationRequester>()
@@ -53,19 +58,19 @@ public class Start: System.CommandLine.Command
         ///////////////////////
         //   OBSERVABILITY
         ///////////////////////
-
+        
         host.Services.AddOpenTelemetry()
+            .UseOtlpExporter()
             .WithLogging(b =>
             {
-                b.AddOtlpExporter();
+
             })
             .WithMetrics(b =>
             {
                 b.AddMeter("Sarsoo.*");
                 b.AddMeter("Carnitas.*");
-                b.AddRuntimeInstrumentation();
                 
-                b.AddOtlpExporter();
+                b.AddRuntimeInstrumentation();
             })
             .WithTracing(b =>
             {
@@ -73,8 +78,6 @@ public class Start: System.CommandLine.Command
                 b.AddSource("Carnitas.*");
                 
                 b.AddGrpcClientInstrumentation();
-                
-                b.AddOtlpExporter();
             });
         BaggageTagMapper.MapBaggageToTags();
         UnhandledExceptionHandler.SetUnhandledExceptionHandler();

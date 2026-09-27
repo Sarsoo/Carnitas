@@ -24,7 +24,7 @@ public class TerraformStageOutputCapture(
     {
         await foreach (var stage in _stageQueue.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
         {
-            using var trace = Tracing.Source.StartActivity();
+            using var trace = Tracing.Source.StartActivity("OutputCapture::Process");
             await Task.WhenAll(
                 ProcessStageMessages(stage, cancel),
                 ProcessStageJson(stage, cancel)

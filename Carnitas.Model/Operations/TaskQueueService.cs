@@ -1,7 +1,9 @@
 using System.Text.Json;
 using Carnitas.Model.Source;
+using Carnitas.Observability;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
 
 namespace Carnitas.Model.Operations;
 
@@ -9,6 +11,10 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
 {
     public async Task<QueuedTask> EnqueueAsync(EnqueueTaskRequest request, CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity("TaskQueue::Enqueue");
+        Baggage.SetBaggage(ObservabilityConstants.OrgId, request.RepositoryId);
+        Baggage.SetBaggage(ObservabilityConstants.OrgId, request.ModuleId);
+        
         var now = DateTime.UtcNow;
         var initiatorUserId = request.InitiatorType == InitiatorType.User ? request.InitiatorUserId : null;
 
@@ -78,6 +84,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
     public async Task<QueuedTask?> ClaimNextAsync(string workerId, TimeSpan lockDuration,
         CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity("TaskQueue::ClaimNext");
+        
         var now = DateTime.UtcNow;
         var queued = (int) QueuedTaskState.Queued;
         var processing = (int) QueuedTaskState.Processing;
@@ -131,6 +139,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
     public async Task<bool> RenewLeaseAsync(string taskId, string workerId, TimeSpan lockDuration,
         CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity("RenewLease::Run");
+        
         var lockedUntil = DateTime.UtcNow + lockDuration;
 
         var updated = await db.QueuedTasks
@@ -146,6 +156,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
     public async Task ReportOperationStatusAsync(string operationId, bool success, int? exitCode, string? error,
         string? gitReference = null, string? commitSha = null, CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity("TaskQueue::ReportOpStatus");
+        
         var operation = await db.QueuedTaskOperations
             .Include(o => o.QueuedTask)
             .SingleOrDefaultAsync(o => o.Id == operationId, ct)
@@ -185,6 +197,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
 
     public async Task AppendLogsAsync(IReadOnlyList<LogLine> entries, CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity("TaskQueue::AppendLogs");
+        
         if (entries.Count == 0)
         {
             return;
@@ -238,6 +252,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
     public async Task SubmitPlanAsync(string operationId, string planJson, string planFilePath,
         CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity("TaskQueue::SubmitPlan");
+        
         var operation = await db.QueuedTaskOperations
             .Include(o => o.QueuedTask)
             .SingleOrDefaultAsync(o => o.Id == operationId, ct)
@@ -270,6 +286,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
     public async Task<int> RecordRootModulesAsync(string operationId, string? repositoryId,
         IReadOnlyList<string> relativePaths, CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity("TaskQueue::RecordRootModules");
+        
         var operation = await db.QueuedTaskOperations
             .Include(o => o.QueuedTask)
             .ThenInclude(t => t.Module)
@@ -387,6 +405,8 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
 
     public async Task<int> SweepExpiredAsync(CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity("TaskQueue::SweepExpired");
+        
         var now = DateTime.UtcNow;
 
         return await db.QueuedTasks

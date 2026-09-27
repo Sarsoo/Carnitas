@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using OpenTelemetry;
 
 namespace Carnitas.Observability;
 
@@ -18,7 +19,7 @@ public static class BaggageTagMapper
                     ShouldListenTo = _ => true,
                     ActivityStopped = activity =>
                     {
-                        foreach (var v in activity.Baggage)
+                        foreach (var v in Baggage.GetBaggage())
                         {
                             activity.AddTag(v.Key, v.Value);
                         }
