@@ -6,6 +6,7 @@ using Carnitas.CLI.Options;
 using Carnitas.CLI.Services;
 using Carnitas.Extensions;
 using Carnitas.Grpc;
+using Carnitas.Observability;
 using Carnitas.Options;
 using Carnitas.Workflow.Output;
 using Grpc.Core;
@@ -62,14 +63,21 @@ public class Start: System.CommandLine.Command
             {
                 b.AddMeter("Sarsoo.*");
                 b.AddMeter("Carnitas.*");
+                b.AddRuntimeInstrumentation();
+                
                 b.AddOtlpExporter();
             })
             .WithTracing(b =>
             {
                 b.AddSource("Sarsoo.*");
                 b.AddSource("Carnitas.*");
+                
+                b.AddGrpcClientInstrumentation();
+                
                 b.AddOtlpExporter();
             });
+        BaggageTagMapper.MapBaggageToTags();
+        UnhandledExceptionHandler.SetUnhandledExceptionHandler();
 
         await host.Build().RunAsync();
 

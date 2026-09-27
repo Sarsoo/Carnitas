@@ -18,32 +18,49 @@ else
     <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
     <MudCard Elevation="0" Class="mb-4">
         <MudCardContent>
-            <MudText Typo="Typo.h5">@task.Module?.Name</MudText>
-            <MudText Typo="Typo.body2">State: @task.State</MudText>
-            <MudText Typo="Typo.body2">Repository: @task.RepoUrl</MudText>
-            <MudText Typo="Typo.body2">Module Path: @task.ModulePath</MudText>
-            <MudText Typo="Typo.body2">Initiated By: @InitiatorLabel(task.InitiatorType, task.InitiatorUser, task.InitiatorUserId)</MudText>
-            <MudText Typo="Typo.body2">Priority: @task.Priority</MudText>
-            <MudText Typo="Typo.body2">Attempts: @task.Attempts / @task.MaxAttempts</MudText>
-            <MudText Typo="Typo.body2">Scheduled: @task.ScheduledAt</MudText>
-            <MudText Typo="Typo.body2">Created: @task.CreatedAt</MudText>
-            @if (task.StartedAt is not null)
-            {
-                <MudText Typo="Typo.body2">Started: @task.StartedAt</MudText>
-            }
-            @if (task.CompletedAt is not null)
-            {
-                <MudText Typo="Typo.body2">Completed: @task.CompletedAt</MudText>
-            }
-            @if (task.LockedBy is not null)
-            {
-                <MudText Typo="Typo.body2">Locked By: @task.LockedBy</MudText>
-                <MudText Typo="Typo.body2">Locked Until: @task.LockedUntil</MudText>
-            }
-            @if (task.LastError is not null)
-            {
-                <MudText Typo="Typo.body2" Color="Color.Error">Error: @task.LastError</MudText>
-            }
+            <MudStack Row="true">
+                <MudContainer>
+                    <MudText Typo="Typo.h5">@task.Module?.Name</MudText>
+                    <MudText Typo="Typo.body2">State: @task.State</MudText>
+                    <MudText Typo="Typo.body2">Repository: @task.RepoUrl</MudText>
+                    <MudText Typo="Typo.body2">Module Path: @task.ModulePath</MudText>
+                    <MudText Typo="Typo.body2">Initiated By: @InitiatorLabel(task.InitiatorType, task.InitiatorUser, task.InitiatorUserId)</MudText>
+                    <MudText Typo="Typo.body2">Priority: @task.Priority</MudText>
+                    <MudText Typo="Typo.body2">Attempts: @task.Attempts / @task.MaxAttempts</MudText>
+                    <MudText Typo="Typo.body2">Scheduled: @task.ScheduledAt</MudText>
+                    <MudText Typo="Typo.body2">Created: @task.CreatedAt</MudText>
+                    @if (task.StartedAt is not null)
+                    {
+                        <MudText Typo="Typo.body2">Started: @task.StartedAt</MudText>
+                    }
+                    @if (task.CompletedAt is not null)
+                    {
+                        <MudText Typo="Typo.body2">Completed: @task.CompletedAt</MudText>
+                    }
+                    @if (task.LockedBy is not null)
+                    {
+                        <MudText Typo="Typo.body2">Locked By: @task.LockedBy</MudText>
+                        <MudText Typo="Typo.body2">Locked Until: @task.LockedUntil</MudText>
+                    }
+                    @if (task.LastError is not null)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Error">Error: @task.LastError</MudText>
+                    }
+                </MudContainer>
+                <MudContainer>
+                    <MudTimeline>
+                        @foreach (var (i, op) in task.Operations.Select((o, i) => (i, o)))
+                        {
+                            <MudTimelineItem>
+                                <MudText
+                                    Align="(i % 2) == 0 ? Align.Start : Align.End">
+                                    @op.Kind
+                                </MudText>
+                            </MudTimelineItem>
+                        }
+                    </MudTimeline>
+                </MudContainer>
+            </MudStack>
         </MudCardContent>
     </MudCard>
 

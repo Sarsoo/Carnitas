@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using Carnitas.Job;
+using Carnitas.Observability;
 using Sarsoo.Terraform.MachineReadableUI;
 
 namespace Carnitas.Workflow.Stage.Terraform;
@@ -45,6 +46,7 @@ public abstract class TerraformStageBuilder<TSelf>: IJob, ITerraformStage
 
     public async Task Execute(CancellationToken token)
     {
+        using var trace = Tracing.Source.StartActivity();
         await Run(token);
     }
 

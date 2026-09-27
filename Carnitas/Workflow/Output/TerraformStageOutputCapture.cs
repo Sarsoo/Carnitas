@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Carnitas.Observability;
 using Carnitas.Workflow.Stage;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,7 @@ public class TerraformStageOutputCapture(
     {
         await foreach (var stage in _stageQueue.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
         {
+            using var trace = Tracing.Source.StartActivity();
             await Task.WhenAll(
                 ProcessStageMessages(stage, cancel),
                 ProcessStageJson(stage, cancel)

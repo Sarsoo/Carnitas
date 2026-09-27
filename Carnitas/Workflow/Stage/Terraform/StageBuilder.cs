@@ -1,4 +1,5 @@
 using Carnitas.Job;
+using Carnitas.Observability;
 
 namespace Carnitas.Workflow.Stage.Terraform;
 
@@ -43,6 +44,7 @@ public abstract class StageBuilder<TSelf>: IJob, IStage
 
     public async Task Execute(CancellationToken token)
     {
+        using var trace = Tracing.Source.StartActivity();
         await Run(token);
     }
 

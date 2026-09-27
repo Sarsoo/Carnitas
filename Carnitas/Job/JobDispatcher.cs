@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Carnitas.Observability;
 using Carnitas.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,7 @@ public class JobDispatcher(IOptions<WorkerOptions> options, ILogger<JobDispatche
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
             Task.Run(async () =>
             {
+                using var trace = Tracing.Source.StartActivity();
                 try
                 {
                     logger.LogInformation("Starting job {job}", job.Id);

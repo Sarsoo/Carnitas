@@ -15,7 +15,9 @@
                StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary">Enqueue</MudButton>
 </MudToolBar>
 
-<MudDataGrid T="QueuedTask" Items="_tasks" Filterable="true" Hover="true" Dense="true" RowClick="OnRowClick" RowClass="cursor-pointer">
+<MudDataGrid T="QueuedTask" Items="_tasks"
+             Filterable="true" Hover="true" Dense="true" 
+             RowClick="OnRowClick" RowClass="cursor-pointer">
     <Columns>
         <TemplateColumn Title="State">
             <CellTemplate>
@@ -27,17 +29,19 @@
         <PropertyColumn Property="x => x.Module.Name" Title="Module"/>
         <TemplateColumn Title="Operations">
             <CellTemplate>
-                @{ var ops = string.Join(", ", context.Item.Operations.OrderBy(o => o.Sequence).Select(o => o.Kind)); }
-                <MudText>@ops</MudText>
+                @foreach (var item in context.Item.Operations.OrderBy(o => o.Sequence))
+                {
+                    <MudChip Variant="Variant.Text">@item.Kind</MudChip>
+                }
             </CellTemplate>
         </TemplateColumn>
-        <TemplateColumn Title="Attempts">
+        <TemplateColumn Title="Attempts" SortBy="@(x => x.Attempts)">
             <CellTemplate>
                 @{ var attempts = $"{context.Item.Attempts} / {context.Item.MaxAttempts}"; }
                 <MudText>@attempts</MudText>
             </CellTemplate>
         </TemplateColumn>
-        <PropertyColumn Property="x => x.CreatedAt"/>
+        <PropertyColumn Property="x => x.CreatedAt" Sortable="true" InitialDirection="SortDirection.Descending"/>
         <TemplateColumn>
             <CellTemplate>
                 <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.Item.ToLink()/>

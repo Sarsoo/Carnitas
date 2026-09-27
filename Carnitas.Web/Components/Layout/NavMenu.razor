@@ -1,4 +1,6 @@
-﻿<MudNavMenu Margin="Margin.Normal" Rounded="true" Class="pa-2">
+﻿@inject AuthenticationStateProvider AuthState
+
+<MudNavMenu Margin="Margin.Normal" Rounded="true" Class="pa-2">
     <MudText Typo="Typo.h6" Class="px-4">Carnitas</MudText>
     @* <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Secondary Text</MudText> *@
     <MudDivider Class="my-2"/>
@@ -8,10 +10,22 @@
     <MudNavLink Href="/repo" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Code">Repos</MudNavLink>
     <MudNavLink Href="/task" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Task">Tasks</MudNavLink>
     <MudNavLink Href="/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
-    <MudNavLink Href="/admin" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudNavLink>
+    @if (_authState?.User.IsInRole("Admin") ?? false)
+    {
+        <MudNavLink Href="/admin" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudNavLink>
+    }
     @* <MudNavGroup Title="Settings" Expanded="true" Icon="@Icons.Material.Filled.Settings"> *@
     @*     <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Users</MudNavLink> *@
     @*     <MudNavLink Href="/security" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Security">Security</MudNavLink> *@
     @* </MudNavGroup> *@
     @* <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink> *@
 </MudNavMenu>
+
+@code {
+    private AuthenticationState? _authState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _authState = await AuthState.GetAuthenticationStateAsync();
+    }
+}

@@ -2,6 +2,7 @@ using Carnitas.Extensions;
 using Carnitas.Model;
 using Carnitas.Model.Identity;
 using Carnitas.Model.Operations;
+using Carnitas.Observability;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders().AddNLog();
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
+builder.Services.AddRazorComponents(b =>
+    {
+        b.DetailedErrors = builder.Environment.IsDevelopment();
+    })
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
 builder.Services.AddGrpc();
@@ -81,6 +85,7 @@ builder.Services.AddOpenTelemetry()
         b.AddMeter("Sarsoo.*");
         b.AddMeter("Carnitas.*");
         b.AddAspNetCoreInstrumentation()
+            .AddRuntimeInstrumentation()
             .AddOtlpExporter();
     })
     .WithTracing(b =>
@@ -91,6 +96,9 @@ builder.Services.AddOpenTelemetry()
             .AddEntityFrameworkCoreInstrumentation()
             .AddOtlpExporter();
     });
+
+BaggageTagMapper.MapBaggageToTags();
+UnhandledExceptionHandler.SetUnhandledExceptionHandler();
 
 var app = builder.Build();
 

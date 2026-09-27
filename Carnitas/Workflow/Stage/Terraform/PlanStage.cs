@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Carnitas.Observability;
 using Carnitas.Options;
 using Carnitas.Workflow.Output;
 using Microsoft.Extensions.Logging;
@@ -42,6 +43,7 @@ public class PlanTerraformStage(
     
     public override async Task<IStageResult> Run(CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity();
         try
         {
             var planJson = await Command.Run(ct).ConfigureAwait(false);

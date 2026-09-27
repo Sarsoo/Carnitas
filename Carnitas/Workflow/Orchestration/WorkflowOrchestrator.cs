@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Carnitas.Observability;
 using Carnitas.Workflow.Output;
 using Carnitas.Workflow.Stage;
 using Microsoft.Extensions.Logging;
@@ -67,6 +68,8 @@ public class WorkflowOrchestrator(
     
     public async Task<IStageResult> RunNextStage(CancellationToken token = default)
     {
+        using var trace = Tracing.Source.StartActivity();
+        
         if (Id is null) throw new InvalidOperationException("Id for the orchestrator has not been set");
         
         var nextStage = _stages.Peek();
@@ -93,6 +96,7 @@ public class WorkflowOrchestrator(
 
     public async IAsyncEnumerable<IStageResult> RunAll([EnumeratorCancellation] CancellationToken token = default)
     {
+        using var trace = Tracing.Source.StartActivity();
         if (Id is null) throw new InvalidOperationException("Id for the orchestrator has not been set");
         
         while (_stages.Count > 0 && !_disposed && !token.IsCancellationRequested)
@@ -104,6 +108,7 @@ public class WorkflowOrchestrator(
 
     private void HandleWorkflowResult(IStage stage, IStageResult? result = null, Exception? e = null)
     {
+        using var trace = Tracing.Source.StartActivity();
         if (result is { Status: StageState.Failure })
         {
             if (!stage.Retryable)
@@ -129,6 +134,7 @@ public class WorkflowOrchestrator(
 
     public async Task Execute(CancellationToken token)
     {
+        using var trace = Tracing.Source.StartActivity();
         await RunAll(token).ToListAsync(token).ConfigureAwait(false);
     }
 }

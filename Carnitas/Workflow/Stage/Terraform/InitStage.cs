@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Carnitas.Observability;
 using Carnitas.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -35,6 +36,7 @@ public class InitTerraformStage(
     
     public override async Task<IStageResult> Run(CancellationToken ct = default)
     {
+        using var trace = Tracing.Source.StartActivity();
         try
         {
             await Command.Run(ct).ConfigureAwait(false);
