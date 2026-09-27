@@ -1,7 +1,11 @@
 ﻿@using Carnitas.Model.Identity
+@using Carnitas.Web.Identity.Ldap
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Identity
 
 @inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
 
 <ul class="nav nav-pills flex-column">
     <li class="nav-item">
@@ -10,9 +14,12 @@
     <li class="nav-item">
         <NavLink class="nav-link" href="Account/Manage/Email">Email</NavLink>
     </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/ChangePassword">Password</NavLink>
-    </li>
+    @if (showPassword)
+    {
+        <li class="nav-item">
+            <NavLink class="nav-link" href="Account/Manage/ChangePassword">Password</NavLink>
+        </li>
+    }
     @if (hasExternalLogins)
     {
         <li class="nav-item">
@@ -32,10 +39,19 @@
 
 @code {
     private bool hasExternalLogins;
+    private bool showPassword = true;
 
     protected override async Task OnInitializedAsync()
     {
         hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user is not null && await LdapAccount.IsDirectoryManagedAsync(UserManager, user))
+        {
+            showPassword = false;
+        }
     }
 
 }

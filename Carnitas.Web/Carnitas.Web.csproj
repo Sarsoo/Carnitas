@@ -32,6 +32,7 @@
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.19.0" />
         <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.15.1-beta.1" />
+        <PackageReference Include="System.DirectoryServices.Protocols" Version="10.0.12" />
 <!--        <PackageReference Include="Sarsoo.Terraform" Version="0.0.3" />-->
     </ItemGroup>
 

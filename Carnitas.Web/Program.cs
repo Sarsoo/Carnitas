@@ -2,6 +2,8 @@ using Carnitas.Extensions;
 using Carnitas.Model;
 using Carnitas.Model.Identity;
 using Carnitas.Model.Operations;
+using Carnitas.Web.Identity.Ldap;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +40,19 @@ builder.Services.AddAuthentication(options =>
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
+
+var ldapOptions = builder.Configuration.GetSection(LdapOptions.SectionName).Get<LdapOptions>() ?? new LdapOptions();
+builder.Services.Configure<LdapOptions>(builder.Configuration.GetSection(LdapOptions.SectionName));
+builder.Services.AddSingleton<ILdapAuthenticator, LdapAuthenticator>();
+builder.Services.AddScoped<IExternalUserProvisioner, ExternalUserProvisioner>();
+
+if (ldapOptions.Enabled)
+{
+    builder.Services.AddAuthentication()
+        .AddScheme<LdapAuthenticationOptions, LdapAuthenticationHandler>(
+            LdapAuthenticationDefaults.Scheme, ldapOptions.DisplayName, _ => { });
+}
+
 builder.Services.AddAuthorization();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
@@ -51,6 +66,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
         options.SignIn.RequireConfirmedAccount = true;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
@@ -123,3 +139,6 @@ app.MapGrpcHealthChecksService();
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
+
+// Exposes the entry point to integration tests.
+public partial class Program { }

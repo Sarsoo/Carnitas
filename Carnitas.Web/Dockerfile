@@ -3,6 +3,11 @@
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 COPY --from=terraform /bin/terraform /bin/
 
+# System.DirectoryServices.Protocols needs OpenLDAP at runtime for LDAP/AD sign-in.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libldap2 \
+    && rm -rf /var/lib/apt/lists/*
+
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080

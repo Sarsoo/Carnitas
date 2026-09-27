@@ -1,6 +1,7 @@
 ﻿@page "/Account/Manage/ExternalLogins"
 
 @using Carnitas.Model.Identity
+@using Carnitas.Web.Identity.Ldap
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 
@@ -111,6 +112,15 @@
         if (user is null)
         {
             RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            return;
+        }
+
+        if (string.Equals(LoginProvider, LdapAuthenticationDefaults.Scheme, StringComparison.OrdinalIgnoreCase) &&
+            !await UserManager.HasPasswordAsync(user) &&
+            currentLogins is { Count: 1 })
+        {
+            RedirectManager.RedirectToCurrentPageWithStatus(
+                "Error: Your directory login cannot be removed because it is your only way to sign in.", HttpContext);
             return;
         }
 

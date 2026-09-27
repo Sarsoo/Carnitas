@@ -1,0 +1,122 @@
+@page "/Account/LdapLogin"
+
+@using System.ComponentModel.DataAnnotations
+@using Carnitas.Web.Identity.Ldap
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Options
+
+@inject ILdapAuthenticator LdapAuthenticator
+@inject IOptions<LdapOptions> LdapOptions
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<LdapLogin> Logger
+
+<PageTitle>Log in</PageTitle>
+
+<h1>Log in with @LdapOptions.Value.DisplayName</h1>
+
+<div class="row">
+    <div class="col-lg-6">
+        <section>
+            <StatusMessage Message="@errorMessage"/>
+            <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="ldap-login">
+                <DataAnnotationsValidator/>
+                <ValidationSummary class="text-danger" role="alert"/>
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" autocomplete="username" aria-required="true" placeholder="username"/>
+                    <label for="Input.Username" class="form-label">Username</label>
+                    <ValidationMessage For="() => Input.Username" class="text-danger"/>
+                </div>
+                <div class="form-floating mb-3">
+                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password"/>
+                    <label for="Input.Password" class="form-label">Password</label>
+                    <ValidationMessage For="() => Input.Password" class="text-danger"/>
+                </div>
+                <div class="checkbox mb-3">
+                    <label class="form-label">
+                        <InputCheckbox @bind-Value="Input.RememberMe" class="form-check-input"/>
+                        Remember me
+                    </label>
+                </div>
+                <div>
+                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                </div>
+            </EditForm>
+        </section>
+    </div>
+</div>
+
+@code {
+    private string? errorMessage;
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = default!;
+
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery] private string? XsrfId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+
+        if (!LdapOptions.Value.Enabled)
+        {
+            RedirectManager.RedirectTo("Account/Login");
+            return;
+        }
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process.
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+    public async Task LoginUser()
+    {
+        var result = await LdapAuthenticator.AuthenticateAsync(Input.Username, Input.Password, HttpContext.RequestAborted);
+
+        if (!result.Succeeded || result.User is null)
+        {
+            Logger.LogInformation("Directory login failed.");
+            errorMessage = "Error: Invalid username or password.";
+            return;
+        }
+
+        var principal = LdapPrincipalFactory.Create(result.User);
+
+        var properties = new AuthenticationProperties
+        {
+            IsPersistent = Input.RememberMe,
+            RedirectUri = ReturnUrl ?? "/"
+        };
+        properties.Items[LdapAuthenticationDefaults.LoginProviderKey] = LdapAuthenticationDefaults.Scheme;
+        properties.Items[LdapAuthenticationDefaults.ProviderDisplayNameKey] = LdapOptions.Value.DisplayName;
+
+        if (!string.IsNullOrEmpty(XsrfId))
+        {
+            properties.Items[LdapAuthenticationDefaults.XsrfKey] = XsrfId;
+        }
+
+        await HttpContext.SignInAsync(IdentityConstants.ExternalScheme, principal, properties);
+
+        RedirectManager.RedirectTo(ReturnUrl);
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = "";
+
+        [Display(Name = "Remember me")]
+        public bool RememberMe { get; set; }
+    }
+}

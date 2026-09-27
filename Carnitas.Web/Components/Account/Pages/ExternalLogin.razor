@@ -5,8 +5,10 @@
 @using System.Text
 @using System.Text.Encodings.Web
 @using Carnitas.Model.Identity
+@using Carnitas.Web.Identity.Ldap
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Options
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -14,6 +16,8 @@
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IExternalUserProvisioner Provisioner
+@inject IOptions<LdapOptions> LdapOptions
 @inject ILogger<ExternalLogin> Logger
 
 <PageTitle>Register</PageTitle>
@@ -103,12 +107,24 @@
             return;
         }
 
+        var isDirectoryLogin = string.Equals(
+            externalLoginInfo.LoginProvider,
+            LdapAuthenticationDefaults.Scheme,
+            StringComparison.OrdinalIgnoreCase);
+
+        if (isDirectoryLogin)
+        {
+            // Auto-provision (when enabled) and sync directory-driven roles before signing in.
+            await Provisioner.EnsureProvisionedAsync(externalLoginInfo, HttpContext.RequestAborted);
+        }
+
         // Sign in the user with this external login provider if the user already has a login.
+        var isPersistent = externalLoginInfo.AuthenticationProperties?.IsPersistent ?? false;
         var result = await SignInManager.ExternalLoginSignInAsync(
             externalLoginInfo.LoginProvider,
             externalLoginInfo.ProviderKey,
-            isPersistent: false,
-            bypassTwoFactor: true);
+            isPersistent: isPersistent,
+            bypassTwoFactor: !isDirectoryLogin);
 
         if (result.Succeeded)
         {
@@ -117,6 +133,13 @@
                 externalLoginInfo.Principal.Identity?.Name,
                 externalLoginInfo.LoginProvider);
             RedirectManager.RedirectTo(ReturnUrl);
+            return;
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo(
+                "Account/LoginWith2fa",
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = isPersistent });
             return;
         }
         else if (result.IsLockedOut)
