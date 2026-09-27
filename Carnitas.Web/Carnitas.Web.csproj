@@ -40,10 +40,4 @@
         <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>
-
-    <ItemGroup>
-      <AdditionalFiles Include="Components\Tasks\TasksList.razor" />
-      <AdditionalFiles Include="Components\Tasks\TasksView.razor" />
-    </ItemGroup>
-
 </Project>
