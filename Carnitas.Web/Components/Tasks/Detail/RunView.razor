@@ -2,6 +2,7 @@
 @using Carnitas.Model
 @using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
+@using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
@@ -14,7 +15,7 @@
 }
 else
 {
-    <MudBreadcrumbs Items="breadcrumbs"></MudBreadcrumbs>
+    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
     <MudCard Elevation="0" Class="mb-4">
         <MudCardContent>
             <MudText Typo="Typo.h5">@run.GetType().Name</MudText>
@@ -71,12 +72,7 @@ else
     private OperationRun? run;
     private List<OperationRunLogEntry> logEntries = new();
 
-    private List<BreadcrumbItem> breadcrumbs => [
-        new(run.Module.Repository?.Organisation?.Name, $"/Org/{run.Module.Repository.OrganisationId}", icon: Icons.Material.Filled.Domain),
-        new(run.Module.Repository?.Name, $"/Repo/{run.Module.RepositoryId}", icon: Icons.Material.Filled.Code),
-        new(run.Module.Name, $"/Repo/{run.Module.RepositoryId}/Module/{run.ModuleId}", icon: Icons.Material.Filled.SnippetFolder),
-        new(run.GetType().Name, $"/Task/{run.QueuedTaskId}"),
-    ];
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => run?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
 
     private static string InitiatorLabel(InitiatorType type, ApplicationUser? user, string? userId) =>
         type == InitiatorType.User

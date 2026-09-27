@@ -2,6 +2,7 @@
 @using Carnitas.Model
 @using Carnitas.Model.Operations
 @using Carnitas.Web.Components.Tasks.Dialog
+@using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
@@ -39,8 +40,7 @@
         <PropertyColumn Property="x => x.CreatedAt"/>
         <TemplateColumn>
             <CellTemplate>
-                @{ var taskLink = $"/Task/{context.Item.Id}"; }
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@taskLink/>
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.Item.ToLink()/>
             </CellTemplate>
         </TemplateColumn>
     </Columns>
@@ -55,7 +55,7 @@
     
     void OnRowClick(DataGridRowClickEventArgs<QueuedTask> args)
     {
-        Navigation.NavigateTo($"/Task/{args.Item.Id}");
+        Navigation.NavigateTo(args.ToLink());
     }
 
     private async Task OpenDialogAsync()

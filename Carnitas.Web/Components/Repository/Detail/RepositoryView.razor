@@ -5,6 +5,7 @@
 @using Carnitas.Model.Source.SourceControl
 @using Carnitas.Web.Components.Tasks
 @using Carnitas.Web.Components.Tasks.Dialog
+@using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
@@ -18,7 +19,7 @@
 }
 else
 {
-    <MudBreadcrumbs Items="breadcrumbs"></MudBreadcrumbs>
+    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-4"
                StartIcon="@Icons.Material.Filled.Add" OnClick="EnqueueAsync">Enqueue Task</MudButton>
 
@@ -32,9 +33,8 @@ else
                     <PropertyColumn Property="r => r.Name"/>
                     <TemplateColumn>
                         <CellTemplate>
-                            @{ var moduleLink = $"/Repo/{repo.Id}/Module/{context.Item.Id}"; }
                             <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
-                                           Href=@moduleLink />
+                                           Href=@context.Item.ToLink() />
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -58,9 +58,7 @@ else
 
     private Repository? repo;
 
-    private List<BreadcrumbItem> breadcrumbs => [
-        new(repo?.Organisation?.Name, $"/Org/{repo.OrganisationId}", icon: Icons.Material.Filled.Domain),
-    ];
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => repo?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
 
     private MudDataGrid<Module> _elementGrid = null!;
     private IQueryable<Module> RootModules => Db.Repository
@@ -70,7 +68,7 @@ else
     
     void OnRowClick(DataGridRowClickEventArgs<Module> args)
     {
-        Navigation.NavigateTo($"/Repo/{repo!.Id}/Module/{args.Item.Id}");
+        Navigation.NavigateTo(args.ToLink());
     }
 
     protected override async Task OnInitializedAsync()

@@ -4,6 +4,7 @@
 @using Carnitas.Model.Source
 @using Carnitas.Web.Components.Tasks
 @using Carnitas.Web.Components.Tasks.Dialog
+@using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject IDialogService DialogService
@@ -17,7 +18,7 @@
 }
 else
 {
-    <MudBreadcrumbs Items="breadcrumbs"></MudBreadcrumbs>
+    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
     <MudCard Elevation="0" Class="mb-4">
         <MudCardHeader>
             <CardHeaderContent>
@@ -72,10 +73,7 @@ else
     private RootModule? module;
     private List<OperationRun> runs = new();
 
-    private List<BreadcrumbItem> breadcrumbs => [
-        new(module.Repository?.Organisation?.Name, $"/Org/{module.Repository.OrganisationId}", icon: Icons.Material.Filled.Domain),
-        new(module.Repository?.Name, $"/Repo/{module.RepositoryId}", icon: Icons.Material.Filled.Code)
-    ];
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => module?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
 
     private async Task EnqueueAsync()
     {

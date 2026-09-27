@@ -4,6 +4,7 @@
 @using Carnitas.Web.Components.Repository
 @using Carnitas.Web.Components.Repository.Dialog
 @using Carnitas.Web.Components.Repository.List
+@using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext DbContext
 @inject IDialogService DialogService
@@ -43,7 +44,7 @@
 
     void OnRowClick(DataGridRowClickEventArgs<Repository> args)
     {
-        NavigationManager.NavigateTo($"/Repo/{args.Item.Id}");
+        NavigationManager.NavigateTo(args.ToLink());
     }
 
     private async Task OpenNewRepoDialogAsync()

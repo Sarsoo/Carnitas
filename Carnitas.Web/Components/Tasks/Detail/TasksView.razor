@@ -2,6 +2,7 @@
 @using Carnitas.Model
 @using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
+@using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
@@ -14,7 +15,7 @@
 }
 else
 {
-    <MudBreadcrumbs Items="breadcrumbs"></MudBreadcrumbs>
+    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
     <MudCard Elevation="0" Class="mb-4">
         <MudCardContent>
             <MudText Typo="Typo.h5">@task.Module?.Name</MudText>
@@ -61,8 +62,7 @@ else
             <MudTd>
                 @if (runs.Any(r => r.Id == context.Id))
                 {
-                    var runLink = $"/Task/Run/{context.Id}";
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@runLink/>
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.ToLink()/>
                 }
             </MudTd>
         </RowTemplate>
@@ -83,8 +83,7 @@ else
             <MudTd>@(context.EndTime?.ToString() ?? "—")</MudTd>
             <MudTd>@context.ExitCode?.ToString()</MudTd>
             <MudTd>
-                @{ var runLink = $"/Task/Run/{context.Id}"; }
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@runLink/>
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.ToLink()/>
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -97,11 +96,7 @@ else
     private QueuedTask? task;
     private List<OperationRun> runs = new();
 
-    private List<BreadcrumbItem> breadcrumbs => [
-        new(task.Module.Repository?.Organisation?.Name, $"/Org/{task.Module.Repository.OrganisationId}", icon: Icons.Material.Filled.Domain),
-        new(task.Module.Repository?.Name, $"/Repo/{task.Module.RepositoryId}", icon: Icons.Material.Filled.Code),
-        new(task.Module.Name, $"/Repo/{task.Module.RepositoryId}/Module/{task.ModuleId}", icon: Icons.Material.Filled.SnippetFolder),
-    ];
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => task?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
 
     private static string InitiatorLabel(InitiatorType type, ApplicationUser? user, string? userId) =>
         type == InitiatorType.User
