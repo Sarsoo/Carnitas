@@ -123,6 +123,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         task = await Db.QueuedTasks
+            .AsNoTracking()
             .Include(t => t.Module)
             .ThenInclude(m => m.Repository)
             .ThenInclude(r => r.Organisation)
@@ -133,6 +134,7 @@ else
         if (task is not null)
         {
             runs = await Db.OperationRuns
+                .AsNoTracking()
                 .Where(r => r.QueuedTaskId == task.Id)
                 .OrderBy(r => r.StartTime)
                 .ToListAsync();

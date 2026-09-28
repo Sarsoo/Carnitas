@@ -26,7 +26,7 @@ else
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-4"
                StartIcon="@Icons.Material.Filled.Add" OnClick="EnqueueAsync">Enqueue Task</MudButton>
 
-    <MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6">
+    <MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6" ActivePanelIndex="@TabIndex" ActivePanelIndexChanged="@OnTabChanged">
         <MudTabPanel Text="Overview">
             <RepoOverviewCard Repository=@repo />
         </MudTabPanel>
@@ -48,6 +48,19 @@ else
 
     private Repository? repo;
     private RepoModuleTable? repoModule;
+
+    [SupplyParameterFromQuery(Name="tabIndex")] public int TabIndex { get; set; } = 0;
+
+    private void OnTabChanged(int index)
+    {
+        if (TabIndex == index)
+        {
+            return;
+        }
+
+        TabIndex = index;
+        Navigation.NavigateTo($"/Repo/{Id}?tabIndex={index}");
+    }
 
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => repo?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
     

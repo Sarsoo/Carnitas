@@ -1,0 +1,47 @@
+@using System.Text.Json
+@using Carnitas.Model
+@using Carnitas.Model.Operations
+@using Microsoft.EntityFrameworkCore
+@using Sarsoo.Terraform.MachineReadableUI
+@using Sarsoo.Terraform.MachineReadableUI.Json
+@inject ApplicationDbContext Db
+
+<MudTable Items="@logEntries" Dense="true" Hover="true" Class="mt-2">
+    <HeaderContent>
+        <MudTh>Timestamp</MudTh>
+        <MudTh>Log</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Item1.Timestamp</MudTd>
+        <MudTd>@GetLogLine(context)</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter] public string OperationId { get; set; }
+    private List<(OperationRunLogEntry, TerraformMessage?)> logEntries = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var dbLogs = Db.OperationRunLogEntries
+            .AsNoTracking()
+            .Where(e => e.OperationRunId == OperationId)
+            .OrderBy(e => e.Sequence)
+            .AsEnumerable()
+            .Select(x => (x, JsonSerializer.Deserialize<TerraformMessage>(x.Payload, MruiContext.Default.TerraformMessage))).ToList();
+        
+        logEntries = dbLogs;
+    }
+
+    private string GetLogLine((OperationRunLogEntry, TerraformMessage?) log)
+    {
+        if (log.Item2 is not null)
+        {
+            return log.Item2.Message;
+        }
+        else
+        {
+            return log.Item1.Payload.GetRawText();
+        }
+    }
+}

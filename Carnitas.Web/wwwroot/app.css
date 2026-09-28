@@ -2,9 +2,18 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+@font-face {
+    font-family: jetbrains-mono; /* set name */
+    src: url(/lib/JetBrainsMono-Regular.woff2); /* url of the font */
+}
+
 .text-callout {
     font-family: 'Pirata One', serif !important;
     text-shadow: 1px 1px 1px grey;
+}
+
+.text-mono {
+    font-family: 'jetbrains-mono', monospace !important;
 }
 
 a, .btn-link {

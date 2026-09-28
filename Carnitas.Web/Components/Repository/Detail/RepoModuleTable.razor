@@ -4,15 +4,55 @@
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 
-<MudDataGrid @ref="_elementGrid" T="Module" Items="Modules" RowClick="OnRowClick" Hover="true" Dense="true" RowClass="cursor-pointer">
+<MudDataGrid @ref="_elementGrid" T="Module" Items="_modules" 
+             RowClick="OnRowClick" 
+             Hover="true" Dense="true" RowClass="cursor-pointer"
+             ReadOnly="false"
+             EditMode="DataGridEditMode.Inline"
+             EditTrigger="DataGridEditTrigger.Manual"
+             StartedEditingItem="@StartedEditingItem"
+             CanceledEditingItem="@CanceledEditingItem"
+             CommittedItemChanges="@CommittedItemChanges">
     <Columns>
-        <PropertyColumn Property="r => r.Name"/>
-        <PropertyColumn Property="r => r.Type"/>
-        <PropertyColumn Property="r => r.RelativePath"/>
-        <TemplateColumn>
+        <PropertyColumn Property="r => r.Name" Editable="false"/>
+        <PropertyColumn Property="r => r.Type">
+            <EditTemplate>
+                <MudSelect @bind-Value="context.Item.Type"
+                           Margin="Margin.Dense"
+                           Variant="Variant.Text"
+                           Dense="true">
+                    <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Unset">Unset</MudSelectItem>
+                    <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Root">Root</MudSelectItem>
+                    <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Library">Library</MudSelectItem>
+                </MudSelect>
+            </EditTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="r => r.RelativePath" CellClass="text-mono" Editable="false"/>
+        <TemplateColumn Editable="false">
             <CellTemplate>
+                @if (context.IsEditing)
+                {
+                    <MudIconButton Size="Size.Small"
+                                   Icon="@Icons.Material.Filled.Check"
+                                   Color="Color.Success"
+                                   aria-label="Save changes"
+                                   OnClick="@context.Actions.CommitEditingItemAsync" />
+                    <MudIconButton Size="Size.Small"
+                                   Icon="@Icons.Material.Filled.Close"
+                                   Color="Color.Error"
+                                   aria-label="Cancel editing"
+                                   OnClick="@context.Actions.CancelEditingItemAsync" />
+                }
+                else
+                {
+                    <MudIconButton Size="Size.Small"
+                                   Icon="@Icons.Material.Outlined.Edit"
+                                   Disabled="@_isEditing"
+                                   aria-label="Edit row"
+                                   OnClick="@context.Actions.StartEditingItemAsync" />
+                }
                 <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
-                               Href=@context.Item.ToLink() />
+                               Href=@context.Item.ToLink()/>
             </CellTemplate>
         </TemplateColumn>
     </Columns>
@@ -26,24 +66,29 @@
     [Parameter] public string RepositoryId { get; set; }
     [Parameter] public ModuleType? ModuleType { get; set; }
     
+    private bool _isEditing;
+    
     private MudDataGrid<Module> _elementGrid = null!;
+    private IEnumerable<Module> _modules = [];
 
-    private IQueryable<Module> Modules
+    protected override async Task OnInitializedAsync()
     {
-        get
+        await LoadModules();
+    }
+
+    private async Task LoadModules()
+    {
+        var modules = Db.Modules
+            .Where(r => r.RepositoryId == RepositoryId)
+            .IgnoreAutoIncludes()
+            .AsNoTracking();
+
+        if (ModuleType is not null)
         {
-            var modules = Db.Repository
-                .Where(r => r.Id == RepositoryId)
-                .Include(r => r.Modules)
-                .SelectMany(r => r.Modules);
-
-            if (ModuleType is not null)
-            {
-                modules = modules.Where(x => x.Type == ModuleType);
-            }
-
-            return modules;
+            modules = modules.Where(x => x.Type == ModuleType);
         }
+
+        _modules = await modules.ToListAsync();
     }
     
     void OnRowClick(DataGridRowClickEventArgs<Module> args)
@@ -54,5 +99,24 @@
     public void Reload()
     {
         
+    }
+    
+    private void StartedEditingItem(Module item)
+    {
+        _isEditing = true;
+    }
+
+    private void CanceledEditingItem(Module item)
+    {
+        _isEditing = false;
+    }
+
+    private async Task<DataGridEditFormAction> CommittedItemChanges(Module item)
+    {
+        // Perform validation
+        await Db.Modules.Where(x => x.Id == item.Id).ExecuteUpdateAsync(a => a.SetProperty(x => x.Type, item.Type));
+
+        _isEditing = false;
+        return DataGridEditFormAction.Close;
     }
 }

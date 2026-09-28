@@ -94,7 +94,7 @@
         _repositoryId = RepositoryId;
         _moduleId = ModuleId;
 
-        _repositories = await Db.Repository.OrderBy(r => r.Name).ToListAsync();
+        _repositories = await Db.Repository.AsNoTracking().OrderBy(r => r.Name).ToListAsync();
 
         if (!string.IsNullOrWhiteSpace(_repositoryId))
         {
@@ -111,6 +111,7 @@
     private async Task LoadModules()
     {
         _modules = await Db.Modules
+            .AsNoTracking()
             .Where(m => m.RepositoryId == _repositoryId)
             .OrderBy(m => m.Name)
             .ToListAsync();
