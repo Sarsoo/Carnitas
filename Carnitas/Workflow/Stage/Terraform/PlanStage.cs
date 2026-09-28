@@ -27,8 +27,11 @@ public class PlanTerraformStage(
     public override bool Errored => Command.Errored;
     public override int ExitCode => Command.ExitCode;
 
+    private string? planBinPath = null;
+
     protected override void CreateCommand()
     {
+        planBinPath = Path.Join(workerOptions.Value.PlanStorageRoot, $"{Id}.tfplan");
         Command = new PlanGenerator(
             envOptions.Value.BinaryPath,
             FullWorkingDirectory,
@@ -53,7 +56,7 @@ public class PlanTerraformStage(
             if (planReporter is not null)
             {
                 logger.LogInformation("Plan generated, submitting json result");
-                await planReporter.ReportPlan(Id, "", planJson).ConfigureAwait(false);
+                await planReporter.ReportPlan(Id, planBinPath ?? "", planJson).ConfigureAwait(false);
             }
             
             return Command.Errored ? new StageResult(Id, StageState.Failure) : new StageResult(Id, StageState.Success);

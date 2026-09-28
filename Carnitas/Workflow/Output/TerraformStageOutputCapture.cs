@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Carnitas.Job;
 using Carnitas.Observability;
 using Carnitas.Workflow.Stage;
 using Microsoft.Extensions.Hosting;
@@ -66,7 +67,7 @@ public class TerraformStageOutputCapture(
 
         await foreach (var line in stage.JsonOutput.ReadAllAsync(cancel).ConfigureAwait(false))
         {
-            batch.Add(new StageLogLine(stage.Id, line ?? string.Empty, "Information", "Json"));
+            batch.Add(new StageLogLine(stage.Id, line ?? string.Empty, "Information", LogType.Json));
 
             if (batch.Count >= BatchSize)
             {

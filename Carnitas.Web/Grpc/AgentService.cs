@@ -1,4 +1,5 @@
 using Carnitas.Grpc;
+using Carnitas.Grpc.Mapping;
 using Carnitas.Model.Operations;
 using Grpc.Core;
 
@@ -144,5 +145,5 @@ public class AgentService(ITaskQueue taskQueue, TaskQueueOptions options): Agent
         log.OperationId,
         log.Log,
         string.IsNullOrWhiteSpace(log.Level) ? "Information" : log.Level,
-        string.IsNullOrWhiteSpace(log.Type) ? "Output" : log.Type);
+        log.Type.ToLogType());
 }

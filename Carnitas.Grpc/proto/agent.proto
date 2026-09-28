@@ -25,7 +25,13 @@ message OperationLog {
   string operation_id = 1;
   string log = 2;
   string level = 3;
-  string type = 4;
+  OperationLogType type = 4;
+}
+
+enum OperationLogType {
+  OPERATIONLOGTYPE_RAW = 0;
+  OPERATIONLOGTYPE_JSON = 1;
+  OPERATIONLOGTYPE_PLANJSON = 2;
 }
 
 message OperationLogResponse {

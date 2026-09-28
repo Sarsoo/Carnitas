@@ -1,3 +1,5 @@
+using Carnitas.Job;
+
 namespace Carnitas.Model.Operations;
 
 public record EnqueueTaskRequest(
@@ -13,4 +15,4 @@ public record EnqueueTaskRequest(
     string? RepositoryId = null,
     string? GitReference = null);
 
-public record LogLine(string OperationId, string Log, string Level, string Type);
+public record LogLine(string OperationId, string Log, string Level, LogType Type);

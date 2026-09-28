@@ -1,3 +1,4 @@
+using Carnitas.Job;
 using Carnitas.Model;
 using Carnitas.Model.Governance;
 using Carnitas.Model.Identity;
@@ -346,9 +347,9 @@ public class TaskQueueTests
 
         await queueService.AppendLogsAsync(new[]
         {
-            new LogLine(operationId, "{\"message\":\"one\"}", "Information", "Output"),
-            new LogLine(operationId, "{\"message\":\"two\"}", "Information", "Output"),
-            new LogLine(operationId, "{\"message\":\"three\"}", "Information", "Output")
+            new LogLine(operationId, "{\"message\":\"one\"}", "Information", LogType.Json),
+            new LogLine(operationId, "{\"message\":\"two\"}", "Information", LogType.Json),
+            new LogLine(operationId, "{\"message\":\"three\"}", "Information", LogType.Json)
         });
 
         var entries = await db.OperationRunLogEntries
@@ -507,7 +508,7 @@ public class TaskQueueTests
                 var queue = new TaskQueueService(context, new TaskQueueOptions());
                 await queue.AppendLogsAsync(new[]
                 {
-                    new LogLine(operationId, $"{{\"message\":\"batch-{index}\"}}", "Information", "Output")
+                    new LogLine(operationId, $"{{\"message\":\"batch-{index}\"}}", "Information", LogType.Json)
                 });
             })));
         }
@@ -614,7 +615,7 @@ public class TaskQueueTests
 
         await queue.AppendLogsAsync(new[]
         {
-            new LogLine(operationId, "{\"message\":\"orphan\"}", "Information", "Output")
+            new LogLine(operationId, "{\"message\":\"orphan\"}", "Information", LogType.Json)
         });
         await queue.SubmitPlanAsync(operationId, "{\"plan\":true}", "/tmp/plan", CancellationToken.None);
         await queue.ReportOperationStatusAsync(operationId, true, 0, null);

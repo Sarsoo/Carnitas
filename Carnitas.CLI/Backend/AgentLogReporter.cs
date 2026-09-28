@@ -1,4 +1,5 @@
 using Carnitas.Grpc;
+using Carnitas.Grpc.Mapping;
 using Carnitas.Workflow.Output;
 
 namespace Carnitas.CLI.Backend;
@@ -19,7 +20,7 @@ public class AgentLogReporter(Agent.AgentClient client): ILogReporter
             OperationId = line.OperationId,
             Log = line.Log,
             Level = line.Level,
-            Type = line.Type
+            Type = line.Type.ToOperationLogType()
         }));
 
         await client.ReportOperationLogBatchAsync(batch, cancellationToken: ct).ConfigureAwait(false);

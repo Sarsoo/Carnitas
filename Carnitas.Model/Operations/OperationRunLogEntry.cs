@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Carnitas.Job;
 
 namespace Carnitas.Model.Operations;
 
@@ -11,7 +12,7 @@ public class OperationRunLogEntry
     public int Sequence { get; set; }
     public DateTime Timestamp { get; set; }
     public string Level { get; set; }
-    public string Type { get; set; }
+    public LogType Type { get; set; }
 
     public JsonElement Payload { get; set; }
 }

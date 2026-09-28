@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Carnitas.Job;
 using Carnitas.Model.Source;
 using Carnitas.Observability;
 using Microsoft.EntityFrameworkCore;
@@ -240,7 +241,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
                     Sequence = lastSequence,
                     Timestamp = DateTime.UtcNow,
                     Level = string.IsNullOrWhiteSpace(line.Level) ? "Information" : line.Level,
-                    Type = string.IsNullOrWhiteSpace(line.Type) ? "Output" : line.Type,
+                    Type = line.Type,
                     Payload = JsonElement.Parse(line.Log)
                 });
             }
@@ -279,7 +280,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
 
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        await AppendLogsAsync(new[] { new LogLine(operationId, planJson, "Information", "Plan") }, ct)
+        await AppendLogsAsync(new[] { new LogLine(operationId, planJson, "Information", LogType.PlanJson) }, ct)
             .ConfigureAwait(false);
     }
 

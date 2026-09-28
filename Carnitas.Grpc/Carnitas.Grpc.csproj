@@ -19,4 +19,8 @@
         <Protobuf Include="proto\agent.proto" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Carnitas\Carnitas.csproj" />
+    </ItemGroup>
+
 </Project>
