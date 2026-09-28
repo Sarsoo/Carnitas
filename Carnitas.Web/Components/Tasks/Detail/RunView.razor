@@ -1,9 +1,13 @@
 @page "/Task/Run/{id}"
+@using System.Text.Json
+@using Carnitas.Job
 @using Carnitas.Model
 @using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
 @using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
+@using Sarsoo.Terraform.JsonOutput
+@using Sarsoo.Terraform.JsonOutput.Plan
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 
@@ -55,6 +59,7 @@ else
     public string Id { get; set; }
 
     private OperationRun? run;
+    private PlanRepresentation? plan;
 
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => run?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
 
@@ -73,5 +78,10 @@ else
             .Include(r => r.Checkout)
             .Include(r => r.InitiatorUser)
             .SingleOrDefaultAsync(r => r.Id == Id);
+
+        if (await Db.OperationRunLogEntries.FirstOrDefaultAsync(x => x.OperationRunId == Id && x.Type == LogType.PlanJson) is { } planEntry)
+        {
+            plan = planEntry.Payload.Deserialize<PlanRepresentation>(JsonOutputContext.Default.PlanRepresentation);
+        }
     }
 }
