@@ -1,9 +1,9 @@
 ﻿@inject AuthenticationStateProvider AuthState
 
 <MudNavMenu Margin="Margin.Normal" Rounded="true" Class="pa-2">
-    <MudText Typo="Typo.h6" Class="px-4">Carnitas</MudText>
+    @* <MudText Typo="Typo.h6" Class="px-4 text-callout">Carnitas</MudText> *@
     @* <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Secondary Text</MudText> *@
-    <MudDivider Class="my-2"/>
+    @* <MudDivider Class="my-2"/> *@
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
     @* <MudNavLink Href="/servers" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Computer">Servers</MudNavLink> *@
     <MudNavLink Href="/org" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Domain">Orgs</MudNavLink>

@@ -2,6 +2,11 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+.text-callout {
+    font-family: 'Pirata One', serif !important;
+    text-shadow: 1px 1px 1px grey;
+}
+
 a, .btn-link {
     color: #006bb7;
 }

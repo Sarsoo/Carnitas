@@ -1,10 +1,47 @@
-﻿FROM --platform=$BUILDPLATFORM hashicorp/terraform:latest as terraform
+﻿FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/runtime-deps:10.0 AS base
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/runtime-deps:10.0 AS base
-COPY --from=terraform /bin/terraform /bin/
+USER root
+
+RUN <<EOT bash
+set -euo pipefail
+
+apt-get update
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get install --no-install-recommends --no-install-suggests -y \
+    git \
+    unzip
+
+rm -rf /var/lib/apt/lists/*
+EOT
+
+#######################
+#       AWS
+#######################
+RUN <<EOT bash
+set -euo pipefail
+curl -fsSL https://awscli.amazonaws.com/v2/install.sh | bash -s -- --system
+EOT
+
+#######################
+#     TERRAFORM
+#######################
+RUN <<EOT bash
+set -euo pipefail
+
+git clone --depth=1 https://github.com/tfutils/tfenv.git /usr/local/lib/tfenv
+ln -s /usr/local/lib/tfenv/bin/* /usr/local/bin
+EOT
 
 USER $APP_UID
 WORKDIR /app
+
+RUN <<EOT bash
+set -euo pipefail
+
+tfenv install latest
+tfenv use latest
+EOT
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-aot AS build
 ARG TARGETARCH

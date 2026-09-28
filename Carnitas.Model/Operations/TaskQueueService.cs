@@ -325,7 +325,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
-        var existing = await db.RootModules
+        var existing = await db.Modules
             .Where(m => m.RepositoryId == resolvedRepositoryId)
             .ToListAsync(ct)
             .ConfigureAwait(false);
@@ -351,7 +351,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
                 continue;
             }
 
-            db.RootModules.Add(new RootModule
+            db.Modules.Add(new Module
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = name,
@@ -384,7 +384,7 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
 
             var retained = new HashSet<string>(referencedByRuns.Concat(referencedByTasks), StringComparer.Ordinal);
 
-            db.RootModules.RemoveRange(toRemove.Where(m => !retained.Contains(m.Id)));
+            db.Modules.RemoveRange(toRemove.Where(m => !retained.Contains(m.Id)));
         }
 
         await db.SaveChangesAsync(ct).ConfigureAwait(false);

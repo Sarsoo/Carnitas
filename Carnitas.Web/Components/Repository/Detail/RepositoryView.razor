@@ -3,7 +3,6 @@
 @using Carnitas.Model.Operations
 @using Carnitas.Model.Source
 @using Carnitas.Model.Source.SourceControl
-@using Carnitas.Web.Components.Tasks
 @using Carnitas.Web.Components.Tasks.Dialog
 @using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
@@ -11,7 +10,11 @@
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
 
-<h3>Repository</h3>
+<MudStack Row="true">
+    <h3>Repository</h3>
+    <MudSpacer/>
+    <FontAwesomIcon Specifiers="brands,git-alt,2xl"/>
+</MudStack>
 
 @if (repo is null)
 {
@@ -27,27 +30,14 @@ else
         <MudTabPanel Text="Overview">
             <RepoOverviewCard Repository=@repo />
         </MudTabPanel>
-        <MudTabPanel Text="Root Modules">
-            <MudDataGrid @ref="_elementGrid" T="Module" Items="RootModules" RowClick="OnRowClick" Hover="true" Dense="true" RowClass="cursor-pointer">
-                <Columns>
-                    <PropertyColumn Property="r => r.Name"/>
-                    <TemplateColumn>
-                        <CellTemplate>
-                            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
-                                           Href=@context.Item.ToLink() />
-                        </CellTemplate>
-                    </TemplateColumn>
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="Module" />
-                </PagerContent>
-            </MudDataGrid>
+        <MudTabPanel Text="Modules">
+            <RepoModuleTable RepositoryId="@Id" @ref="repoModule"/>
         </MudTabPanel>
         <MudTabPanel Text="Drift">
             <MudText>Coming soon</MudText>
         </MudTabPanel>
         <MudTabPanel Text="Settings">
-            <RepoSettingsCard Repository=@repo Saved="ReloadRepo" />
+            <RepoSettingsCard Repository=@repo Saved="@(() => repoModule?.Reload())" />
         </MudTabPanel>
     </MudTabs>
 }
@@ -57,29 +47,18 @@ else
     public string Id { get; set; }
 
     private Repository? repo;
+    private RepoModuleTable? repoModule;
 
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => repo?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
-
-    private MudDataGrid<Module> _elementGrid = null!;
-    private IQueryable<Module> RootModules => Db.Repository
-        .Where(r => r.Id == Id)
-        .Include(r => r.Modules)
-        .SelectMany(r => r.Modules);
     
-    void OnRowClick(DataGridRowClickEventArgs<Module> args)
-    {
-        Navigation.NavigateTo(args.ToLink());
-    }
-
     protected override async Task OnInitializedAsync()
     {
         repo = await Db.Repository.FindAsync([Id]);
-        repo.Organisation = await Db.Organisations.FindAsync([repo.OrganisationId]);
-    }
 
-    private async Task ReloadRepo()
-    {
-        await _elementGrid.ReloadServerData();
+        if (repo is not null)
+        {
+            repo.Organisation = await Db.Organisations.FindAsync([repo!.OrganisationId]);
+        }
     }
 
     private async Task EnqueueAsync()

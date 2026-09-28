@@ -15,6 +15,9 @@ public class Module
     /// </summary>
     public string? RelativePath { get; set; }
 
+    public ModuleType Type { get; set; } = ModuleType.Unset;
+    public string? TrackingBranch { get; set; }
+
     public string RepositoryId { get; set; }
     public Repository Repository { get; set; }
 

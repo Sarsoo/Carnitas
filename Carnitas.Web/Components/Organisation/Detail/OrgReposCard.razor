@@ -19,7 +19,18 @@
         <MudDataGrid T="Repository" @ref="_elementGrid" Items="Repositories" RowClick="OnRowClick" Hover="true" Dense="true" RowClass="cursor-pointer">
             <Columns>
                 <PropertyColumn Property="x => x.Name"/>
-                <PropertyColumn Property="x => x.Type"/>
+                <TemplateColumn Title="Type">
+                    <CellTemplate>
+                        @if (context.Item.Type is RepositoryType.Generic)
+                        {
+                            <FontAwesomIcon Specifiers="brands,git-alt,2xl"/>
+                        }
+                        else if (context.Item.Type is RepositoryType.GitHub)
+                        {
+                            <FontAwesomIcon Specifiers="brands,github"/>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
                 <PropertyColumn Property="x => x.Description"/>
                 <TemplateColumn>
                     <CellTemplate>
@@ -46,7 +57,7 @@
     {
         NavigationManager.NavigateTo(args.ToLink());
     }
-
+    
     private async Task OpenNewRepoDialogAsync()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };

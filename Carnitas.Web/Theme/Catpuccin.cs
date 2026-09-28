@@ -54,6 +54,12 @@ public class Catpuccin: MudTheme
             ActionDisabled = "#414559", // Surface 0
             // ActionDisabledBackground = "#27272f",
             Background = "rgb(48, 52, 70)", // base
+        // {
+        //     Default = new DefaultTypography
+        //     {
+        //         FontFamily = ["Fraunces"]
+        //     }
+        // };
             BackgroundGray = "rgb(41, 44, 60)", //mantle
             Surface = "rgb(65, 69, 89)", //surface 0
             DrawerBackground = "rgb(65, 69, 89)", // surface 0
@@ -69,5 +75,7 @@ public class Catpuccin: MudTheme
             // DividerLight = "",
             // Skeleton = ""
         };
+
+        // Typography = new Typography
     }
 }

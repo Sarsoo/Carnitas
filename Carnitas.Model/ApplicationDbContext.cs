@@ -46,7 +46,6 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
     public DbSet<Organisation> Organisations { get; set; }
     public DbSet<Repository> Repository { get; set; }
     public DbSet<Module> Modules { get; set; }
-    public DbSet<RootModule> RootModules { get; set; }
     public DbSet<Checkout> Checkouts { get; set; }
     public DbSet<OperationRun> OperationRuns { get; set; }
     public DbSet<OperationRunLogEntry> OperationRunLogEntries { get; set; }
@@ -107,8 +106,6 @@ internal static class ModelBuilderExtensions
             builder.Entity<Module>()
                 .HasIndex(e => new { e.RepositoryId, e.RelativePath })
                 .IsUnique();
-
-            builder.Entity<RootModule>().ToTable("RootModule");
 
             return builder;
         }

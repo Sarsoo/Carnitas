@@ -10,7 +10,7 @@
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
 
-<h3>Root Module</h3>
+<h3>Module</h3>
 
 @if (module is null)
 {
@@ -70,7 +70,7 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    private RootModule? module;
+    private Module? module;
     private List<OperationRun> runs = new();
 
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => module?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
@@ -103,7 +103,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        module = await Db.RootModules
+        module = await Db.Modules
             .Include(m => m.Repository)
             .ThenInclude(r => r.Organisation)
             .Include(m => m.OperationRuns)

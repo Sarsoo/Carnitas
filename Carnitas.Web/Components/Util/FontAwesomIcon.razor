@@ -1,0 +1,11 @@
+<div class="d-flex" style="margin: auto">
+    <i class="@_classes"></i>
+</div>
+
+@code {
+    [Parameter] public string Specifiers { get; set; }
+
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    private string _classes => string.Join(' ', Specifiers.Split(',').Select(s => "fa-" + s)) + Class;
+}

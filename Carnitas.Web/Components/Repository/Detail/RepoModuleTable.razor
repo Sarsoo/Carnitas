@@ -1,0 +1,58 @@
+@using Carnitas.Model
+@using Carnitas.Model.Source
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+
+<MudDataGrid @ref="_elementGrid" T="Module" Items="Modules" RowClick="OnRowClick" Hover="true" Dense="true" RowClass="cursor-pointer">
+    <Columns>
+        <PropertyColumn Property="r => r.Name"/>
+        <PropertyColumn Property="r => r.Type"/>
+        <PropertyColumn Property="r => r.RelativePath"/>
+        <TemplateColumn>
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                               Href=@context.Item.ToLink() />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Module" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    
+    [Parameter] public string RepositoryId { get; set; }
+    [Parameter] public ModuleType? ModuleType { get; set; }
+    
+    private MudDataGrid<Module> _elementGrid = null!;
+
+    private IQueryable<Module> Modules
+    {
+        get
+        {
+            var modules = Db.Repository
+                .Where(r => r.Id == RepositoryId)
+                .Include(r => r.Modules)
+                .SelectMany(r => r.Modules);
+
+            if (ModuleType is not null)
+            {
+                modules = modules.Where(x => x.Type == ModuleType);
+            }
+
+            return modules;
+        }
+    }
+    
+    void OnRowClick(DataGridRowClickEventArgs<Module> args)
+    {
+        Navigation.NavigateTo(args.ToLink());
+    }
+
+    public void Reload()
+    {
+        
+    }
+}

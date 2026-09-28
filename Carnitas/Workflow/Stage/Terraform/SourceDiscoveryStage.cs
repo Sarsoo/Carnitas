@@ -43,7 +43,7 @@ public class SourceDiscoveryTerraformStage(
 
             var relativePaths = Discover(root, ct);
 
-            logger.LogInformation("Discovered {Count} root modules in {Root}", relativePaths.Count, root);
+            logger.LogInformation("Discovered {Count} modules in {Root}", relativePaths.Count, root);
 
             if (rootModuleReporter is not null)
             {
