@@ -1,8 +1,12 @@
 ﻿@inject AuthenticationStateProvider AuthState
 
-<MudNavMenu Margin="Margin.Normal" Rounded="true" Class="pa-2">
-    @* <MudText Typo="Typo.h6" Class="px-4 text-callout">Carnitas</MudText> *@
-    @* <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Secondary Text</MudText> *@
+<MudNavMenu Margin="Margin.Normal" Rounded="true" Elevation="4">
+    @* @if (IsOpen) *@
+    @* { *@
+    @*     <MudDrawerHeader> *@
+    @*         <MudText Typo="Typo.h6">My App</MudText> *@
+    @*     </MudDrawerHeader> *@
+    @* } *@
     @* <MudDivider Class="my-2"/> *@
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
     @* <MudNavLink Href="/servers" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Computer">Servers</MudNavLink> *@
@@ -22,6 +26,7 @@
 </MudNavMenu>
 
 @code {
+    [Parameter] public bool IsOpen { get; set; }
     private AuthenticationState? _authState;
 
     protected override async Task OnInitializedAsync()

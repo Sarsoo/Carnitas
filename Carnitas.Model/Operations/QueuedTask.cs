@@ -40,4 +40,5 @@ public class QueuedTask
     public string? LastError { get; set; }
 
     public ICollection<QueuedTaskOperation> Operations { get; set; } = new List<QueuedTaskOperation>();
+    public ICollection<OperationRun> OperationRuns { get; set; } = new List<OperationRun>();
 }

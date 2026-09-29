@@ -1,5 +1,6 @@
 @page "/Task/{id}"
 @using Carnitas.Model
+@using Carnitas.Model.Extensions
 @using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
 @using Carnitas.Web.Extensions
@@ -20,13 +21,16 @@ else
         <MudCardContent>
             <MudStack Row="true">
                 <MudContainer>
-                    <MudText Typo="Typo.h5">@task.Module?.Name</MudText>
-                    <MudText Typo="Typo.body2">State: @task.State</MudText>
+                    <MudStack Row="true">
+                        <MudText Typo="Typo.h5">@task.Module?.Name</MudText>
+                        @* <MudProgressCircular Size="Size.Small" Color="Color.Default" Indeterminate="true"/> *@
+                    </MudStack>
+                    <MudChip T="string" Color="@task.State.Colour">@task.State</MudChip>
                     <MudText Typo="Typo.body2">Repository: @task.RepoUrl</MudText>
-                    <MudText Typo="Typo.body2">Module Path: @task.ModulePath</MudText>
-                    <MudText Typo="Typo.body2">Initiated By: @InitiatorLabel(task.InitiatorType, task.InitiatorUser, task.InitiatorUserId)</MudText>
+                    <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.SnippetFolder" /> <MudText Inline="true" Typo="Typo.body2" Class="text-mono">@task.ModulePath</MudText></MudText>
+                    <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.Person" /> @InitiatorLabel(task.InitiatorType, task.InitiatorUser, task.InitiatorUserId)</MudText>
                     <MudText Typo="Typo.body2">Priority: @task.Priority</MudText>
-                    <MudText Typo="Typo.body2">Attempts: @task.Attempts / @task.MaxAttempts</MudText>
+                    <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.Loop" /> @task.Attempts / @task.MaxAttempts</MudText>
                     <MudText Typo="Typo.body2">Scheduled: @task.ScheduledAt</MudText>
                     <MudText Typo="Typo.body2">Created: @task.CreatedAt</MudText>
                     @if (task.StartedAt is not null)
@@ -37,24 +41,31 @@ else
                     {
                         <MudText Typo="Typo.body2">Completed: @task.CompletedAt</MudText>
                     }
-                    @if (task.LockedBy is not null)
+                    else if (task.LockedBy is not null)
                     {
                         <MudText Typo="Typo.body2">Locked By: @task.LockedBy</MudText>
                         <MudText Typo="Typo.body2">Locked Until: @task.LockedUntil</MudText>
                     }
                     @if (task.LastError is not null)
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Error">Error: @task.LastError</MudText>
+                        @foreach (var stage in task.OperationRuns.Where(x => x.ExitCode is > 0))
+                        {
+                            <MudAlert Severity="Severity.Error">@stage.DisplayString Stage Failed</MudAlert>
+                        }
                     }
                 </MudContainer>
                 <MudContainer>
                     <MudTimeline>
-                        @foreach (var (i, op) in task.Operations.Select((o, i) => (i, o)))
+                        @foreach (var (i, op) in task.OperationRuns.OrderBy(x => (!x.EndTime.HasValue, x.EndTime)).Select((o, i) => (i, o)))
                         {
-                            <MudTimelineItem>
+                            var colour = op.ExitCode.HasValue ? op.ExitCode.Value > 0  ? Color.Error : Color.Success : Color.Default;
+                            
+                            <MudTimelineItem Color="@colour">
                                 <MudText
                                     Align="(i % 2) == 0 ? Align.Start : Align.End">
-                                    @op.Kind
+                                    <MudLink Href="@op.ToLink()" Color="Color.Default">
+                                        @op.DisplayString
+                                    </MudLink>
                                 </MudText>
                             </MudTimelineItem>
                         }
@@ -64,46 +75,28 @@ else
         </MudCardContent>
     </MudCard>
 
-    <MudText Typo="Typo.h6">Operations</MudText>
-    <MudTable Items="@task.Operations.OrderBy(o => o.Sequence)" Dense="true" Hover="true" Class="mt-2">
-        <HeaderContent>
-            <MudTh>Sequence</MudTh>
-            <MudTh>Operation</MudTh>
-            <MudTh>Operation Id</MudTh>
-            <MudTh>Run</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Sequence</MudTd>
-            <MudTd>@context.Kind</MudTd>
-            <MudTd>@context.Id</MudTd>
-            <MudTd>
-                @if (runs.Any(r => r.Id == context.Id))
-                {
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.ToLink()/>
-                }
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
-
-    <MudText Typo="Typo.h6" Class="mt-4">Runs</MudText>
-    <MudTable Items="@runs" Dense="true" Hover="true" Class="mt-2">
-        <HeaderContent>
-            <MudTh>Type</MudTh>
-            <MudTh>Started</MudTh>
-            <MudTh>Ended</MudTh>
-            <MudTh>Exit Code</MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.GetType().Name</MudTd>
-            <MudTd>@(context.StartTime?.ToString() ?? "—")</MudTd>
-            <MudTd>@(context.EndTime?.ToString() ?? "—")</MudTd>
-            <MudTd>@context.ExitCode?.ToString()</MudTd>
-            <MudTd>
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.ToLink()/>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudText Typo="Typo.h6" Class="mt-4">Operations</MudText>
+    <MudDataGrid T="OperationRun" Items="@task.OperationRuns.OrderBy(x => (!x.EndTime.HasValue, x.EndTime))"
+                 Dense="true" Hover="true">
+        <Columns>
+            <PropertyColumn Title="Type" Property="t => t.ToDisplayString()"/>
+            <PropertyColumn Title="Started" Property="t => t.StartTime"/>
+            <PropertyColumn Title="Ended" Property="t => t.EndTime"/>
+            <TemplateColumn Title="Exit Code">
+                <CellTemplate>
+                    @if (context.Item.ExitCode is { } ec)
+                    {
+                        <MudChip Color="@(ec > 0 ? Color.Error : Color.Success)">@ec</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn>
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.Item.ToLink()/>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
 }
 
 @code {
@@ -111,7 +104,6 @@ else
     public string Id { get; set; }
 
     private QueuedTask? task;
-    private List<OperationRun> runs = new();
 
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => task?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
 
@@ -127,17 +119,9 @@ else
             .Include(t => t.Module)
             .ThenInclude(m => m.Repository)
             .ThenInclude(r => r.Organisation)
+            .Include(t => t.OperationRuns)
             .Include(t => t.Operations)
             .Include(t => t.InitiatorUser)
             .SingleOrDefaultAsync(t => t.Id == Id);
-
-        if (task is not null)
-        {
-            runs = await Db.OperationRuns
-                .AsNoTracking()
-                .Where(r => r.QueuedTaskId == task.Id)
-                .OrderBy(r => r.StartTime)
-                .ToListAsync();
-        }
     }
 }

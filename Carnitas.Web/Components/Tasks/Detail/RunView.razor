@@ -2,6 +2,7 @@
 @using System.Text.Json
 @using Carnitas.Job
 @using Carnitas.Model
+@using Carnitas.Model.Extensions
 @using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
 @using Carnitas.Web.Extensions
@@ -22,7 +23,7 @@ else
     <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
     <MudCard Elevation="0" Class="mb-4">
         <MudCardContent>
-            <MudText Typo="Typo.h5">@run.GetType().Name</MudText>
+            <MudText Typo="Typo.h5">@run.DisplayString</MudText>
             @* <MudText Typo="Typo.body2">Id: @run.Id</MudText> *@
             <MudText Typo="Typo.body2">Initiated By: @InitiatorLabel(run.InitiatorType, run.InitiatorUser, run.InitiatorUserId)</MudText>
             <MudText Typo="Typo.body2">Started: @(run.StartTime?.ToString() ?? "—")</MudText>
@@ -30,7 +31,7 @@ else
             {
                 <MudText Typo="Typo.body2">Ended: @run.EndTime</MudText>
             }
-            <MudText Typo="Typo.body2">Exit Code: @run.ExitCode?.ToString()</MudText>
+            <ExitCodeChip Code="@run.ExitCode"/>
             @if (run.GitReference is not null)
             {
                 <MudText Typo="Typo.body2">Git Reference: @run.GitReference</MudText>

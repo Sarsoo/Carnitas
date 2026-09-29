@@ -42,7 +42,7 @@ else
         }
 
         TabIndex = index;
-        Navigation.NavigateTo($"/Org/{Id}?tabIndex={index}");
+        Navigation.NavigateTo(org?.ToLink() + $"?tabIndex={index}");
     }
 
     protected override async Task OnInitializedAsync()

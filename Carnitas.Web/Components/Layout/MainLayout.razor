@@ -13,8 +13,8 @@
         <MudSpacer />
         <NavMenuAvatarMenu />
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen">
-        <NavMenu/>
+    <MudDrawer @bind-Open="@_drawerOpen" Variant="DrawerVariant.Mini" ClipMode="DrawerClipMode.Docked">
+        <NavMenu IsOpen="_drawerOpen"/>
     </MudDrawer>
     <MudMainContent>
         <MudContainer Class="pa-5" MaxWidth="MaxWidth.False">

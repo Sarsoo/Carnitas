@@ -1,11 +1,8 @@
 @page "/Repo/{id}"
 @using Carnitas.Model
 @using Carnitas.Model.Operations
-@using Carnitas.Model.Source
 @using Carnitas.Model.Source.SourceControl
 @using Carnitas.Web.Components.Tasks.Dialog
-@using Carnitas.Web.Extensions
-@using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
@@ -13,7 +10,7 @@
 <MudStack Row="true">
     <h3>Repository</h3>
     <MudSpacer/>
-    <FontAwesomIcon Specifiers="brands,git-alt,2xl"/>
+    <FontAwesomeIcon Specifiers="brands,git-alt,2xl"/>
 </MudStack>
 
 @if (repo is null)
@@ -32,6 +29,11 @@ else
         </MudTabPanel>
         <MudTabPanel Text="Modules">
             <RepoModuleTable RepositoryId="@Id" @ref="repoModule"/>
+        </MudTabPanel>
+        <MudTabPanel Text="Operations">
+            <OperationsTable 
+                IncludeModule="true"
+                Filter="tasks => tasks.Where(x => x.RepositoryId == Id)" />
         </MudTabPanel>
         <MudTabPanel Text="Drift">
             <MudText>Coming soon</MudText>

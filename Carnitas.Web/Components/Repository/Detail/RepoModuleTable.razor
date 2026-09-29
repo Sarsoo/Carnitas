@@ -4,63 +4,66 @@
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 
-<MudDataGrid @ref="_elementGrid" T="Module" Items="_modules" 
-             RowClick="OnRowClick" 
-             Hover="true" Dense="true" RowClass="cursor-pointer"
-             ReadOnly="false"
-             EditMode="DataGridEditMode.Inline"
-             EditTrigger="DataGridEditTrigger.Manual"
-             StartedEditingItem="@StartedEditingItem"
-             CanceledEditingItem="@CanceledEditingItem"
-             CommittedItemChanges="@CommittedItemChanges">
-    <Columns>
-        <PropertyColumn Property="r => r.Name" Editable="false"/>
-        <PropertyColumn Property="r => r.Type">
-            <EditTemplate>
-                <MudSelect @bind-Value="context.Item.Type"
-                           Margin="Margin.Dense"
-                           Variant="Variant.Text"
-                           Dense="true">
-                    <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Unset">Unset</MudSelectItem>
-                    <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Root">Root</MudSelectItem>
-                    <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Library">Library</MudSelectItem>
-                </MudSelect>
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="r => r.RelativePath" CellClass="text-mono" Editable="false"/>
-        <TemplateColumn Editable="false">
-            <CellTemplate>
-                @if (context.IsEditing)
-                {
-                    <MudIconButton Size="Size.Small"
-                                   Icon="@Icons.Material.Filled.Check"
-                                   Color="Color.Success"
-                                   aria-label="Save changes"
-                                   OnClick="@context.Actions.CommitEditingItemAsync" />
-                    <MudIconButton Size="Size.Small"
-                                   Icon="@Icons.Material.Filled.Close"
-                                   Color="Color.Error"
-                                   aria-label="Cancel editing"
-                                   OnClick="@context.Actions.CancelEditingItemAsync" />
-                }
-                else
-                {
-                    <MudIconButton Size="Size.Small"
-                                   Icon="@Icons.Material.Outlined.Edit"
-                                   Disabled="@_isEditing"
-                                   aria-label="Edit row"
-                                   OnClick="@context.Actions.StartEditingItemAsync" />
-                }
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
-                               Href=@context.Item.ToLink()/>
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-    <PagerContent>
-        <MudDataGridPager T="Module" />
-    </PagerContent>
-</MudDataGrid>
-
+<MudGrid>
+    <MudItem xs="12">
+        <MudDataGrid @ref="_elementGrid" T="Module" Items="_modules" 
+                     RowClick="OnRowClick" 
+                     Hover="true" Dense="true" RowClass="cursor-pointer"
+                     ReadOnly="false"
+                     EditMode="DataGridEditMode.Inline"
+                     EditTrigger="DataGridEditTrigger.Manual"
+                     StartedEditingItem="@StartedEditingItem"
+                     CanceledEditingItem="@CanceledEditingItem"
+                     CommittedItemChanges="@CommittedItemChanges">
+            <Columns>
+                <PropertyColumn Property="r => r.Name" Editable="false"/>
+                <PropertyColumn Property="r => r.Type">
+                    <EditTemplate>
+                        <MudSelect @bind-Value="context.Item.Type"
+                                   Margin="Margin.Dense"
+                                   Variant="Variant.Text"
+                                   Dense="true">
+                            <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Unset">Unset</MudSelectItem>
+                            <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Root">Root</MudSelectItem>
+                            <MudSelectItem T="ModuleType" Value="Carnitas.Model.Source.ModuleType.Library">Library</MudSelectItem>
+                        </MudSelect>
+                    </EditTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="r => r.RelativePath" CellClass="text-mono" Editable="false" InitialDirection="SortDirection.Ascending"/>
+                <TemplateColumn Editable="false">
+                    <CellTemplate>
+                        @if (context.IsEditing)
+                        {
+                            <MudIconButton Size="Size.Small"
+                                           Icon="@Icons.Material.Filled.Check"
+                                           Color="Color.Success"
+                                           aria-label="Save changes"
+                                           OnClick="@context.Actions.CommitEditingItemAsync" />
+                            <MudIconButton Size="Size.Small"
+                                           Icon="@Icons.Material.Filled.Close"
+                                           Color="Color.Error"
+                                           aria-label="Cancel editing"
+                                           OnClick="@context.Actions.CancelEditingItemAsync" />
+                        }
+                        else
+                        {
+                            <MudIconButton Size="Size.Small"
+                                           Icon="@Icons.Material.Outlined.Edit"
+                                           Disabled="@_isEditing"
+                                           aria-label="Edit row"
+                                           OnClick="@context.Actions.StartEditingItemAsync" />
+                        }
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                                       Href=@context.Item.ToLink()/>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="Module" />
+            </PagerContent>
+        </MudDataGrid>
+    </MudItem>
+</MudGrid>
 @code {
     
     [Parameter] public string RepositoryId { get; set; }
@@ -87,6 +90,8 @@
         {
             modules = modules.Where(x => x.Type == ModuleType);
         }
+
+        modules = modules.OrderBy(x => x.RelativePath);
 
         _modules = await modules.ToListAsync();
     }

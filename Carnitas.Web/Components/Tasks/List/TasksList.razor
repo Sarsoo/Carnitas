@@ -15,60 +15,9 @@
                StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary">Enqueue</MudButton>
 </MudToolBar>
 
-<MudDataGrid T="QueuedTask" Items="_tasks"
-             Filterable="true" Hover="true" Dense="true" 
-             RowClick="OnRowClick" RowClass="cursor-pointer">
-    <Columns>
-        <TemplateColumn Title="State">
-            <CellTemplate>
-                <MudChip T="string" Size="Size.Small" Color="@StateColor(context.Item.State)">@context.Item.State</MudChip>
-            </CellTemplate>
-        </TemplateColumn>
-        <PropertyColumn Property="x => x.Repository.Organisation.Name" Title="Repository"/>
-        <PropertyColumn Property="x => x.Repository.Name" Title="Repository"/>
-        <PropertyColumn Property="x => x.Module.Name" Title="Module"/>
-        <TemplateColumn Title="Operations">
-            <CellTemplate>
-                @foreach (var item in context.Item.Operations.OrderBy(o => o.Sequence))
-                {
-                    <MudChip Variant="Variant.Text">@item.Kind</MudChip>
-                }
-            </CellTemplate>
-        </TemplateColumn>
-        <TemplateColumn Title="Attempts" SortBy="@(x => x.Attempts)">
-            <CellTemplate>
-                @{ var attempts = $"{context.Item.Attempts} / {context.Item.MaxAttempts}"; }
-                <MudText>@attempts</MudText>
-            </CellTemplate>
-        </TemplateColumn>
-        <PropertyColumn Property="x => x.CreatedAt" Sortable="true" InitialDirection="SortDirection.Descending"/>
-        <TemplateColumn>
-            <CellTemplate>
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.Item.ToLink()/>
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
+<OperationsTable IncludeOrg="true" IncludeRepo="true" IncludeModule="true"/>
 
 @code {
-    private List<QueuedTask> _tasks = new();
-    
-    private IQueryable<QueuedTask> GetQuery() => Db.QueuedTasks
-        .Include(t => t.Module)
-        .ThenInclude(m => m.Repository)
-        .ThenInclude(r => r.Organisation)
-        .Include(t => t.Operations);
-
-    protected override async Task OnInitializedAsync()
-    {
-        _tasks = await GetQuery().OrderByDescending(o => o.CreatedAt).ToListAsync();
-    }
-
-    void OnRowClick(DataGridRowClickEventArgs<QueuedTask> args)
-    {
-        Navigation.NavigateTo(args.ToLink());
-    }
-
     private async Task OpenDialogAsync()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
@@ -83,13 +32,4 @@
 
         Navigation.NavigateTo($"/Task/{task.Id}");
     }
-
-    private static Color StateColor(QueuedTaskState state) => state switch
-    {
-        QueuedTaskState.Queued => Color.Default,
-        QueuedTaskState.Processing => Color.Info,
-        QueuedTaskState.Completed => Color.Success,
-        QueuedTaskState.Failed => Color.Error,
-        _ => Color.Default
-    };
 }

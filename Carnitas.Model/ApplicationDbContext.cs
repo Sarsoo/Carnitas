@@ -132,7 +132,7 @@ internal static class ModelBuilderExtensions
 
             builder.Entity<OperationRun>()
                 .HasOne(e => e.QueuedTask)
-                .WithMany()
+                .WithMany(e => e.OperationRuns)
                 .HasForeignKey(e => e.QueuedTaskId)
                 .HasPrincipalKey(e => e.Id)
                 .OnDelete(DeleteBehavior.SetNull);

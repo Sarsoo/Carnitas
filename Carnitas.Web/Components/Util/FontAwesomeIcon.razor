@@ -1,0 +1,16 @@
+<div class="d-flex" style="@_divStyle">
+    <i class="@_classes" style="@_iStyle"></i>
+</div>
+
+@code {
+    [Parameter] public string Specifiers { get; set; }
+
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string Style { get; set; } = string.Empty;
+    [Parameter] public bool SpreadDiv { get; set; }
+
+    private string _divStyle => SpreadDiv ? "margin: auto; text-align: center" : "text-align: center";
+    private string _iStyle => SpreadDiv ? $"margin: auto; {Style}" : Style;
+
+    private string _classes => string.Join(' ', Specifiers.Split(',').Select(s => "fa-" + s)) + Class;
+}

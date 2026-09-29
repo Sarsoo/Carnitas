@@ -79,8 +79,7 @@ public static class BreadcrumbExtensions
                 ),
                 new(
                     task.GetType().Name, 
-                    href: task.ToLink(),
-                    disabled: true
+                    href: task.ToLink()
                 ),
             };
 

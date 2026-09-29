@@ -1,0 +1,150 @@
+@using Carnitas.Model
+@using Carnitas.Model.Extensions
+@using Carnitas.Model.Operations
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudCard>
+            <MudDataGrid T="QueuedTask"
+                         Items="tasks" Hover="true" Dense="true" Groupable="true"
+                         RowClick="OnRowClick" RowClass="cursor-pointer">
+                <Columns>
+                    <TemplateColumn Title="State">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="@context.Item.State.Colour">@context.Item.State</MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    @if (IncludeOrg)
+                    {
+                        <PropertyColumn Groupable="true" Title="Organisation" Property="t => t.Repository.Organisation.Name" GroupBy="t => t.Repository.OrganisationId">
+                            <GroupTemplate>
+                                <MudStack Row="true">
+                                    <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Domain"/>
+                                    <MudText Typo="Typo.body2">@context.Grouping.FirstOrDefault()?.Repository?.Organisation.Name</MudText>
+                                </MudStack>
+                            </GroupTemplate>
+                        </PropertyColumn>
+                    }
+                    @if (IncludeRepo)
+                    {
+                        <PropertyColumn Groupable="true" Title="Repo" Property="t => t.Repository.Name" GroupBy="t => t.RepositoryId">
+                            <GroupTemplate>
+                                <MudStack Row="true">
+                                    <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Code"/>
+                                    <MudText Typo="Typo.body2">@context.Grouping.FirstOrDefault()?.Repository?.Name</MudText>
+                                </MudStack>
+                            </GroupTemplate>
+                        </PropertyColumn>
+                    }
+                    @if (IncludeModule)
+                    {
+                        <PropertyColumn Groupable="true" Title="Module" Property="t => t.Module.Name" GroupBy="t => t.ModuleId">
+                            <GroupTemplate>
+                                <MudStack Row="true">
+                                    <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.SnippetFolder"/>
+                                    <MudText Typo="Typo.body2">@context.Grouping.FirstOrDefault()?.Module?.Name</MudText>
+                                </MudStack>
+                            </GroupTemplate>
+                        </PropertyColumn>
+                    }
+                    @if (IncludeInitiator)
+                    {
+                        <TemplateColumn Title="Initiator">
+                            <CellTemplate>
+                                <MudStack Row="true">
+                                    @if (context.Item.InitiatorType is InitiatorType.System)
+                                    {
+                                        @* <MudText Typo="Typo.body2">Hello World!</MudText> *@
+                                        <FontAwesomeIcon Specifiers="solid,robot" SpreadDiv="true"/>
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Person" Style="margin: auto"/>
+                                    }
+                                </MudStack>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    }
+                    <TemplateColumn Title="Operations">
+                        <CellTemplate>
+                            @foreach (var item in context.Item.Operations.OrderBy(o => o.Sequence))
+                            {
+                                <MudChip Variant="Variant.Text">@item.Kind.DisplayString</MudChip>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Attempts" SortBy="@(x => x.Attempts)">
+                        <CellTemplate>
+                            @{ var attempts = $"{context.Item.Attempts} / {context.Item.MaxAttempts}"; }
+                            <MudText>@attempts</MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.CreatedAt" Sortable="true" InitialDirection="SortDirection.Descending"/>
+                    @if (IncludeActions)
+                    {
+                        <TemplateColumn>
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.Item.ToLink()/>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    }
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="QueuedTask" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public Func<IQueryable<QueuedTask>, IQueryable<QueuedTask>>? Filter { get; set; }
+    
+    [Parameter] public bool IncludeModule { get; set; }
+    [Parameter] public bool IncludeRepo { get; set; }
+    [Parameter] public bool IncludeOrg { get; set; }
+    [Parameter] public bool IncludeActions { get; set; }
+    [Parameter] public bool IncludeInitiator { get; set; } = true;
+    
+    private List<QueuedTask> tasks = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        IQueryable<QueuedTask> t = Db.QueuedTasks
+            .AsNoTracking()
+            .Include(x => x.Operations)
+            .Include(x => x.InitiatorUser);
+
+        if (IncludeModule)
+        {
+            t = t.Include(x => x.Module);
+        }
+        
+        if (IncludeRepo || IncludeOrg)
+        {
+            t = t.Include(x => x.Repository);
+        }
+        
+        if (IncludeOrg)
+        {
+            t = t.Include(x => x.Repository.Organisation);
+        }
+
+        if (Filter is not null)
+        {
+            t = Filter.Invoke(t);
+        }
+        
+        tasks = await t.OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+    }
+
+    void OnRowClick(DataGridRowClickEventArgs<QueuedTask> args)
+    {
+        Navigation.NavigateTo(args.ToLink());
+    }
+    
+}

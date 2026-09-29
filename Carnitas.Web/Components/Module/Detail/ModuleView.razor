@@ -19,7 +19,7 @@ else
             <ModuleOverviewCard Module=@module />
         </MudTabPanel>
         <MudTabPanel Text="Operations">
-            <ModuleOperationsTab Module=@module />
+            <OperationsTable Filter="tasks => tasks.Where(x => x.ModuleId == Id)" />
         </MudTabPanel>
     </MudTabs>
 }
@@ -45,7 +45,7 @@ else
         }
 
         TabIndex = index;
-        Navigation.NavigateTo($"/Repo/{Id}?tabIndex={index}");
+        Navigation.NavigateTo(module?.ToLink() + $"?tabIndex={index}");
     }
 
     protected override async Task OnInitializedAsync()
