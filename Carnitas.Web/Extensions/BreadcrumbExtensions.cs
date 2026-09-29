@@ -11,12 +11,17 @@ public static class BreadcrumbExtensions
     {
         public IReadOnlyList<BreadcrumbItem> ToBreadrumbs()
         {
-            var list = new List<BreadcrumbItem>(1)
+            var list = new List<BreadcrumbItem>(2)
             {
                 new(
                     repo.Organisation?.Name ?? string.Empty, 
                     repo.Organisation?.ToLink(),
                     icon: Icons.Material.Filled.Domain
+                ),
+                new(
+                    repo.Name,
+                    href: repo.ToLink(),
+                    icon: Icons.Material.Filled.Code
                 ),
             };
 
@@ -28,7 +33,7 @@ public static class BreadcrumbExtensions
     {
         public IReadOnlyList<BreadcrumbItem> ToBreadrumbs()
         {
-            var list = new List<BreadcrumbItem>(2)
+            var list = new List<BreadcrumbItem>(3)
             {
                 new(
                     module.Repository?.Organisation?.Name ?? string.Empty, 
@@ -40,6 +45,11 @@ public static class BreadcrumbExtensions
                     module.Repository?.ToLink(),
                     icon: Icons.Material.Filled.Code
                 ),
+                new(
+                    module.Name, 
+                    href: module.ToLink(),
+                    icon: Icons.Material.Filled.SnippetFolder
+                ),
             };
 
             return list;
@@ -50,7 +60,7 @@ public static class BreadcrumbExtensions
     {
         public IReadOnlyList<BreadcrumbItem> ToBreadrumbs()
         {
-            var list = new List<BreadcrumbItem>(3)
+            var list = new List<BreadcrumbItem>(4)
             {
                 new(
                     task.Module?.Repository?.Organisation?.Name ?? string.Empty, 
@@ -66,6 +76,11 @@ public static class BreadcrumbExtensions
                     task.Module?.Name ?? string.Empty, 
                     task.Module?.ToLink(),
                     icon: Icons.Material.Filled.SnippetFolder
+                ),
+                new(
+                    task.GetType().Name, 
+                    href: task.ToLink(),
+                    disabled: true
                 ),
             };
 

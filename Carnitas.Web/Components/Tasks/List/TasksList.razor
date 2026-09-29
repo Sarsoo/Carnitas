@@ -51,12 +51,19 @@
 </MudDataGrid>
 
 @code {
-    private IQueryable<QueuedTask> _tasks => Db.QueuedTasks
+    private List<QueuedTask> _tasks = new();
+    
+    private IQueryable<QueuedTask> GetQuery() => Db.QueuedTasks
         .Include(t => t.Module)
         .ThenInclude(m => m.Repository)
         .ThenInclude(r => r.Organisation)
         .Include(t => t.Operations);
-    
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tasks = await GetQuery().OrderByDescending(o => o.CreatedAt).ToListAsync();
+    }
+
     void OnRowClick(DataGridRowClickEventArgs<QueuedTask> args)
     {
         Navigation.NavigateTo(args.ToLink());

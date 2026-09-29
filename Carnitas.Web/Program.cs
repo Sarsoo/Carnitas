@@ -8,9 +8,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Carnitas.Web.Components;
 using Carnitas.Web.Components.Account;
+using Carnitas.Web.Github;
 using Carnitas.Web.Grpc;
 using MudBlazor.Services;
 using NLog.Extensions.Logging;
+using Octokit.Webhooks;
+using Octokit.Webhooks.AspNetCore;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -30,6 +33,7 @@ builder.Services.AddMudServices();
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 builder.Services.AddGrpcHealthChecks();
+builder.Services.AddSingleton<WebhookEventProcessor, WebhookProcessor>();
 
 // builder.Services.AddCarnitas(builder.Configuration);
 
@@ -126,6 +130,7 @@ app.MapRazorComponents<App>()
 app.MapGrpcService<AgentService>();
 app.MapGrpcReflectionService();
 app.MapGrpcHealthChecksService();
+app.MapGitHubWebhooks();
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();

@@ -1,0 +1,54 @@
+@using Carnitas.Model.Operations
+@using Carnitas.Model.Source
+@using Carnitas.Web.Components.Tasks.Dialog
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+<MudCard Elevation="0" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">@Module.Name</MudText>
+            <MudText Typo="Typo.subtitle2" Class="text-mono">@Module.RelativePath</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (Module.TrackingBranch is not null)
+        {
+            <MudText Typo="Typo.body2">Tracking Branch: @Module.TrackingBranch</MudText>
+        }
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add" OnClick="EnqueueAsync">Enqueue Task</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code { 
+    [Parameter] public Module Module { get; set; }
+
+    private async Task EnqueueAsync()
+    {
+        if (Module is null)
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters<NewTaskDialog>
+        {
+            { x => x.RepositoryId, Module.RepositoryId },
+            { x => x.ModuleId, Module.Id }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialog = await DialogService.ShowAsync<NewTaskDialog>("Enqueue Task", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Canceled || result.Data is not QueuedTask task)
+        {
+            return;
+        }
+
+        Navigation.NavigateTo($"/Task/{task.Id}");
+    }
+}
