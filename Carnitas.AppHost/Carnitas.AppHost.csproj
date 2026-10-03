@@ -14,4 +14,8 @@
     <ProjectReference Include="..\Carnitas.Web\Carnitas.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.6.0" />
+  </ItemGroup>
+
 </Project>

@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Carnitas.Exceptions;
 using Carnitas.Observability;
 using Carnitas.Options;
 using Carnitas.Workflow.Output;
@@ -21,11 +22,11 @@ public class PlanTerraformStage(
     : TerraformStageBuilder<PlanTerraformStage>, IStage
 {
     public PlanGenerator? Command { get; private set; }
-    public override ChannelReader<TerraformMessage>? MessageOutput => Command.Output;
-    public override ChannelReader<string>? JsonOutput => Command.JsonOutput;
+    public override ChannelReader<TerraformMessage>? MessageOutput => Command?.Output;
+    public override ChannelReader<string>? JsonOutput => Command?.JsonOutput;
     
-    public override bool Errored => Command.Errored;
-    public override int ExitCode => Command.ExitCode;
+    public override bool Errored => Command?.Errored ?? throw new StageNotInitialisedException();
+    public override int ExitCode => Command?.ExitCode ?? throw new StageNotInitialisedException();
 
     private string? planBinPath = null;
 
@@ -51,6 +52,8 @@ public class PlanTerraformStage(
         Baggage.SetBaggage(ObservabilityConstants.StageId, Id);
         try
         {
+            if(Command is null) throw new StageNotInitialisedException();
+            
             var planJson = await Command.Run(ct).ConfigureAwait(false);
 
             if (planReporter is not null)
@@ -61,8 +64,9 @@ public class PlanTerraformStage(
             
             return Command.Errored ? new StageResult(Id, StageState.Failure) : new StageResult(Id, StageState.Success);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            logger.LogError(e, "An exception occurred while executing PlanStage");
             return new StageResult(Id, StageState.Failure);
         }
     }

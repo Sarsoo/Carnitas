@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Carnitas.Exceptions;
 using Carnitas.Observability;
 using Carnitas.Options;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,7 @@ namespace Carnitas.Workflow.Stage.Terraform;
 
 public class ApplyTerraformStage(
     IOptions<TerraformEnvironmentOptions> envOptions,
-    ILogger<TerraformStreamCommand>? logger = null
+    ILogger<TerraformStreamCommand> logger
 )
     : TerraformStageBuilder<ApplyTerraformStage>, IStage
 {
@@ -19,8 +20,8 @@ public class ApplyTerraformStage(
     public override ChannelReader<TerraformMessage>? MessageOutput => Command?.Output;
     public override ChannelReader<string>? JsonOutput => Command?.JsonOutput;
     
-    public override bool Errored => Command.Errored;
-    public override int ExitCode => Command.ExitCode;
+    public override bool Errored => Command?.Errored ?? throw new StageNotInitialisedException();
+    public override int ExitCode => Command?.ExitCode ?? throw new StageNotInitialisedException();
 
     protected override void CreateCommand()
     {
@@ -42,11 +43,14 @@ public class ApplyTerraformStage(
         
         try
         {
+            if(Command is null) throw new StageNotInitialisedException();
+            
             await Command.Run(ct).ConfigureAwait(false);
             return Command.Errored ? new StageResult(Id, StageState.Failure) : new StageResult(Id, StageState.Success);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            logger.LogError(e, "An exception occurred while executing ApplyStage");
             return new StageResult(Id, StageState.Failure);
         }
     }
