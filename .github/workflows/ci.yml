@@ -45,11 +45,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Container
+      - name: Build CLI Container
         uses: docker/build-push-action@v7
         with:
           push: true
-          tags: sarsoo/carnitas:latest,sarsoo/carnitas:${{ github.ref_name }}
+          tags: sarsoo/carnitas:latest,sarsoo/carnitas-web:${{ github.ref_name }}
+          file: Carnitas.CLI/Dockerfile
+          no-cache: true
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build Web Container
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          tags: sarsoo/carnitas:latest,sarsoo/carnitas-cli:${{ github.ref_name }}
           file: Carnitas.Web/Dockerfile
           no-cache: true
           platforms: linux/amd64,linux/arm64
