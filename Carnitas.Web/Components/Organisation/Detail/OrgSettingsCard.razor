@@ -85,7 +85,7 @@
         var dialog = await DialogService.ShowAsync<DeleteOrgDialog>("Delete Organisation", parameters, options);
         var result = await dialog.Result;
 
-        if (result.Canceled || result.Data is not bool deleted || !deleted)
+        if (result is null || result.Canceled || result.Data is not bool deleted || !deleted)
         {
             return;
         }

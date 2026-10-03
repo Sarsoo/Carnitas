@@ -50,7 +50,7 @@
         var dialog = await DialogService.ShowAsync<NewOrgDialog>("Create Organisation", options);
         var result = await dialog.Result;
 
-        if (result.Canceled || result.Data is not Organisation org)
+        if (result is null || result is { Canceled: true } || result.Data is not Organisation org)
         {
             return;
         }

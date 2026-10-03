@@ -21,7 +21,7 @@
         var dialog = await DialogService.ShowAsync<NewTaskDialog>("Enqueue Task", options);
         var result = await dialog.Result;
 
-        if (result.Canceled || result.Data is not QueuedTask task)
+        if (result is null || result.Canceled || result.Data is not QueuedTask task)
         {
             return;
         }

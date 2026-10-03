@@ -51,7 +51,7 @@
         var dialog = await DialogService.ShowAsync<NewRepoDialog>("Add Repository", options);
         var result = await dialog.Result;
 
-        if (result.Canceled || result.Data is not Repository repo)
+        if (result is null || result.Canceled || result.Data is not Repository repo)
         {
             return;
         }
