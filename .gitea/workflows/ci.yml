@@ -30,6 +30,7 @@ jobs:
   buildOci:
     runs-on: ubuntu-latest
     name: Build Container
+    needs: [build] # for ignoring bad builds
     if: gitea.event_name == 'push' && (gitea.ref == 'refs/heads/main' || startsWith(gitea.ref, 'refs/tags/'))
     
     steps:

@@ -10,6 +10,7 @@ apt-get update
 export DEBIAN_FRONTEND=noninteractive
 apt-get install --no-install-recommends --no-install-suggests -y \
     git \
+    curl \
     unzip
 
 rm -rf /var/lib/apt/lists/*
