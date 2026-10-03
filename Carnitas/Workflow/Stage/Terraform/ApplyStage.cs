@@ -25,10 +25,10 @@ public class ApplyTerraformStage(
     protected override void CreateCommand()
     {
         Command = new Apply(
-            envOptions.Value.BinaryPath,
             FullWorkingDirectory,
             logger: logger,
-            outputFormat: OutputFormat.Json | OutputFormat.Parsed
+            outputFormat: OutputFormat.Json | OutputFormat.Parsed,
+            tfExecutable: envOptions.Value.BinaryPath
         );
     }
 

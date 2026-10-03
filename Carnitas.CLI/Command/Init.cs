@@ -23,7 +23,7 @@ public class Init: System.CommandLine.Command
             c.AddConsole();
         });
         
-        var command = new Sarsoo.Terraform.Command.Init("terraform", ".", logger: loggingFactory.CreateLogger<TerraformStreamCommand>());
+        var command = new Sarsoo.Terraform.Command.Init(".", logger: loggingFactory.CreateLogger<TerraformStreamCommand>());
 
         var task = command.Run();
 

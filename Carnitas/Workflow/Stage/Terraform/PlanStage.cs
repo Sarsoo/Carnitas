@@ -33,8 +33,8 @@ public class PlanTerraformStage(
     {
         planBinPath = Path.Join(workerOptions.Value.PlanStorageRoot, $"{Id}.tfplan");
         Command = new PlanGenerator(
-            envOptions.Value.BinaryPath,
             FullWorkingDirectory,
+            tfExecutable: envOptions.Value.BinaryPath,
             planFileName: Path.Join(workerOptions.Value.PlanStorageRoot, $"{Id}.tfplan"),
             outputFormat: OutputFormat.Parsed | OutputFormat.Json,
             logger: logger,

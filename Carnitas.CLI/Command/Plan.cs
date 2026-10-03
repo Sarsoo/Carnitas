@@ -23,7 +23,7 @@ public class Plan: System.CommandLine.Command
             c.AddConsole();
         });
         
-        var command = new Sarsoo.Terraform.Command.Plan("terraform", ".", logger: loggingFactory.CreateLogger<TerraformStreamCommand>());
+        var command = new Sarsoo.Terraform.Command.Plan(".", logger: loggingFactory.CreateLogger<TerraformStreamCommand>());
 
         var task = command.Run();
 
