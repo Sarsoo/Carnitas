@@ -1,6 +1,7 @@
 using Carnitas.Grpc;
 using Carnitas.Grpc.Mapping;
 using Carnitas.Model.Operations;
+using Carnitas.Model.Operations.TaskQueue;
 using Grpc.Core;
 
 namespace Carnitas.Web.Grpc;

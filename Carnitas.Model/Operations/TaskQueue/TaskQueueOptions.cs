@@ -1,4 +1,4 @@
-namespace Carnitas.Model.Operations;
+namespace Carnitas.Model.Operations.TaskQueue;
 
 public class TaskQueueOptions
 {

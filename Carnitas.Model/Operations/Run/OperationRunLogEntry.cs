@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Carnitas.Job;
 
-namespace Carnitas.Model.Operations;
+namespace Carnitas.Model.Operations.Run;
 
 public class OperationRunLogEntry
 {

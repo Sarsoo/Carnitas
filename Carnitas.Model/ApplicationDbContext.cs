@@ -2,6 +2,8 @@ using Carnitas.Model.Governance;
 using Carnitas.Model.Governance.Policy;
 using Carnitas.Model.Identity;
 using Carnitas.Model.Operations;
+using Carnitas.Model.Operations.Queued;
+using Carnitas.Model.Operations.Run;
 using Carnitas.Model.Source;
 using Carnitas.Model.Source.SourceControl;
 using Carnitas.Model.Source.SourceControl.GitHub;

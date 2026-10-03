@@ -1,4 +1,6 @@
-namespace Carnitas.Model.Operations;
+using Carnitas.Model.Operations.Queued;
+
+namespace Carnitas.Model.Operations.TaskQueue;
 
 public interface ITaskQueue
 {

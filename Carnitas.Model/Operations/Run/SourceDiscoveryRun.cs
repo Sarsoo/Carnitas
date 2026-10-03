@@ -1,6 +1,6 @@
 using Carnitas.Model.Source.SourceControl;
 
-namespace Carnitas.Model.Operations;
+namespace Carnitas.Model.Operations.Run;
 
 public class SourceDiscoveryRun: OperationRun
 {

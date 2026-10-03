@@ -1,4 +1,5 @@
 using Carnitas.Model.Governance;
+using Carnitas.Model.Operations.Run;
 using Carnitas.Model.Source.SourceControl.GitHub;
 
 namespace Carnitas.Model.Source.SourceControl;
@@ -23,8 +24,8 @@ public class Repository
     public ICollection<Module> Modules { get; }
     public ICollection<Checkout> Checkouts { get; }
     
-    public ICollection<Operations.InitRun> InitRuns { get; }
-    public ICollection<Operations.PlanRun> PlanRuns { get; }
-    public ICollection<Operations.ApplyRun> ApplyRuns { get; }
-    public ICollection<Operations.SourceDiscoveryRun> SourceDiscoveryRuns { get; }
+    public ICollection<InitRun> InitRuns { get; }
+    public ICollection<PlanRun> PlanRuns { get; }
+    public ICollection<ApplyRun> ApplyRuns { get; }
+    public ICollection<SourceDiscoveryRun> SourceDiscoveryRuns { get; }
 }

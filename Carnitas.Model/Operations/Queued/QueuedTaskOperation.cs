@@ -1,4 +1,4 @@
-namespace Carnitas.Model.Operations;
+namespace Carnitas.Model.Operations.Queued;
 
 public class QueuedTaskOperation
 {

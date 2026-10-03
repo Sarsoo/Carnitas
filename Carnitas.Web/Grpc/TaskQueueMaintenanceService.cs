@@ -1,4 +1,5 @@
 using Carnitas.Model.Operations;
+using Carnitas.Model.Operations.TaskQueue;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 

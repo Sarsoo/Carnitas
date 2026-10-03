@@ -1,7 +1,9 @@
 using Carnitas.Extensions;
 using Carnitas.Model;
+using Carnitas.Model.Extensions;
 using Carnitas.Model.Identity;
 using Carnitas.Model.Operations;
+using Carnitas.Model.Operations.TaskQueue;
 using Carnitas.Observability;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -51,8 +53,10 @@ builder.Services.AddAuthorization();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
                        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<ApplicationDbContext>(
+        options => options.UseNpgsql(connectionString)
+    )
+    .AddDatabase();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>

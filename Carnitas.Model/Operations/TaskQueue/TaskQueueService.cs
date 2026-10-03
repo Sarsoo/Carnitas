@@ -1,12 +1,14 @@
 using System.Text.Json;
 using Carnitas.Job;
+using Carnitas.Model.Operations.Queued;
+using Carnitas.Model.Operations.Run;
 using Carnitas.Model.Source;
 using Carnitas.Observability;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 
-namespace Carnitas.Model.Operations;
+namespace Carnitas.Model.Operations.TaskQueue;
 
 public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options, ILogger<TaskQueueService>? logger = null): ITaskQueue
 {
