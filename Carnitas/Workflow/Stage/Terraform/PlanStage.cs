@@ -20,7 +20,7 @@ public class PlanTerraformStage(
 )
     : TerraformStageBuilder<PlanTerraformStage>, IStage
 {
-    public PlanGenerator Command { get; private set; }
+    public PlanGenerator? Command { get; private set; }
     public override ChannelReader<TerraformMessage>? MessageOutput => Command.Output;
     public override ChannelReader<string>? JsonOutput => Command.JsonOutput;
     

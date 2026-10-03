@@ -30,7 +30,7 @@ public class JobDispatcher(IOptions<WorkerOptions> options, ILogger<JobDispatche
         await foreach (var job in _channel.Reader.ReadAllAsync(token).ConfigureAwait(false))
         {
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 using var trace = Tracing.Source.StartActivity("JobDispatcher::Start");
                 try
@@ -46,7 +46,7 @@ public class JobDispatcher(IOptions<WorkerOptions> options, ILogger<JobDispatche
                 {
                     _semaphore.Release();
                 }
-            });
+            }, token);
         }
     }
 

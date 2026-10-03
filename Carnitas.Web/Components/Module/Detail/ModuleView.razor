@@ -5,7 +5,7 @@
 
 <h3>Module</h3>
 
-@if (module is null)
+@if (_module is null)
 {
     <MudText>Not found</MudText>
 }
@@ -14,12 +14,12 @@ else
     <MudStack Row="true">
         <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
         <MudSpacer/>
-        @if (module?.Type is ModuleType.Root)
+        @if (_module?.Type is ModuleType.Root)
         {
             <MudText>Root Module</MudText>
             <MudIcon Icon="@Constants.RootIcon"/>
         }
-        else if (module?.Type is ModuleType.Library)
+        else if (_module?.Type is ModuleType.Library)
         {
             <MudText>Library</MudText>
             <MudIcon Icon="@Constants.LibraryIcon"/>
@@ -33,7 +33,7 @@ else
              ActivePanelIndex="@TabIndex" 
              ActivePanelIndexChanged="@OnTabChanged">
         <MudTabPanel Text="Overview">
-            <ModuleOverviewCard Module=@module />
+            <ModuleOverviewCard Module=@_module />
         </MudTabPanel>
         <MudTabPanel Text="Operations" Icon="@Constants.OpIcon">
             <OperationsTable Filter="tasks => tasks.Where(x => x.ModuleId == Id)" />
@@ -46,14 +46,14 @@ else
 
 @code {
     [Parameter]
-    public string RepoId { get; set; }
+    public required string RepoId { get; set; }
 
     [Parameter]
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
-    private Module? module;
+    private Module? _module;
 
-    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => module?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => _module?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
     
     [SupplyParameterFromQuery(Name="tabIndex")] public int TabIndex { get; set; } = 0;
 
@@ -65,12 +65,12 @@ else
         }
 
         TabIndex = index;
-        Navigation.NavigateTo(module?.ToLink() + $"?tabIndex={index}");
+        Navigation.NavigateTo(_module?.ToLink() + $"?tabIndex={index}");
     }
 
     protected override async Task OnInitializedAsync()
     {
-        module = await Db.Modules
+        _module = await Db.Modules
             .AsNoTracking()
             .Include(m => m.Repository)
             .ThenInclude(r => r.Organisation)

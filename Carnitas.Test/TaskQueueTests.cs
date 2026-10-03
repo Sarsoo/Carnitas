@@ -138,7 +138,7 @@ public class TaskQueueTests
 
             for (var i = 0; i < 5; i++)
             {
-                await queue.EnqueueAsync(Request(moduleId));
+                await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
             }
         }
 
@@ -187,7 +187,7 @@ public class TaskQueueTests
         {
             var moduleId = await CreateModuleAsync(seed, "reclaim-module");
             var queue = new TaskQueueService(seed, new TaskQueueOptions());
-            var task = await queue.EnqueueAsync(Request(moduleId));
+            var task = await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
             taskId = task.Id;
 
             task.State = QueuedTaskState.Processing;
@@ -195,12 +195,12 @@ public class TaskQueueTests
             task.LockedUntil = DateTime.UtcNow.AddMinutes(-5);
             task.Attempts = 1;
             task.MaxAttempts = 3;
-            await seed.SaveChangesAsync();
+            await seed.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
 
         await using var db = CreateContext(connectionString);
         var reclaimed = await new TaskQueueService(db, new TaskQueueOptions())
-            .ClaimNextAsync("new-worker", TimeSpan.FromMinutes(5));
+            .ClaimNextAsync("new-worker", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
         Assert.NotNull(reclaimed);
         Assert.Equal(taskId, reclaimed!.Id);
@@ -225,7 +225,7 @@ public class TaskQueueTests
         {
             var moduleId = await CreateModuleAsync(seed, "sweep-module");
             var queue = new TaskQueueService(seed, new TaskQueueOptions());
-            var task = await queue.EnqueueAsync(Request(moduleId));
+            var task = await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
             taskId = task.Id;
 
             task.State = QueuedTaskState.Processing;
@@ -233,16 +233,16 @@ public class TaskQueueTests
             task.LockedUntil = DateTime.UtcNow.AddMinutes(-5);
             task.Attempts = 3;
             task.MaxAttempts = 3;
-            await seed.SaveChangesAsync();
+            await seed.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
 
         await using var db = CreateContext(connectionString);
         var queueService = new TaskQueueService(db, new TaskQueueOptions());
 
-        var swept = await queueService.SweepExpiredAsync();
+        var swept = await queueService.SweepExpiredAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, swept);
 
-        var sweptTask = await db.QueuedTasks.SingleAsync(t => t.Id == taskId);
+        var sweptTask = await db.QueuedTasks.SingleAsync(t => t.Id == taskId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(QueuedTaskState.Failed, sweptTask.State);
         Assert.NotNull(sweptTask.LastError);
     }
@@ -265,7 +265,7 @@ public class TaskQueueTests
         {
             var moduleId = await CreateModuleAsync(seed, "complete-module");
             var queue = new TaskQueueService(seed, new TaskQueueOptions());
-            var task = await queue.EnqueueAsync(Request(moduleId));
+            var task = await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
             taskId = task.Id;
             operationIds = task.Operations.OrderBy(o => o.Sequence).Select(o => o.Id).ToList();
         }
@@ -273,18 +273,18 @@ public class TaskQueueTests
         await using var db = CreateContext(connectionString);
         var queueService = new TaskQueueService(db, new TaskQueueOptions());
 
-        var claimed = await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5));
+        var claimed = await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
         Assert.NotNull(claimed);
 
         foreach (var operationId in operationIds)
         {
-            await queueService.ReportOperationStatusAsync(operationId, true, 0, null);
+            await queueService.ReportOperationStatusAsync(operationId, true, 0, null, ct: TestContext.Current.CancellationToken);
         }
 
-        var completedTask = await db.QueuedTasks.SingleAsync(t => t.Id == taskId);
+        var completedTask = await db.QueuedTasks.SingleAsync(t => t.Id == taskId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(QueuedTaskState.Completed, completedTask.State);
 
-        var runs = await db.OperationRuns.Where(r => r.QueuedTaskId == taskId).ToListAsync();
+        var runs = await db.OperationRuns.Where(r => r.QueuedTaskId == taskId).ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(2, runs.Count);
         Assert.All(runs, r => Assert.Equal(0, r.ExitCode));
     }
@@ -307,18 +307,18 @@ public class TaskQueueTests
         {
             var moduleId = await CreateModuleAsync(seed, "fail-module");
             var queue = new TaskQueueService(seed, new TaskQueueOptions());
-            var task = await queue.EnqueueAsync(Request(moduleId, OperationKind.Init, OperationKind.Apply));
+            var task = await queue.EnqueueAsync(Request(moduleId, OperationKind.Init, OperationKind.Apply), TestContext.Current.CancellationToken);
             taskId = task.Id;
             firstOperationId = task.Operations.OrderBy(o => o.Sequence).First().Id;
         }
 
         await using var db = CreateContext(connectionString);
         var queueService = new TaskQueueService(db, new TaskQueueOptions());
-        await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5));
+        await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
-        await queueService.ReportOperationStatusAsync(firstOperationId, false, 1, "boom");
+        await queueService.ReportOperationStatusAsync(firstOperationId, false, 1, "boom", ct: TestContext.Current.CancellationToken);
 
-        var failedTask = await db.QueuedTasks.SingleAsync(t => t.Id == taskId);
+        var failedTask = await db.QueuedTasks.SingleAsync(t => t.Id == taskId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(QueuedTaskState.Failed, failedTask.State);
         Assert.Equal("boom", failedTask.LastError);
     }
@@ -340,25 +340,25 @@ public class TaskQueueTests
         {
             var moduleId = await CreateModuleAsync(seed, "log-module");
             var queue = new TaskQueueService(seed, new TaskQueueOptions());
-            var task = await queue.EnqueueAsync(Request(moduleId));
+            var task = await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
             operationId = task.Operations.OrderBy(o => o.Sequence).First().Id;
         }
 
         await using var db = CreateContext(connectionString);
         var queueService = new TaskQueueService(db, new TaskQueueOptions());
-        await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5));
+        await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
         await queueService.AppendLogsAsync(new[]
         {
             new LogLine(operationId, "{\"message\":\"one\"}", "Information", LogType.Json),
             new LogLine(operationId, "{\"message\":\"two\"}", "Information", LogType.Json),
             new LogLine(operationId, "{\"message\":\"three\"}", "Information", LogType.Json)
-        });
+        }, TestContext.Current.CancellationToken);
 
         var entries = await db.OperationRunLogEntries
             .Where(e => e.OperationRunId == operationId)
             .OrderBy(e => e.Sequence)
-            .ToListAsync();
+            .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(3, entries.Count);
         Assert.Equal(new[] { 1, 2, 3 }, entries.Select(e => e.Sequence).ToArray());
@@ -379,7 +379,7 @@ public class TaskQueueTests
         var moduleId = await CreateModuleAsync(db, "system-attribution-module");
         var queue = new TaskQueueService(db, new TaskQueueOptions());
 
-        var task = await queue.EnqueueAsync(Request(moduleId));
+        var task = await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
 
         Assert.Equal(InitiatorType.System, task.InitiatorType);
         Assert.Null(task.InitiatorUserId);
@@ -410,7 +410,7 @@ public class TaskQueueTests
             {
                 InitiatorType = InitiatorType.User,
                 InitiatorUserId = userId
-            });
+            }, TestContext.Current.CancellationToken);
 
             taskId = task.Id;
             operationIds = task.Operations.OrderBy(o => o.Sequence).Select(o => o.Id).ToList();
@@ -421,14 +421,14 @@ public class TaskQueueTests
 
         await using var db = CreateContext(connectionString);
         var queueService = new TaskQueueService(db, new TaskQueueOptions());
-        await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5));
+        await queueService.ClaimNextAsync("worker", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
 
         foreach (var operationId in operationIds)
         {
-            await queueService.ReportOperationStatusAsync(operationId, true, 0, null);
+            await queueService.ReportOperationStatusAsync(operationId, true, 0, null, ct: TestContext.Current.CancellationToken);
         }
 
-        var runs = await db.OperationRuns.Where(r => r.QueuedTaskId == taskId).ToListAsync();
+        var runs = await db.OperationRuns.Where(r => r.QueuedTaskId == taskId).ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(operationIds.Count, runs.Count);
         Assert.All(runs, r => Assert.Equal(InitiatorType.User, r.InitiatorType));
@@ -454,13 +454,13 @@ public class TaskQueueTests
         {
             GitReference = "feature/x",
             RepositoryId = RepositoryId
-        });
+        }, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, task.Operations.Count);
 
         var runs = await db.OperationRuns
             .Where(r => r.QueuedTaskId == task.Id)
-            .ToListAsync();
+            .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(2, runs.Count);
         Assert.Contains(runs, r => r is InitRun);
@@ -496,7 +496,7 @@ public class TaskQueueTests
         {
             var moduleId = await CreateModuleAsync(seed, "concurrent-logs-module");
             var queue = new TaskQueueService(seed, new TaskQueueOptions());
-            var task = await queue.EnqueueAsync(Request(moduleId));
+            var task = await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
             operationId = task.Operations.OrderBy(o => o.Sequence).First().Id;
         }
 
@@ -525,10 +525,10 @@ public class TaskQueueTests
 
         await using var db = CreateContext(connectionString);
 
-        var runCount = await db.OperationRuns.CountAsync(r => r.Id == operationId);
+        var runCount = await db.OperationRuns.CountAsync(r => r.Id == operationId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(1, runCount);
 
-        var logCount = await db.OperationRunLogEntries.CountAsync(e => e.OperationRunId == operationId);
+        var logCount = await db.OperationRunLogEntries.CountAsync(e => e.OperationRunId == operationId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(2, logCount);
     }
 
@@ -546,23 +546,23 @@ public class TaskQueueTests
         await using var db = CreateContext(connectionString);
         var moduleId = await CreateModuleAsync(db, "claim-start-module");
         var queue = new TaskQueueService(db, new TaskQueueOptions());
-        var task = await queue.EnqueueAsync(Request(moduleId));
+        var task = await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
         var operationId = task.Operations.OrderBy(o => o.Sequence).First().Id;
 
-        var claimed = await queue.ClaimNextAsync("worker", TimeSpan.FromMinutes(5));
+        var claimed = await queue.ClaimNextAsync("worker", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
         Assert.NotNull(claimed);
 
-        var firstRun = await db.OperationRuns.SingleAsync(r => r.Id == operationId);
+        var firstRun = await db.OperationRuns.SingleAsync(r => r.Id == operationId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(firstRun.StartTime);
         var firstStart = firstRun.StartTime;
 
         claimed!.LockedUntil = DateTime.UtcNow.AddMinutes(-5);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var reclaimed = await queue.ClaimNextAsync("worker-2", TimeSpan.FromMinutes(5));
+        var reclaimed = await queue.ClaimNextAsync("worker-2", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
         Assert.NotNull(reclaimed);
 
-        var secondRun = await db.OperationRuns.SingleAsync(r => r.Id == operationId);
+        var secondRun = await db.OperationRuns.SingleAsync(r => r.Id == operationId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(firstStart, secondRun.StartTime);
     }
 
@@ -581,17 +581,16 @@ public class TaskQueueTests
         var moduleId = await CreateModuleAsync(db, "discovery-repo-module");
         var queue = new TaskQueueService(db, new TaskQueueOptions());
 
-        var explicitRepo = await queue.EnqueueAsync(
-            Request(moduleId, OperationKind.DiscoverSource) with { RepositoryId = RepositoryId });
+        var explicitRepo = await queue.EnqueueAsync(Request(moduleId, OperationKind.DiscoverSource) with { RepositoryId = RepositoryId }, TestContext.Current.CancellationToken);
 
         var explicitRun = Assert.IsType<SourceDiscoveryRun>(await db.OperationRuns
-            .SingleAsync(r => r.QueuedTaskId == explicitRepo.Id));
+            .SingleAsync(r => r.QueuedTaskId == explicitRepo.Id, cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(RepositoryId, explicitRun.RepositoryId);
 
-        var inferredRepo = await queue.EnqueueAsync(Request(moduleId, OperationKind.DiscoverSource));
+        var inferredRepo = await queue.EnqueueAsync(Request(moduleId, OperationKind.DiscoverSource), TestContext.Current.CancellationToken);
 
         var inferredRun = Assert.IsType<SourceDiscoveryRun>(await db.OperationRuns
-            .SingleAsync(r => r.QueuedTaskId == inferredRepo.Id));
+            .SingleAsync(r => r.QueuedTaskId == inferredRepo.Id, cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(RepositoryId, inferredRun.RepositoryId);
     }
 
@@ -609,24 +608,24 @@ public class TaskQueueTests
         await using var db = CreateContext(connectionString);
         var moduleId = await CreateModuleAsync(db, "missing-run-module");
         var queue = new TaskQueueService(db, new TaskQueueOptions());
-        var task = await queue.EnqueueAsync(Request(moduleId));
+        var task = await queue.EnqueueAsync(Request(moduleId), TestContext.Current.CancellationToken);
         var operationId = task.Operations.OrderBy(o => o.Sequence).First().Id;
 
-        var run = await db.OperationRuns.SingleAsync(r => r.Id == operationId);
+        var run = await db.OperationRuns.SingleAsync(r => r.Id == operationId, cancellationToken: TestContext.Current.CancellationToken);
         db.OperationRuns.Remove(run);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await queue.AppendLogsAsync(new[]
         {
             new LogLine(operationId, "{\"message\":\"orphan\"}", "Information", LogType.Json)
-        });
+        }, TestContext.Current.CancellationToken);
         await queue.SubmitPlanAsync(operationId, "{\"plan\":true}", "/tmp/plan", CancellationToken.None);
-        await queue.ReportOperationStatusAsync(operationId, true, 0, null);
+        await queue.ReportOperationStatusAsync(operationId, true, 0, null, ct: TestContext.Current.CancellationToken);
 
-        var runCount = await db.OperationRuns.CountAsync(r => r.Id == operationId);
+        var runCount = await db.OperationRuns.CountAsync(r => r.Id == operationId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(0, runCount);
 
-        var logCount = await db.OperationRunLogEntries.CountAsync(e => e.OperationRunId == operationId);
+        var logCount = await db.OperationRunLogEntries.CountAsync(e => e.OperationRunId == operationId, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(0, logCount);
     }
 }

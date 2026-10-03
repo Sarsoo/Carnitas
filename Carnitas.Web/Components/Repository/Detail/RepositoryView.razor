@@ -10,7 +10,7 @@
     <FontAwesomeIcon Specifiers="brands,git-alt,2xl"/>
 </MudStack>
 
-@if (repo is null)
+@if (_repo is null)
 {
     <MudText>Not found</MudText>
 }
@@ -28,10 +28,10 @@ else
              ActivePanelIndex="@TabIndex" 
              ActivePanelIndexChanged="@OnTabChanged">
         <MudTabPanel Text="Overview">
-            <RepoOverviewCard Repository=@repo />
+            <RepoOverviewCard Repository=@_repo />
         </MudTabPanel>
         <MudTabPanel Text="Modules" Icon="@Constants.ModuleIcon">
-            <RepoModuleTab RepositoryId="@Id" @ref="repoModule"/>
+            <RepoModuleTab RepositoryId="@Id" @ref="_repoModule"/>
         </MudTabPanel>
         <MudTabPanel Text="Operations" Icon="@Constants.OpIcon">
             <OperationsTable 
@@ -42,17 +42,17 @@ else
             <MudText>Coming soon</MudText>
         </MudTabPanel>
         <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
-            <RepoSettingsCard Repository=@repo Saved="@(() => repoModule?.Reload())" />
+            <RepoSettingsCard Repository=@_repo Saved="@(() => _repoModule?.Reload())" />
         </MudTabPanel>
     </MudTabs>
 }
 
 @code {
     [Parameter]
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
-    private Repository? repo;
-    private RepoModuleTab? repoModule;
+    private Repository? _repo;
+    private RepoModuleTab? _repoModule;
 
     [SupplyParameterFromQuery(Name="tabIndex")] public int TabIndex { get; set; } = 0;
 
@@ -67,28 +67,28 @@ else
         Navigation.NavigateTo($"/Repo/{Id}?tabIndex={index}");
     }
 
-    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => repo?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => _repo?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
     
     protected override async Task OnInitializedAsync()
     {
-        repo = await Db.Repository.FindAsync([Id]);
+        _repo = await Db.Repository.FindAsync([Id]);
 
-        if (repo is not null)
+        if (_repo is not null)
         {
-            repo.Organisation = await Db.Organisations.FindAsync([repo!.OrganisationId]);
+            _repo.Organisation = await Db.Organisations.FindAsync([_repo!.OrganisationId]);
         }
     }
 
     private async Task EnqueueAsync()
     {
-        if (repo is null)
+        if (_repo is null)
         {
             return;
         }
 
         var parameters = new DialogParameters<NewTaskDialog>
         {
-            { x => x.RepositoryId, repo.Id }
+            { x => x.RepositoryId, _repo.Id }
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true };

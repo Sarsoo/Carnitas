@@ -15,9 +15,9 @@ public class ApplyTerraformStage(
 )
     : TerraformStageBuilder<ApplyTerraformStage>, IStage
 {
-    public Apply Command { get; private set; }
-    public override ChannelReader<TerraformMessage>? MessageOutput => Command.Output;
-    public override ChannelReader<string>? JsonOutput => Command.JsonOutput;
+    public Apply? Command { get; private set; }
+    public override ChannelReader<TerraformMessage>? MessageOutput => Command?.Output;
+    public override ChannelReader<string>? JsonOutput => Command?.JsonOutput;
     
     public override bool Errored => Command.Errored;
     public override int ExitCode => Command.ExitCode;

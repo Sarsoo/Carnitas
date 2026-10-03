@@ -10,9 +10,9 @@
                 <MudCard>
                     <MudCardContent>
                         <MudTextField Label="Name" HelperText="Max. 8 characters"
-                                      @bind-Value="model.Name" For="@(() => model.Name)"/>
+                                      @bind-Value="_model.Name" For="@(() => _model.Name)"/>
                         <MudTextField Label="Description" Lines="3"
-                                      @bind-Value="model.Description" For="@(() => model.Description)"/>
+                                      @bind-Value="_model.Description" For="@(() => _model.Description)"/>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -25,16 +25,15 @@
 </MudDialog>
 
 @code {
-    NewOrganisation model = new();
-    EditForm form;
+    readonly NewOrganisation _model = new();
 
     private async Task OnSubmit()
     {
         var org = new Organisation
         {
             Id = Guid.NewGuid().ToString(),
-            Name = model.Name,
-            Description = model.Description ?? ""
+            Name = _model.Name,
+            Description = _model.Description ?? ""
         };
 
         DbContext.Organisations.Add(org);

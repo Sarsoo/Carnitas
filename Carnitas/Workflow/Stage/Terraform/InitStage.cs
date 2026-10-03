@@ -15,7 +15,7 @@ public class InitTerraformStage(
 )
     : TerraformStageBuilder<InitTerraformStage>, IStage
 {
-    public Init Command { get; private set; }
+    public Init? Command { get; private set; }
     public override ChannelReader<TerraformMessage>? MessageOutput => Command.Output;
     public override ChannelReader<string>? JsonOutput => Command.JsonOutput;
     

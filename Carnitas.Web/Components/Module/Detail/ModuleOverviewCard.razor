@@ -22,15 +22,10 @@
 </MudCard>
 
 @code { 
-    [Parameter] public Module Module { get; set; }
+    [Parameter] public required Module Module { get; set; }
 
     private async Task EnqueueAsync()
     {
-        if (Module is null)
-        {
-            return;
-        }
-
         var parameters = new DialogParameters<NewTaskDialog>
         {
             { x => x.RepositoryId, Module.RepositoryId },

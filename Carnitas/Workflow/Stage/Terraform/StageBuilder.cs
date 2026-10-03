@@ -41,7 +41,7 @@ public abstract class StageBuilder<TSelf>: IJob, IStage
         return (TSelf) this;
     }
     
-    protected string FullWorkingDirectory => !string.IsNullOrWhiteSpace(_workingDirectory) ? Path.Join(BasePath, _workingDirectory) : BasePath;
+    protected string? FullWorkingDirectory => !string.IsNullOrWhiteSpace(_workingDirectory) ? Path.Join(BasePath, _workingDirectory) : BasePath;
 
     public async Task Execute(CancellationToken token)
     {
