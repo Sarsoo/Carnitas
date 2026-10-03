@@ -163,7 +163,7 @@ internal static class ModelBuilderExtensions
 
             builder.Entity<OperationRunLogEntry>()
                 .HasOne(e => e.OperationRun)
-                .WithMany()
+                .WithMany(e => e.LogEntries)
                 .HasForeignKey(e => e.OperationRunId)
                 .HasPrincipalKey(e => e.Id)
                 .OnDelete(DeleteBehavior.Cascade);
