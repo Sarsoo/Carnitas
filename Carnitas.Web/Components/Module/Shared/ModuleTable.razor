@@ -16,7 +16,7 @@
                      CanceledEditingItem="@CanceledEditingItem"
                      CommittedItemChanges="@CommittedItemChanges">
             <Columns>
-                <PropertyColumn Property="r => r.Name" Editable="false"/>
+                <PropertyColumn Property="r => r.Name" Editable="false" />
                 <PropertyColumn Property="r => r.Type">
                     <EditTemplate>
                         <MudSelect @bind-Value="context.Item.Type"
@@ -29,6 +29,10 @@
                         </MudSelect>
                     </EditTemplate>
                 </PropertyColumn>
+                @if (IncludeTrackingBranch)
+                {
+                    <PropertyColumn Property="r => r.TrackingBranch" Required="false" />
+                }
                 <PropertyColumn Property="r => r.RelativePath" CellClass="text-mono" Editable="false" InitialDirection="SortDirection.Ascending"/>
                 <TemplateColumn Editable="false">
                     <CellTemplate>
@@ -69,6 +73,8 @@
     [Parameter] public string RepositoryId { get; set; }
     [Parameter] public ModuleType? ModuleType { get; set; }
     
+    [Parameter] public bool IncludeTrackingBranch { get; set; }
+    
     private bool _isEditing;
     
     private MudDataGrid<Module> _elementGrid = null!;
@@ -98,7 +104,15 @@
     
     void OnRowClick(DataGridRowClickEventArgs<Module> args)
     {
-        Navigation.NavigateTo(args.ToLink());
+        if (!_isEditing)
+        {
+            Navigation.NavigateTo(args.ToLink());
+        }
+    }
+
+    private void OnCellClick(DataGridCellClickEventArgs<Module> args)
+    {
+        
     }
 
     public void Reload()
@@ -119,9 +133,12 @@
     private async Task<DataGridEditFormAction> CommittedItemChanges(Module item)
     {
         // Perform validation
-        await Db.Modules.Where(x => x.Id == item.Id).ExecuteUpdateAsync(a => a.SetProperty(x => x.Type, item.Type));
+        await Db.Modules
+            .Where(x => x.Id == item.Id)
+            .ExecuteUpdateAsync(a => a.SetProperty(x => x.Type, item.Type));
 
         _isEditing = false;
         return DataGridEditFormAction.Close;
     }
+
 }

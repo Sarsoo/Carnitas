@@ -78,6 +78,7 @@ else
             .ThenInclude(r => r.Organisation)
             .Include(r => r.Checkout)
             .Include(r => r.InitiatorUser)
+            .Include(r => r.QueuedTask)
             .SingleOrDefaultAsync(r => r.Id == Id);
 
         if (await Db.OperationRunLogEntries.FirstOrDefaultAsync(x => x.OperationRunId == Id && x.Type == LogType.PlanJson) is { } planEntry)

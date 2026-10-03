@@ -3,7 +3,6 @@
 @using Carnitas.Model.Extensions
 @using Carnitas.Model.Identity
 @using Carnitas.Model.Operations
-@using Carnitas.Web.Extensions
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
@@ -27,7 +26,7 @@ else
                     </MudStack>
                     <MudChip T="string" Color="@task.State.Colour">@task.State</MudChip>
                     <MudText Typo="Typo.body2">Repository: @task.RepoUrl</MudText>
-                    <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.SnippetFolder" /> <MudText Inline="true" Typo="Typo.body2" Class="text-mono">@task.ModulePath</MudText></MudText>
+                    <MudText Typo="Typo.body2"><MudIcon Icon="@Constants.ModuleIcon" /> <MudText Inline="true" Typo="Typo.body2" Class="text-mono">@task.ModulePath</MudText></MudText>
                     <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.Person" /> @InitiatorLabel(task.InitiatorType, task.InitiatorUser, task.InitiatorUserId)</MudText>
                     <MudText Typo="Typo.body2">Priority: @task.Priority</MudText>
                     <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.Loop" /> @task.Attempts / @task.MaxAttempts</MudText>
@@ -77,7 +76,7 @@ else
 
     <MudText Typo="Typo.h6" Class="mt-4">Operations</MudText>
     <MudDataGrid T="OperationRun" Items="@task.OperationRuns.OrderBy(x => (!x.EndTime.HasValue, x.EndTime))"
-                 Dense="true" Hover="true">
+                 Dense="true" Hover="true" RowClick="RowClick" RowClass="cursor-pointer">
         <Columns>
             <PropertyColumn Title="Type" Property="t => t.ToDisplayString()"/>
             <PropertyColumn Title="Started" Property="t => t.StartTime"/>
@@ -124,4 +123,10 @@ else
             .Include(t => t.InitiatorUser)
             .SingleOrDefaultAsync(t => t.Id == Id);
     }
+
+    private void RowClick(DataGridRowClickEventArgs<OperationRun> obj)
+    {
+        Navigation.NavigateTo(obj.ToLink());
+    }
+
 }

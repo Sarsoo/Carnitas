@@ -10,8 +10,17 @@
         <MudCard>
             <MudDataGrid T="QueuedTask"
                          Items="tasks" Hover="true" Dense="true" Groupable="true"
-                         RowClick="OnRowClick" RowClass="cursor-pointer">
+                         RowClick="OnRowClick" RowClass="cursor-pointer"
+                         RowContextMenuClick="Callback">
                 <Columns>
+                    <TemplateColumn Title="Operations">
+                        <CellTemplate>
+                            @foreach (var item in context.Item.Operations.OrderBy(o => o.Sequence))
+                            {
+                                <MudChip Variant="Variant.Text">@item.Kind.DisplayString</MudChip>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn Title="State">
                         <CellTemplate>
                             <MudChip T="string" Size="Size.Small" Color="@context.Item.State.Colour">@context.Item.State</MudChip>
@@ -22,7 +31,7 @@
                         <PropertyColumn Groupable="true" Title="Organisation" Property="t => t.Repository.Organisation.Name" GroupBy="t => t.Repository.OrganisationId">
                             <GroupTemplate>
                                 <MudStack Row="true">
-                                    <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Domain"/>
+                                    <MudIcon Size="Size.Small" Icon="@Constants.OrgIcon"/>
                                     <MudText Typo="Typo.body2">@context.Grouping.FirstOrDefault()?.Repository?.Organisation.Name</MudText>
                                 </MudStack>
                             </GroupTemplate>
@@ -33,7 +42,7 @@
                         <PropertyColumn Groupable="true" Title="Repo" Property="t => t.Repository.Name" GroupBy="t => t.RepositoryId">
                             <GroupTemplate>
                                 <MudStack Row="true">
-                                    <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Code"/>
+                                    <MudIcon Size="Size.Small" Icon="@Constants.RepoIcon"/>
                                     <MudText Typo="Typo.body2">@context.Grouping.FirstOrDefault()?.Repository?.Name</MudText>
                                 </MudStack>
                             </GroupTemplate>
@@ -44,7 +53,7 @@
                         <PropertyColumn Groupable="true" Title="Module" Property="t => t.Module.Name" GroupBy="t => t.ModuleId">
                             <GroupTemplate>
                                 <MudStack Row="true">
-                                    <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.SnippetFolder"/>
+                                    <MudIcon Size="Size.Small" Icon="@Constants.ModuleIcon"/>
                                     <MudText Typo="Typo.body2">@context.Grouping.FirstOrDefault()?.Module?.Name</MudText>
                                 </MudStack>
                             </GroupTemplate>
@@ -68,14 +77,6 @@
                             </CellTemplate>
                         </TemplateColumn>
                     }
-                    <TemplateColumn Title="Operations">
-                        <CellTemplate>
-                            @foreach (var item in context.Item.Operations.OrderBy(o => o.Sequence))
-                            {
-                                <MudChip Variant="Variant.Text">@item.Kind.DisplayString</MudChip>
-                            }
-                        </CellTemplate>
-                    </TemplateColumn>
                     <TemplateColumn Title="Attempts" SortBy="@(x => x.Attempts)">
                         <CellTemplate>
                             @{ var attempts = $"{context.Item.Attempts} / {context.Item.MaxAttempts}"; }
@@ -99,6 +100,26 @@
         </MudCard>
     </MudItem>
 </MudGrid>
+<MudMenu PositionAtCursor="true" @ref="_contextMenu" id="_contextMenu">
+    @if (_contextRow is { Module: not null })
+    {
+        <MudMenuItem Icon="@Constants.ModuleIcon" OnClick="_ => Navigation.NavigateTo(_contextRow.Module.ToLink())">
+            @_contextRow.Module.Name
+        </MudMenuItem>
+    }
+    @if (_contextRow is { Repository: not null })
+    {
+        <MudMenuItem Icon="@Constants.RepoIcon" OnClick="_ => Navigation.NavigateTo(_contextRow.Repository.ToLink())">
+            @_contextRow.Repository.Name
+        </MudMenuItem>
+    }
+    @if (_contextRow is { Repository: { Organisation: not null } })
+    {
+        <MudMenuItem Icon="@Constants.OrgIcon" OnClick="_ => Navigation.NavigateTo(_contextRow.Repository.Organisation.ToLink())">
+            @_contextRow.Repository.Organisation.Name
+        </MudMenuItem>
+    }
+</MudMenu>
 
 @code {
     [Parameter] public Func<IQueryable<QueuedTask>, IQueryable<QueuedTask>>? Filter { get; set; }
@@ -108,6 +129,9 @@
     [Parameter] public bool IncludeOrg { get; set; }
     [Parameter] public bool IncludeActions { get; set; }
     [Parameter] public bool IncludeInitiator { get; set; } = true;
+    
+    private QueuedTask? _contextRow;
+    private MudMenu _contextMenu = null!;
     
     private List<QueuedTask> tasks = new();
     
@@ -146,5 +170,11 @@
     {
         Navigation.NavigateTo(args.ToLink());
     }
-    
+
+    private async Task Callback(DataGridRowClickEventArgs<QueuedTask> args)
+    {
+        _contextRow = args.Item;
+        await _contextMenu.OpenMenuAsync(args.MouseEventArgs);
+    }
+
 }

@@ -1,6 +1,7 @@
 using Carnitas.Model.Operations;
 using Carnitas.Model.Source;
 using Carnitas.Model.Source.SourceControl;
+using Carnitas.Web.Components.Shared;
 using MudBlazor;
 
 namespace Carnitas.Web.Extensions;
@@ -16,12 +17,12 @@ public static class BreadcrumbExtensions
                 new(
                     repo.Organisation?.Name ?? string.Empty, 
                     repo.Organisation?.ToLink(),
-                    icon: Icons.Material.Filled.Domain
+                    icon: Constants.OrgIcon
                 ),
                 new(
                     repo.Name,
                     href: repo.ToLink(),
-                    icon: Icons.Material.Filled.Code
+                    icon: Constants.RepoIcon
                 ),
             };
 
@@ -38,17 +39,17 @@ public static class BreadcrumbExtensions
                 new(
                     module.Repository?.Organisation?.Name ?? string.Empty, 
                     module.Repository?.Organisation?.ToLink(),
-                    icon: Icons.Material.Filled.Domain
+                    icon: Constants.OrgIcon
                 ),
                 new(
                     module.Repository?.Name ?? string.Empty, 
                     module.Repository?.ToLink(),
-                    icon: Icons.Material.Filled.Code
+                    icon: Constants.RepoIcon
                 ),
                 new(
                     module.Name, 
                     href: module.ToLink(),
-                    icon: Icons.Material.Filled.SnippetFolder
+                    icon: Constants.ModuleIcon
                 ),
             };
 
@@ -65,21 +66,22 @@ public static class BreadcrumbExtensions
                 new(
                     task.Module?.Repository?.Organisation?.Name ?? string.Empty, 
                     task.Module?.Repository?.Organisation?.ToLink(),
-                    icon: Icons.Material.Filled.Domain
+                    icon: Constants.OrgIcon
                 ),
                 new(
                     task.Module?.Repository?.Name ?? string.Empty, 
                     task.Module?.Repository?.ToLink(),
-                    icon: Icons.Material.Filled.Code
+                    icon: Constants.RepoIcon
                 ),
                 new(
                     task.Module?.Name ?? string.Empty, 
                     task.Module?.ToLink(),
-                    icon: Icons.Material.Filled.SnippetFolder
+                    icon: Constants.ModuleIcon
                 ),
                 new(
-                    task.GetType().Name, 
-                    href: task.ToLink()
+                    "Task", 
+                    href: task.ToLink(),
+                    icon: Constants.OpIcon
                 ),
             };
 
@@ -96,18 +98,20 @@ public static class BreadcrumbExtensions
                 new(
                     run.Module?.Repository?.Organisation?.Name ?? string.Empty, 
                     run.Module?.Repository?.Organisation?.ToLink(),
-                    icon: Icons.Material.Filled.Domain
+                    icon: Constants.OrgIcon
                 ),
                 new(
                     run.Module?.Repository?.Name ?? string.Empty, 
                     run.Module?.Repository?.ToLink(),
-                    icon: Icons.Material.Filled.Code
+                    icon: Constants.RepoIcon
                 ),
                 new(
                     run.Module?.Name ?? string.Empty, 
                     run.Module?.ToLink(),
-                    icon: Icons.Material.Filled.SnippetFolder
+                    icon: Constants.ModuleIcon
                 ),
+                new("Task", run.QueuedTask?.ToLink(),
+                    icon: Constants.OpIcon),
                 new(run.GetType().Name, run.ToLink()),
             };
 

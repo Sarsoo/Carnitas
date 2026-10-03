@@ -2,6 +2,7 @@
 @using Carnitas.Model
 @using Carnitas.Model.Operations
 @using Carnitas.Model.Source.SourceControl
+@using Carnitas.Web.Components.Shared
 @using Carnitas.Web.Components.Tasks.Dialog
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
@@ -23,22 +24,28 @@ else
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-4"
                StartIcon="@Icons.Material.Filled.Add" OnClick="EnqueueAsync">Enqueue Task</MudButton>
 
-    <MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6" ActivePanelIndex="@TabIndex" ActivePanelIndexChanged="@OnTabChanged">
+    <MudTabs Elevation="2" 
+             Rounded="true" 
+             Position="Position.Start" 
+             ApplyEffectsToContainer="true" 
+             TabPanelsClass="px-6" 
+             ActivePanelIndex="@TabIndex" 
+             ActivePanelIndexChanged="@OnTabChanged">
         <MudTabPanel Text="Overview">
             <RepoOverviewCard Repository=@repo />
         </MudTabPanel>
-        <MudTabPanel Text="Modules">
-            <RepoModuleTable RepositoryId="@Id" @ref="repoModule"/>
+        <MudTabPanel Text="Modules" Icon="@Constants.ModuleIcon">
+            <RepoModuleTab RepositoryId="@Id" @ref="repoModule"/>
         </MudTabPanel>
-        <MudTabPanel Text="Operations">
+        <MudTabPanel Text="Operations" Icon="@Constants.OpIcon">
             <OperationsTable 
                 IncludeModule="true"
                 Filter="tasks => tasks.Where(x => x.RepositoryId == Id)" />
         </MudTabPanel>
-        <MudTabPanel Text="Drift">
+        <MudTabPanel Text="Drift" Icon="@Constants.DriftIcon">
             <MudText>Coming soon</MudText>
         </MudTabPanel>
-        <MudTabPanel Text="Settings">
+        <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
             <RepoSettingsCard Repository=@repo Saved="@(() => repoModule?.Reload())" />
         </MudTabPanel>
     </MudTabs>
@@ -49,7 +56,7 @@ else
     public string Id { get; set; }
 
     private Repository? repo;
-    private RepoModuleTable? repoModule;
+    private RepoModuleTab? repoModule;
 
     [SupplyParameterFromQuery(Name="tabIndex")] public int TabIndex { get; set; } = 0;
 

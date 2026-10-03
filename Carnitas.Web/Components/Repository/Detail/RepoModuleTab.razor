@@ -1,0 +1,30 @@
+@using Carnitas.Model.Source
+@inject NavigationManager Navigation
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudTabs Elevation="2"
+                 Rounded="true"
+                 ApplyEffectsToContainer="true"
+                 TabPanelsClass="py-6">
+            <MudTabPanel Text="All">
+                <ModuleTable RepositoryId="@RepositoryId"/>
+            </MudTabPanel>
+            <MudTabPanel Text="Root" Icon="@Constants.RootIcon">
+                <ModuleTable RepositoryId="@RepositoryId" ModuleType="ModuleType.Root" IncludeTrackingBranch="true"/>
+            </MudTabPanel>
+            <MudTabPanel Text="Library" Icon="@Constants.LibraryIcon">
+                <ModuleTable RepositoryId="@RepositoryId" ModuleType="ModuleType.Library"/>
+            </MudTabPanel>
+        </MudTabs>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public string RepositoryId { get; set; }
+
+    public void Reload()
+    {
+        
+    }
+}

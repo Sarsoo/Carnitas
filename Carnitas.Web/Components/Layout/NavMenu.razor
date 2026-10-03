@@ -10,9 +10,9 @@
     @* <MudDivider Class="my-2"/> *@
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
     @* <MudNavLink Href="/servers" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Computer">Servers</MudNavLink> *@
-    <MudNavLink Href="/org" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Domain">Orgs</MudNavLink>
-    <MudNavLink Href="/repo" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Code">Repos</MudNavLink>
-    <MudNavLink Href="/task" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Task">Tasks</MudNavLink>
+    <MudNavLink Href="/org" Match="NavLinkMatch.Prefix" Icon="@Constants.OrgIcon">Orgs</MudNavLink>
+    <MudNavLink Href="/repo" Match="NavLinkMatch.Prefix" Icon="@Constants.RepoIcon">Repos</MudNavLink>
+    <MudNavLink Href="/task" Match="NavLinkMatch.Prefix" Icon="@Constants.OpIcon">Tasks</MudNavLink>
     <MudNavLink Href="/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
     @if (_authState?.User.IsInRole("Admin") ?? false)
     {

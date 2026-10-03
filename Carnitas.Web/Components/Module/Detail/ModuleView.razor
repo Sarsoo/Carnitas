@@ -13,13 +13,35 @@
 }
 else
 {
-    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
-    <MudTabs Elevation="2" Rounded="true" Position="Position.Start" ApplyEffectsToContainer="true" TabPanelsClass="pa-6" ActivePanelIndex="@TabIndex" ActivePanelIndexChanged="@OnTabChanged">
+    <MudStack Row="true">
+        <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
+        <MudSpacer/>
+        @if (module?.Type is ModuleType.Root)
+        {
+            <MudText>Root Module</MudText>
+            <MudIcon Icon="@Constants.RootIcon"/>
+        }
+        else if (module?.Type is ModuleType.Library)
+        {
+            <MudText>Library</MudText>
+            <MudIcon Icon="@Constants.LibraryIcon"/>
+        }
+    </MudStack>
+    <MudTabs Elevation="2" 
+             Rounded="true" 
+             Position="Position.Start" 
+             ApplyEffectsToContainer="true" 
+             TabPanelsClass="px-6" 
+             ActivePanelIndex="@TabIndex" 
+             ActivePanelIndexChanged="@OnTabChanged">
         <MudTabPanel Text="Overview">
             <ModuleOverviewCard Module=@module />
         </MudTabPanel>
-        <MudTabPanel Text="Operations">
+        <MudTabPanel Text="Operations" Icon="@Constants.OpIcon">
             <OperationsTable Filter="tasks => tasks.Where(x => x.ModuleId == Id)" />
+        </MudTabPanel>
+        <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
+            <ModuleSettingsCard />
         </MudTabPanel>
     </MudTabs>
 }
