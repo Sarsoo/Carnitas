@@ -45,6 +45,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Components\Operations\Run\Shared\" />
+      <_ContentIncludedByDefault Remove="Components\Admin\Admin.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Components\Pages\Admin\Admin.razor" />
     </ItemGroup>
 </Project>
