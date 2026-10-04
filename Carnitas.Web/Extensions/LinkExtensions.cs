@@ -11,6 +11,11 @@ namespace Carnitas.Web.Extensions;
 
 public static class LinkExtensions
 {
+    extension(string id)
+    {
+        public string OperationIdToPlanLink() => $"/Task/Plan/{id}";
+    }
+    
     extension(DataGridRowClickEventArgs<Repository> repo)
     {
         public string ToLink() => repo.Item.ToLink();
@@ -49,6 +54,7 @@ public static class LinkExtensions
     extension(OperationRun run)
     {
         public string ToLink() => $"/Task/Run/{run.Id}";
+        public string ToPlanLink() => $"/Task/Plan/{run.Id}";
     }
     
     extension(DataGridRowClickEventArgs<QueuedTaskOperation> run)

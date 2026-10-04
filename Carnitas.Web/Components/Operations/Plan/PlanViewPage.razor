@@ -1,0 +1,53 @@
+@page "/Task/Plan/{id}"
+@using System.Text.Json
+@using Carnitas.Job
+@using Microsoft.EntityFrameworkCore
+@using Sarsoo.Terraform.JsonOutput
+@using Sarsoo.Terraform.JsonOutput.Plan
+@inject ApplicationDbContext Db
+
+<h3>Plan</h3>
+
+@if (_log is null)
+{
+    <MudText>Not found</MudText>
+}
+else
+{
+    <MudBreadcrumbs Items="Breadcrumbs"/>
+    <MudGrid>
+        <MudItem xs="12">
+            @if (_plan is not null)
+            {
+                <PlanTree Plan="_plan" />
+            }
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    /// <summary>
+    /// Operation Id (not the operation log entry)
+    /// </summary>
+    [Parameter]
+    public string Id { get; set; }
+
+    private OperationRunLogEntry? _log;
+    private PlanRepresentation? _plan;
+
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => _log?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        _log = await Db.OperationRunLogEntries
+            .AsNoTracking()
+            .IncludeOrgHierarchy()
+            .SingleOrDefaultAsync(r => r.OperationRunId == Id && r.Type == LogType.PlanJson);
+
+        if (_log is not null && _log.Payload.Deserialize<PlanRepresentation>(JsonOutputContext.Default.PlanRepresentation) is { } plan)
+        {   
+            _plan = plan;
+        }
+    }
+}

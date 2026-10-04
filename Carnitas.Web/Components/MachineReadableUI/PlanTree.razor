@@ -1,0 +1,12 @@
+@using Sarsoo.Terraform.JsonOutput.Plan
+
+<MudGrid Class="pa-5">
+    @foreach (var resourceChange in Plan.ResourceChanges)
+    {
+        
+    }
+</MudGrid>
+
+@code {
+    [Parameter] public required PlanRepresentation Plan { get; set; }
+}

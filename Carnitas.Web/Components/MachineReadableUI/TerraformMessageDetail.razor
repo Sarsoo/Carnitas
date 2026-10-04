@@ -1,13 +1,20 @@
-@using Carnitas.Web.Components.MachineReadableUI
 @using Sarsoo.Terraform.MachineReadableUI
 @using Sarsoo.Terraform.MachineReadableUI.Plan
+
 <MudGrid>
     @if (ShowHeader)
     {
         <MudItem xs="12">
-            <MudText Typo="Typo.h2">@Message?.GetType().Name.Replace("Message", "")</MudText>
+            <MudText Typo="Typo.h4">@Message?.GetType().Name.Replace("Message", "")</MudText>
         </MudItem>
     }
+    <MudItem xs="12">
+        <MudCard Class="pa-5">
+            <ChildContent>
+                <MudText Class="text-mono" Typo="Typo.body2">@Message.Message</MudText>
+            </ChildContent>
+        </MudCard>
+    </MudItem>
     @if (Message is PlannedChangeMessage plannedChange)
     {
         <MudItem xs="12">

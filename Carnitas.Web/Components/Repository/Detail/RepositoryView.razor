@@ -65,7 +65,7 @@ else
         }
 
         TabIndex = index;
-        Navigation.NavigateTo($"/Repo/{Id}?tabIndex={index}");
+        Navigation.NavigateTo(_repo?.ToLink() + $"?tabIndex={index}");
     }
 
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => _repo?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
@@ -101,6 +101,6 @@ else
             return;
         }
 
-        Navigation.NavigateTo($"/Task/{task.Id}");
+        Navigation.NavigateTo(task.ToLink());
     }
 }

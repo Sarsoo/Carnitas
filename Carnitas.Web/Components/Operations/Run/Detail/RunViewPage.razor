@@ -43,6 +43,10 @@ else
             {
                 <MudText Typo="Typo.body2">Checkout: @run.Checkout.Path</MudText>
             }
+            @if (_containsPlan)
+            {
+                <MudButton Href="@run?.ToPlanLink()">Go to Plan</MudButton>
+            }
         </MudCardContent>
     </MudCard>
 
@@ -55,7 +59,7 @@ else
     public string Id { get; set; }
 
     private OperationRun? run;
-    private PlanRepresentation? plan;
+    private bool _containsPlan;
 
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => run?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
 
@@ -76,9 +80,6 @@ else
             .Include(r => r.QueuedTask)
             .SingleOrDefaultAsync(r => r.Id == Id);
 
-        if (await Db.OperationRunLogEntries.FirstOrDefaultAsync(x => x.OperationRunId == Id && x.Type == LogType.PlanJson) is { } planEntry)
-        {
-            plan = planEntry.Payload.Deserialize<PlanRepresentation>(JsonOutputContext.Default.PlanRepresentation);
-        }
+        _containsPlan = (await Db.OperationRunLogEntries.CountAsync(x => x.OperationRunId == Id && x.Type == LogType.PlanJson) > 0);
     }
 }

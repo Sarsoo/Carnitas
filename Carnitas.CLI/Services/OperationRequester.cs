@@ -2,6 +2,7 @@ using Carnitas.CLI.Operation;
 using Carnitas.CLI.Options;
 using Carnitas.Grpc;
 using Carnitas.Options;
+using Grpc.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,6 +25,7 @@ public class OperationRequester(
         {
             try
             {
+                logger.LogDebug("Requesting operation from backend");
                 var resp = await client.RequestWorkflowAsync(new OperationRequest
                 {
                     WorkerId = workerOptions.Value.Name
@@ -32,6 +34,17 @@ public class OperationRequester(
                 if (resp is { HasWork: true } && resp.Operations.Count > 0)
                 {
                     await queue.AddAsync(resp).ConfigureAwait(false);
+                }
+            }
+            catch (RpcException e)
+            {
+                if (e.StatusCode == StatusCode.Unavailable)
+                {
+                    logger.LogWarning("Web backend is currently unavailable");
+                }
+                else
+                {
+                    logger.LogError(e, "RPC exception while requesting work");
                 }
             }
             catch (Exception e)

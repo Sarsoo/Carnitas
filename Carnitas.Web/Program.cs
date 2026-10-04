@@ -12,6 +12,7 @@ using Carnitas.Web.Components;
 using Carnitas.Web.Components.Account;
 using Carnitas.Web.Github;
 using Carnitas.Web.Grpc;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using MudBlazor.Services;
 using NLog.Extensions.Logging;
 using Octokit.Webhooks;

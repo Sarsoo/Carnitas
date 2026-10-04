@@ -1,7 +1,6 @@
 @page "/Task/Log/{id}"
 @using System.Text.Json
 @using Carnitas.Job
-@using Carnitas.Web.Components.Operations.Run.Shared
 @using Microsoft.EntityFrameworkCore
 @using Sarsoo.Terraform.MachineReadableUI
 @using Sarsoo.Terraform.MachineReadableUI.Json
@@ -20,7 +19,7 @@ else
         <MudItem xs="12">
             @if (_message is not null)
             {
-                <TerraformMessageDetail Message="_message" />
+                <TerraformMessageDetail Message="_message" ShowHeader="true" />
             }
         </MudItem>
     </MudGrid>
@@ -40,12 +39,7 @@ else
     {
         _log = await Db.OperationRunLogEntries
             .AsNoTracking()
-            .Include(r => r.OperationRun)
-            .ThenInclude(r => r.QueuedTask)
-            .Include(r => r.OperationRun)
-            .ThenInclude(r => r.Module)
-            .ThenInclude(r => r.Repository)
-            .ThenInclude(r => r.Organisation)
+            .IncludeOrgHierarchy()
             .SingleOrDefaultAsync(r => r.Id == Id);
 
         if (_log?.Type is LogType.Json && _log.Payload.Deserialize<TerraformMessage>(MruiContext.Default.TerraformMessage) is { } message)

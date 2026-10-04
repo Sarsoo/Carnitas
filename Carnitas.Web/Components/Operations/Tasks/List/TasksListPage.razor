@@ -26,6 +26,6 @@
             return;
         }
 
-        Navigation.NavigateTo($"/Task/{task.Id}");
+        Navigation.NavigateTo(task.ToLink());
     }
 }
