@@ -34,15 +34,15 @@ git clone --depth=1 https://github.com/tfutils/tfenv.git /usr/local/lib/tfenv
 ln -s /usr/local/lib/tfenv/bin/* /usr/local/bin
 EOT
 
-USER $APP_UID
-WORKDIR /app
-
 RUN <<EOT bash
 set -euo pipefail
 
 tfenv install latest
 tfenv use latest
 EOT
+
+USER $APP_UID
+WORKDIR /app
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-aot AS build
 ARG TARGETARCH

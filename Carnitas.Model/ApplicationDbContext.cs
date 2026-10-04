@@ -123,9 +123,13 @@ internal static class ModelBuilderExtensions
             builder.Entity<OperationRun>()
                 .ToTable("OperationRuns")
                 .HasKey(e => e.Id);
+
+            builder.Entity<OperationRun>()
+                .Property(e => e.Kind)
+                .HasColumnName("operation_type");
             
             builder.Entity<OperationRun>()
-                .HasDiscriminator<OperationKind>("operation_type")
+                .HasDiscriminator(e => e.Kind)
                 .HasValue<OperationRun>(OperationKind.None)
                 .HasValue<InitRun>(OperationKind.Init)
                 .HasValue<PlanRun>(OperationKind.Plan)

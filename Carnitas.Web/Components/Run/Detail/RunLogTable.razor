@@ -1,0 +1,132 @@
+@using System.Text
+@using System.Text.Json
+@using Carnitas.Job
+@using Carnitas.Web.Components.Run.Shared
+@using Microsoft.EntityFrameworkCore
+@using Sarsoo.Terraform.MachineReadableUI
+@using Sarsoo.Terraform.MachineReadableUI.Json
+@inject ApplicationDbContext Db
+@inject ILogger<RunLogTable> Logger
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+<MudDataGrid T="(OperationRunLogEntry, TerraformMessage?)" 
+             Items="logEntries"
+             Dense="true"
+             Hover="true"
+             Filterable="true"
+             RowStyleFunc="_rowStyleFunc"
+             RowClassFunc="RowClassFunc"
+             RowClick="ClickCallback"
+             RowContextMenuClick="RightClickCallback"
+             Class="mt-2">
+    <Columns>
+        <PropertyColumn Title="Timestamp" Property="p => GetLogTimestamp(p)" />
+        <PropertyColumn Title="Level" Filterable="true" Property="p => GetLogLevel(p)" />
+        <PropertyColumn Title="Type" Filterable="true" Property="p => GetLogType(p)" />
+        <PropertyColumn Title="Log" Filterable="false" Property="p => GetLogLine(p)" />
+    </Columns>
+</MudDataGrid>
+<MudMenu PositionAtCursor="true" @ref="_contextMenu" id="_contextMenu">
+    <MudMenuItem Icon="@Icons.Material.Filled.OpenInNew" OnClick="_ => Navigation.NavigateTo(_contextRow?.Item1.ToLink())">
+        Open
+    </MudMenuItem>
+</MudMenu>
+
+@code {
+    [Parameter] public string OperationId { get; set; }
+    private List<(OperationRunLogEntry, TerraformMessage?)> logEntries = new();
+    
+    private (OperationRunLogEntry, TerraformMessage?)? _contextRow;
+    private MudMenu _contextMenu = null!;
+    
+    private Func<(OperationRunLogEntry, TerraformMessage?), int, string> _rowStyleFunc => (x, i) =>
+    {
+        var style = new StringBuilder();
+        
+        var logLevel = GetLogLevel(x);
+        if (logLevel == "info")
+        {
+            // style.Append("background-color: var(--mud-palette-info); color: var(--mud-palette-text-primary);");
+        } 
+        else if (logLevel == "warn")
+        {
+            style.Append("background-color: var(--mud-palette-warning);");
+        }
+        else if (logLevel == "error")
+        {
+            style.Append("background-color: var(--mud-palette-error);");
+        }
+
+        return style.ToString();
+    };
+
+    private string RowClassFunc((OperationRunLogEntry, TerraformMessage?) x, int arg2)
+    {
+        if (x.Item2 is not null)
+        {
+            return "cursor-pointer";
+        }
+
+        return "";
+    }
+    
+    private async Task ClickCallback(DataGridRowClickEventArgs<(OperationRunLogEntry, TerraformMessage?)> obj)
+    {
+        if (obj.Item.Item2 is not null)
+        {
+            await OpenDialogAsync(obj.Item.Item2);
+        }
+    }
+
+    private async Task RightClickCallback(DataGridRowClickEventArgs<(OperationRunLogEntry, TerraformMessage?)> args)
+    {
+        _contextRow = args.Item;
+        await _contextMenu.OpenMenuAsync(args.MouseEventArgs);
+    }
+    
+    private Task OpenDialogAsync(TerraformMessage message)
+    {
+        var parameters = new DialogParameters<TerraformMessageDialog> { { x => x.Message, message } };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        return DialogService.ShowAsync<TerraformMessageDialog>("Simple Dialog", parameters, options);
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var dbLogs = Db.OperationRunLogEntries
+            .AsNoTracking()
+            .Where(e => e.OperationRunId == OperationId)
+            .OrderBy(e => e.Sequence)
+            .ToList();
+            // .Select(x => (x, x.Payload.Deserialize<TerraformMessage>(MruiContext.Default.TerraformMessage))).ToList();
+            
+        var terraformMessages = new List<(OperationRunLogEntry, TerraformMessage?)>();
+
+        foreach (var log in dbLogs)
+        {
+            try
+            {
+                if (log.Type is LogType.Json && log.Payload.Deserialize<TerraformMessage>(MruiContext.Default.TerraformMessage) is { } message)
+                {
+                    terraformMessages.Add((log, message));
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, ex.Message);
+            }
+        }
+        
+        logEntries = terraformMessages;
+    }
+
+    private string GetLogLine((OperationRunLogEntry, TerraformMessage?) log) => log.Item2 is not null ? log.Item2.Message : log.Item1.Payload.GetRawText();
+
+    private string GetLogType((OperationRunLogEntry, TerraformMessage?) log) => log.Item2 is not null ? log.Item2.GetType().Name.Replace("Message", "") : "";
+    private DateTime GetLogTimestamp((OperationRunLogEntry, TerraformMessage?) log) => log.Item2?.Timestamp ?? log.Item1.Timestamp;
+
+    private string GetLogLevel((OperationRunLogEntry, TerraformMessage?) log) => log.Item2 is not null ? log.Item2.Level : log.Item1.Level;
+
+}

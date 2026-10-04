@@ -1,0 +1,31 @@
+@using Sarsoo.Terraform.MachineReadableUI
+
+<MudDialog>
+    <TitleContent>
+        @Message?.GetType().Name.Replace("Message", "")
+    </TitleContent>
+    <DialogContent>
+        @if (Message is not null)
+        { 
+            <TerraformMessageDetail Message="@Message"/>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public required TerraformMessage? Message { get; set; }
+    
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await MudDialog.SetOptionsAsync(new DialogOptions()
+        {
+            MaxWidth = MaxWidth.ExtraExtraLarge,
+            FullWidth = true,
+            BackdropClick = true
+        });
+    }
+
+}

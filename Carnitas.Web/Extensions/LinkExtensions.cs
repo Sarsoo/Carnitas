@@ -1,4 +1,5 @@
 using Carnitas.Model.Governance;
+using Carnitas.Model.Migrations;
 using Carnitas.Model.Operations;
 using Carnitas.Model.Operations.Queued;
 using Carnitas.Model.Operations.Run;
@@ -68,5 +69,15 @@ public static class LinkExtensions
     extension(QueuedTask task)
     {
         public string ToLink() => $"/Task/{task.Id}";
+    }
+    
+    extension(DataGridRowClickEventArgs<OperationRunLogEntry> log)
+    {
+        public string ToLink() => log.Item.ToLink();
+    }
+    
+    extension(OperationRunLogEntry log)
+    {
+        public string ToLink() => $"/Task/Log/{log.Id}";
     }
 }

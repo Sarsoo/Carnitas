@@ -1,0 +1,19 @@
+<MudTimeline>
+    @foreach (var (i, op) in Operations.OrderBy(x => (x.Kind, x.EndTime)).Select((o, i) => (i, o)))
+    {
+        var colour = op.ExitCode.HasValue ? op.ExitCode.Value > 0  ? Color.Error : Color.Success : Color.Default;
+                            
+        <MudTimelineItem Color="@colour">
+            <MudText
+                Align="(i % 2) == 0 ? Align.Start : Align.End">
+                <MudLink Href="@op.ToLink()" Color="Color.Default">
+                    @op.DisplayString
+                </MudLink>
+            </MudText>
+        </MudTimelineItem>
+    }
+</MudTimeline>
+
+@code {
+    [Parameter] public IEnumerable<OperationRun> Operations { get; set; } = Enumerable.Empty<OperationRun>();
+}

@@ -1,0 +1,27 @@
+@using Carnitas.Web.Components.MachineReadableUI
+@using Sarsoo.Terraform.MachineReadableUI
+@using Sarsoo.Terraform.MachineReadableUI.Plan
+<MudGrid>
+    @if (ShowHeader)
+    {
+        <MudItem xs="12">
+            <MudText Typo="Typo.h2">@Message?.GetType().Name.Replace("Message", "")</MudText>
+        </MudItem>
+    }
+    @if (Message is PlannedChangeMessage plannedChange)
+    {
+        <MudItem xs="12">
+            <PlannedChangeDetail PlannedChange="plannedChange.Change"/>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    [Parameter] public required TerraformMessage Message { get; set; }
+    [Parameter] public bool ShowHeader { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+}

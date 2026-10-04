@@ -1,0 +1,56 @@
+@page "/Task/Log/{id}"
+@using System.Text.Json
+@using Carnitas.Job
+@using Carnitas.Web.Components.Run.Shared
+@using Microsoft.EntityFrameworkCore
+@using Sarsoo.Terraform.MachineReadableUI
+@using Sarsoo.Terraform.MachineReadableUI.Json
+@inject ApplicationDbContext Db
+
+<h3>Log</h3>
+
+@if (_log is null)
+{
+    <MudText>Not found</MudText>
+}
+else
+{
+    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
+    <MudGrid>
+        <MudItem xs="12">
+            @if (_message is not null)
+            {
+                <TerraformMessageDetail Message="_message" />
+            }
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private OperationRunLogEntry? _log;
+    private TerraformMessage? _message;
+
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => _log?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        _log = await Db.OperationRunLogEntries
+            .AsNoTracking()
+            .Include(r => r.OperationRun)
+            .ThenInclude(r => r.QueuedTask)
+            .Include(r => r.OperationRun)
+            .ThenInclude(r => r.Module)
+            .ThenInclude(r => r.Repository)
+            .ThenInclude(r => r.Organisation)
+            .SingleOrDefaultAsync(r => r.Id == Id);
+
+        if (_log?.Type is LogType.Json && _log.Payload.Deserialize<TerraformMessage>(MruiContext.Default.TerraformMessage) is { } message)
+        {   
+            _message = message;
+        }
+    }
+}

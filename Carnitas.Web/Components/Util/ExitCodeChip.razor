@@ -1,4 +1,7 @@
-<MudChip T="string" Color="@(Code > 0 ? Color.Error : Color.Success)">@Code</MudChip>
+@if (Code is not null)
+{
+    <MudChip T="string" Color="@(Code > 0 ? Color.Error : Color.Success)">@Code</MudChip>
+}
 
 @code {
     [Parameter] public int? Code { get; set; }

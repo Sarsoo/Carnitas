@@ -1,0 +1,9 @@
+@using Sarsoo.Terraform.MachineReadableUI
+<MudStack Row="true">
+    <MudIcon Icon="@Action.Icon"/>
+    <MudText>@Action</MudText>
+</MudStack>
+
+@code {
+    [Parameter] public required ResourceAction Action { get; set; }
+}

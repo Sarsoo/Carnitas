@@ -1,0 +1,39 @@
+@using NuGet.Protocol
+@using Sarsoo.Terraform.MachineReadableUI.Plan
+
+<MudCard Class="pa-5">
+    <MudGrid>
+        <MudItem xs="12">
+            <ResourceActionDisplay Action="@PlannedChange.Action"/>
+        </MudItem>
+        @if (PlannedChange.Reason is not null)
+        {
+            <MudItem xs="12">
+                <MudStack Row="true">
+                    <MudIcon Icon="@Icons.Material.Filled.QuestionMark"/>
+                    <MudText>@PlannedChange.Reason</MudText>
+                </MudStack>
+            </MudItem>
+        }
+        @if (PlannedChange.PreviousResource is { } previous)
+        {
+            <MudItem xs="12">
+                <MudStack Row="true">
+                    <MudText Typo="Typo.body2" Class="text-mono">@previous.Address</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight"/>
+                    <MudText Typo="Typo.body2" Class="text-mono">@PlannedChange.Resource.Address</MudText>
+                </MudStack>
+            </MudItem>
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.body2" Class="text-mono">@PlannedChange.Resource.Address</MudText>
+            </MudItem>
+        }
+    </MudGrid>
+</MudCard>
+
+@code {
+    [Parameter] public PlannedChange PlannedChange { get; set; }
+}

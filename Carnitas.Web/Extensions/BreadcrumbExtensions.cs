@@ -95,7 +95,7 @@ public static class BreadcrumbExtensions
     {
         public IReadOnlyList<BreadcrumbItem> ToBreadrumbs()
         {
-            var list = new List<BreadcrumbItem>(3)
+            var list = new List<BreadcrumbItem>(5)
             {
                 new(
                     run.Module?.Repository?.Organisation?.Name ?? string.Empty, 
@@ -115,6 +115,37 @@ public static class BreadcrumbExtensions
                 new("Task", run.QueuedTask?.ToLink(),
                     icon: Constants.OpIcon),
                 new(run.GetType().Name, run.ToLink()),
+            };
+
+            return list;
+        }
+    }
+    
+    extension(OperationRunLogEntry run)
+    {
+        public IReadOnlyList<BreadcrumbItem> ToBreadrumbs()
+        {
+            var list = new List<BreadcrumbItem>(6)
+            {
+                new(
+                    run.OperationRun?.Module?.Repository?.Organisation?.Name ?? string.Empty, 
+                    run.OperationRun?.Module?.Repository?.Organisation?.ToLink(),
+                    icon: Constants.OrgIcon
+                ),
+                new(
+                    run.OperationRun?.Module?.Repository?.Name ?? string.Empty, 
+                    run.OperationRun?.Module?.Repository?.ToLink(),
+                    icon: Constants.RepoIcon
+                ),
+                new(
+                    run.OperationRun?.Module?.Name ?? string.Empty, 
+                    run.OperationRun?.Module?.ToLink(),
+                    icon: Constants.ModuleIcon
+                ),
+                new("Task", run.OperationRun?.QueuedTask?.ToLink(),
+                    icon: Constants.OpIcon),
+                new(run.OperationRun?.GetType().Name, run.OperationRun?.ToLink()),
+                new("Log", run.ToLink()),
             };
 
             return list;

@@ -1,0 +1,32 @@
+@inject NavigationManager Navigation
+
+<MudDataGrid T="OperationRun" Items="@Operations.OrderBy(x => (x.Kind, x.EndTime))"
+             Dense="true" Hover="true" RowClick="RowClick" RowClass="cursor-pointer">
+    <Columns>
+        <PropertyColumn Title="Type" Property="t => t.ToDisplayString()"/>
+        <PropertyColumn Title="Started" Property="t => t.StartTime"/>
+        <PropertyColumn Title="Ended" Property="t => t.EndTime"/>
+        <TemplateColumn Title="Exit Code">
+            <CellTemplate>
+                @if (context.Item.ExitCode is { } ec)
+                {
+                    <MudChip Color="@(ec > 0 ? Color.Error : Color.Success)">@ec</MudChip>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn>
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Href=@context.Item.ToLink()/>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    [Parameter] public IEnumerable<OperationRun> Operations { get; set; } = Enumerable.Empty<OperationRun>();
+
+    private void RowClick(DataGridRowClickEventArgs<OperationRun> obj)
+    {
+        Navigation.NavigateTo(obj.ToLink());
+    }
+}
