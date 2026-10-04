@@ -63,7 +63,7 @@
     public string? ModuleId { get; set; }
 
     [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; }
+    private IMudDialogInstance MudDialog { get; set; } = null!;
 
     private List<Repository> _repositories = new();
     private List<Module> _modules = new();

@@ -43,7 +43,7 @@
     }
 
     [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; }
+    private IMudDialogInstance MudDialog { get; set; } = null!;
 
     private void Cancel() => MudDialog.Cancel();
 

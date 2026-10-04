@@ -27,7 +27,7 @@ else
 
 @code {
     [Parameter]
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
     private OperationRunLogEntry? _log;
     private TerraformMessage? _message;

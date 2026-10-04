@@ -16,7 +16,7 @@
     [Parameter] public required TerraformMessage? Message { get; set; }
     
     [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; }
+    private IMudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {

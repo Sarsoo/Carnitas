@@ -1,11 +1,8 @@
 @page "/Task/Run/{id}"
-@using System.Text.Json
 @using Carnitas.Job
+@using Carnitas.Web.Components.Operations.Run.Detail
 @using Microsoft.EntityFrameworkCore
-@using Sarsoo.Terraform.JsonOutput
-@using Sarsoo.Terraform.JsonOutput.Plan
 @inject ApplicationDbContext Db
-@inject NavigationManager Navigation
 
 <h3>Operation Run</h3>
 
@@ -56,7 +53,7 @@ else
 
 @code {
     [Parameter]
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
     private OperationRun? run;
     private bool _containsPlan;

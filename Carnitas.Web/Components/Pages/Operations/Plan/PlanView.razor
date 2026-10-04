@@ -1,6 +1,7 @@
 @page "/Task/Plan/{id}"
 @using System.Text.Json
 @using Carnitas.Job
+@using Carnitas.Web.Components.Operations.Plan.Detail
 @using Microsoft.EntityFrameworkCore
 @using Sarsoo.Terraform.JsonOutput
 @using Sarsoo.Terraform.JsonOutput.Plan
@@ -37,7 +38,7 @@ else
     /// Operation Id (not the operation log entry)
     /// </summary>
     [Parameter]
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
     private OperationRunLogEntry? _log;
     private PlanRepresentation? _plan;
