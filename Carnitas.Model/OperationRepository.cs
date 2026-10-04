@@ -1,11 +1,11 @@
-using Carnitas.Model.Operations;
+using Carnitas.Model.Operations.Queued;
 
 namespace Carnitas.Model;
 
 public class OperationRepository(ApplicationDbContext db)
 {
-    // public async Task<IEnumerable<QueuedTask>> GetTasks()
-    // {
-    //     
-    // }
+    public IQueryable<QueuedTask> GetModuleQueuedTasks(string moduleId)
+    {
+        return db.QueuedTasks.Where(q => q.ModuleId == moduleId);
+    }
 }

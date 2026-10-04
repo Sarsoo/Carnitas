@@ -73,9 +73,20 @@ public class TaskQueueService(ApplicationDbContext db, TaskQueueOptions options,
             if (run is SourceDiscoveryRun discoveryRun)
             {
                 discoveryRun.RepositoryId = request.RepositoryId ?? moduleRepositoryId;
+                db.SourceDiscoveryRuns.Add(discoveryRun);
             }
-
-            db.OperationRuns.Add(run);
+            else if (run is InitRun initRun)
+            {
+                db.InitRuns.Add(initRun);
+            }
+            else if (run is PlanRun planRun)
+            {
+                db.PlanRuns.Add(planRun);
+            }
+            else if (run is ApplyRun applyRun)
+            {
+                db.ApplyRuns.Add(applyRun);
+            }
         }
 
         db.QueuedTasks.Add(task);

@@ -49,8 +49,14 @@ public class ApplicationDbContext: IdentityDbContext<ApplicationUser>
     public DbSet<Repository> Repository { get; set; }
     public DbSet<Module> Modules { get; set; }
     public DbSet<Checkout> Checkouts { get; set; }
+    
     public DbSet<OperationRun> OperationRuns { get; set; }
     public DbSet<OperationRunLogEntry> OperationRunLogEntries { get; set; }
+    
+    public DbSet<SourceDiscoveryRun> SourceDiscoveryRuns { get; set; }
+    public DbSet<InitRun> InitRuns { get; set; }
+    public DbSet<PlanRun> PlanRuns { get; set; }
+    public DbSet<ApplyRun> ApplyRuns { get; set; }
 
     public DbSet<QueuedTask> QueuedTasks { get; set; }
     public DbSet<QueuedTaskOperation> QueuedTaskOperations { get; set; }
@@ -117,6 +123,14 @@ internal static class ModelBuilderExtensions
             builder.Entity<OperationRun>()
                 .ToTable("OperationRuns")
                 .HasKey(e => e.Id);
+            
+            builder.Entity<OperationRun>()
+                .HasDiscriminator<OperationKind>("operation_type")
+                .HasValue<OperationRun>(OperationKind.None)
+                .HasValue<InitRun>(OperationKind.Init)
+                .HasValue<PlanRun>(OperationKind.Plan)
+                .HasValue<ApplyRun>(OperationKind.Apply)
+                .HasValue<SourceDiscoveryRun>(OperationKind.DiscoverSource);
 
             builder.Entity<OperationRun>()
                 .HasOne(e => e.Module)
@@ -148,11 +162,6 @@ internal static class ModelBuilderExtensions
 
             builder.Entity<OperationRun>()
                 .HasIndex(e => e.InitiatorUserId);
-
-            builder.Entity<InitRun>().ToTable("InitRuns");
-            builder.Entity<ApplyRun>().ToTable("ApplyRuns");
-            builder.Entity<PlanRun>().ToTable("PlanRuns");
-            builder.Entity<SourceDiscoveryRun>().ToTable("SourceDiscoveryRuns");
 
             return builder;
         }

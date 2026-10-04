@@ -6,4 +6,5 @@ public enum OperationKind
     Plan = 1,
     Apply = 2,
     DiscoverSource = 3,
+    None = 10
 }
