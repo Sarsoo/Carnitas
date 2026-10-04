@@ -6,7 +6,15 @@
     <MudItem xs="12">
         <MudCard>
             <MudDataGrid T="QueuedTask"
-                         Items="tasks" Hover="true" Dense="true" Groupable="true"
+                         @ref="_dataGrid"
+                         ServerData="ServerReload"
+                         FixedHeader="true"
+                         Filterable
+                         Hover
+                         Dense
+                         Groupable
+                         ShowMenuIcon
+                         Hideable
                          RowClick="OnRowClick" RowClass="cursor-pointer"
                          RowContextMenuClick="Callback">
                 <Columns>
@@ -130,9 +138,26 @@
     private QueuedTask? _contextRow;
     private MudMenu _contextMenu = null!;
     
-    private List<QueuedTask> tasks = new();
+    private MudDataGrid<QueuedTask> _dataGrid = null!;
     
     protected override async Task OnInitializedAsync()
+    {
+        
+    }
+
+    private async Task<GridData<QueuedTask>> ServerReload(GridState<QueuedTask> state, CancellationToken token)
+    {
+        var data = GetQuery()
+            .Where(state.FilterDefinitions)
+            .OrderBy(state.SortDefinitions);
+        
+        return new GridData<QueuedTask> {
+            TotalItems = await data.CountAsync(cancellationToken: token),
+            Items = await data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToListAsync(cancellationToken: token)
+        };
+    }
+
+    private IQueryable<QueuedTask> GetQuery()
     {
         IQueryable<QueuedTask> t = Db.QueuedTasks
             .AsNoTracking()
@@ -151,7 +176,7 @@
         
         if (IncludeOrg)
         {
-            t = t.Include(x => x.Repository.Organisation);
+            t = t.Include(x => x.Repository).ThenInclude(x => x.Organisation);
         }
 
         if (Filter is not null)
@@ -159,8 +184,7 @@
             t = Filter.Invoke(t);
         }
         
-        tasks = await t.OrderByDescending(x => x.CreatedAt)
-            .ToListAsync();
+        return t;
     }
 
     void OnRowClick(DataGridRowClickEventArgs<QueuedTask> args)

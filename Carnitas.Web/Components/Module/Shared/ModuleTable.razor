@@ -4,7 +4,8 @@
 
 <MudGrid>
     <MudItem xs="12">
-        <MudDataGrid @ref="_elementGrid" T="Module" Items="_modules" 
+        <MudDataGrid @ref="_elementGrid" T="Module" ServerData="ServerData"
+                     FixedHeader="true"
                      RowClick="OnRowClick" 
                      Hover="true" Dense="true" RowClass="cursor-pointer"
                      ReadOnly="false"
@@ -80,10 +81,22 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadModules();
+        
+    }
+    
+    private async Task<GridData<Module>> ServerData(GridState<Module> state, CancellationToken token)
+    {
+        var data = GetQuery()
+            .Where(state.FilterDefinitions)
+            .OrderBy(state.SortDefinitions);
+        
+        return new GridData<Module> {
+            TotalItems = await data.CountAsync(cancellationToken: token),
+            Items = await data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToListAsync(cancellationToken: token)
+        };
     }
 
-    private async Task LoadModules()
+    private IQueryable<Module> GetQuery()
     {
         var modules = Db.Modules
             .Where(r => r.RepositoryId == RepositoryId)
@@ -95,9 +108,7 @@
             modules = modules.Where(x => x.Type == ModuleType);
         }
 
-        modules = modules.OrderBy(x => x.RelativePath);
-
-        _modules = await modules.ToListAsync();
+        return modules;
     }
     
     void OnRowClick(DataGridRowClickEventArgs<Module> args)
@@ -138,5 +149,4 @@
         _isEditing = false;
         return DataGridEditFormAction.Close;
     }
-
 }
