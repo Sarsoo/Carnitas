@@ -1,12 +1,33 @@
 @using Sarsoo.Terraform.JsonOutput.Plan
+@using Sarsoo.Terraform.MachineReadableUI
 
-<MudGrid Class="pa-5">
-    @foreach (var resourceChange in Plan.ResourceChanges)
-    {
-        
-    }
-</MudGrid>
+<MudTreeView T="ResourceChange" Items="_items" Class="pa-5">
+    <ItemTemplate>
+        <MudTreeViewItem Items="@context.Children"
+                         Value="@context.Value"
+                         Text="@context.Text"
+                         Icon="@context.Icon"
+                         IconColor="@PlanTreeModel.GetColour(context.Value)"
+                         EndText="@PlanTreeModel.GetActionText(context.Value)"
+                         EndTextTypo="Typo.caption"
+                         Expanded="@context.Expanded"/>
+    </ItemTemplate>
+</MudTreeView>
 
 @code {
     [Parameter] public required PlanRepresentation Plan { get; set; }
+
+    private IReadOnlyList<TreeItemData<ResourceChange>> _items = [];
+    private PlanRepresentation? _builtFor;
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_builtFor, Plan))
+        {
+            return;
+        }
+
+        _builtFor = Plan;
+        _items = PlanTreeModel.Build(Plan.ToResourceTree());
+    }
 }

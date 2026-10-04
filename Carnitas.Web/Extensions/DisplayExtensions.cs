@@ -36,7 +36,18 @@ public static class DisplayExtensions
             ResourceAction.Move => Icons.Material.Filled.MoveDown,
             ResourceAction.Import => Icons.Material.Filled.ImportExport,
             ResourceAction.Remove => Icons.Material.Filled.RemoveCircle,
-            _ => throw new ArgumentOutOfRangeException(nameof(action), action, null)
+            ResourceAction.Forget => Icons.Material.Filled.RemoveCircle,
+        };
+
+        public Color Colour => action switch
+        {
+            ResourceAction.Create => Color.Success,
+            ResourceAction.Update => Color.Warning,
+            ResourceAction.Forget => Color.Warning,
+            ResourceAction.Delete => Color.Error,
+            ResourceAction.Replace => Color.Tertiary,
+            ResourceAction.NoOp => Color.Default,
+            _ => Color.Info
         };
     }
 }
