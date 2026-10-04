@@ -24,7 +24,7 @@ public static class DisplayExtensions
     {
         public string Icon => action switch
         {
-            ResourceAction.NoOp => Icons.Material.Filled.ArrowRight,
+            ResourceAction.NoOp => Icons.Material.Filled.LinearScale,
             ResourceAction.Create => Icons.Material.Filled.Create,
             ResourceAction.Read => Icons.Material.Filled.ArrowUpward,
             ResourceAction.Start => Icons.Material.Filled.Start,

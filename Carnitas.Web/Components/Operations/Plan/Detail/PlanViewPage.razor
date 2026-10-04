@@ -5,6 +5,7 @@
 @using Sarsoo.Terraform.JsonOutput
 @using Sarsoo.Terraform.JsonOutput.Plan
 @inject ApplicationDbContext Db
+@inject NavigationManager Navigation
 
 <h3>Plan</h3>
 
@@ -15,14 +16,20 @@
 else
 {
     <MudBreadcrumbs Items="Breadcrumbs"/>
-    <MudGrid>
-        <MudItem xs="12">
-            @if (_plan is not null)
-            {
-                <PlanTree Plan="_plan" />
-            }
-        </MudItem>
-    </MudGrid>
+    <MudTabs Elevation="2"
+             Rounded="true"
+             Position="Position.Start"
+             ApplyEffectsToContainer="true"
+             TabPanelsClass="px-6"
+             ActivePanelIndex="@TabIndex"
+             ActivePanelIndexChanged="@OnTabChanged">
+        <MudTabPanel Text="Overview">
+            
+        </MudTabPanel>
+        <MudTabPanel Text="Changes" Icon="@Icons.Material.Filled.ReadMore">
+            <PlanChangesTab Plan="_plan"/>
+        </MudTabPanel>
+    </MudTabs>
 }
 
 @code {
@@ -35,7 +42,20 @@ else
     private OperationRunLogEntry? _log;
     private PlanRepresentation? _plan;
 
-    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => _log?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => _log?.ToBreadrumbs("Plan") ?? new List<BreadcrumbItem>();
+
+    [SupplyParameterFromQuery(Name="tabIndex")] public int TabIndex { get; set; } = 0;
+    
+    private void OnTabChanged(int index)
+    {
+        if (TabIndex == index)
+        {
+            return;
+        }
+
+        TabIndex = index;
+        Navigation.NavigateTo(_log?.OperationRunId?.OperationIdToPlanLink() + $"?tabIndex={index}");
+    }
     
 
     protected override async Task OnInitializedAsync()

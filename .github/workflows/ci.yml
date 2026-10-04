@@ -53,7 +53,6 @@ jobs:
           tags: sarsoo/carnitas:latest,sarsoo/carnitas-web:${{ github.ref_name }}
           file: Carnitas.CLI/Dockerfile
           no-cache: true
-          platforms: linux/amd64,linux/arm64
 
       - name: Build Web Container
         uses: docker/build-push-action@v7
@@ -62,4 +61,3 @@ jobs:
           tags: sarsoo/carnitas:latest,sarsoo/carnitas-cli:${{ github.ref_name }}
           file: Carnitas.Web/Dockerfile
           no-cache: true
-          platforms: linux/amd64,linux/arm64

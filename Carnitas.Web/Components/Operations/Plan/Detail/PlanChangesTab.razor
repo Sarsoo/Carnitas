@@ -1,0 +1,10 @@
+@using Sarsoo.Terraform.JsonOutput.Plan
+
+<MudGrid>
+    <MudItem xs="12">
+        <PlanTree Plan="Plan"/>
+    </MudItem>
+</MudGrid>
+@code {
+    [Parameter] public required PlanRepresentation Plan { get; set; }
+}

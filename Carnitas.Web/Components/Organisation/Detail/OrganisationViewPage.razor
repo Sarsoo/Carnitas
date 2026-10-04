@@ -11,6 +11,7 @@
 }
 else
 {
+    <MudBreadcrumbs Items="Breadcrumbs"/>
     <MudTabs Elevation="2" 
              Rounded="true" 
              Position="Position.Start" 
@@ -35,6 +36,7 @@ else
     public string Id { get; set; }
 
     private Organisation? org;
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => org?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
 
     [SupplyParameterFromQuery(Name="tabIndex")] public int TabIndex { get; set; } = 0;
 

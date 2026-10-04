@@ -1,3 +1,4 @@
+using Carnitas.Model.Governance;
 using Carnitas.Model.Operations;
 using Carnitas.Model.Operations.Queued;
 using Carnitas.Model.Operations.Run;
@@ -10,6 +11,23 @@ namespace Carnitas.Web.Extensions;
 
 public static class BreadcrumbExtensions
 {
+    extension(Organisation org)
+    {
+        public IReadOnlyList<BreadcrumbItem> ToBreadrumbs()
+        {
+            var list = new List<BreadcrumbItem>(2)
+            {
+                new(
+                    org?.Name ?? string.Empty, 
+                    org?.ToLink(),
+                    icon: Constants.OrgIcon
+                ),
+            };
+
+            return list;
+        }
+    }
+    
     extension(Repository repo)
     {
         public IReadOnlyList<BreadcrumbItem> ToBreadrumbs()
@@ -123,7 +141,7 @@ public static class BreadcrumbExtensions
     
     extension(OperationRunLogEntry run)
     {
-        public IReadOnlyList<BreadcrumbItem> ToBreadrumbs()
+        public IReadOnlyList<BreadcrumbItem> ToBreadrumbs(string lastHeading = "Log")
         {
             var list = new List<BreadcrumbItem>(6)
             {
@@ -145,7 +163,7 @@ public static class BreadcrumbExtensions
                 new("Task", run.OperationRun?.QueuedTask?.ToLink(),
                     icon: Constants.OpIcon),
                 new(run.OperationRun?.GetType().Name, run.OperationRun?.ToLink()),
-                new("Log", run.ToLink()),
+                new(lastHeading, run.ToLink()),
             };
 
             return list;

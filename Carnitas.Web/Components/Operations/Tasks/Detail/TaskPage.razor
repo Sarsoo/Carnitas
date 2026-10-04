@@ -51,7 +51,7 @@ else
                     }
                     @foreach (var plan in _planOperationRunIds)
                     {
-                        <MudButton Href="@plan.OperationIdToPlanLink()">Go to Plan</MudButton>
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@plan.OperationIdToPlanLink()">Go to Plan</MudButton>
                     }
                 </MudContainer>
                 <MudContainer>

@@ -1,7 +1,7 @@
 @using Sarsoo.Terraform.JsonOutput.Plan
 @using Sarsoo.Terraform.MachineReadableUI
 
-<MudTreeView T="ResourceChange" Items="_items" Class="pa-5">
+<MudTreeView T="ResourceChange" Items="_items" Class="pa-5" ExpandOnClick="true">
     <ItemTemplate>
         <MudTreeViewItem Items="@context.Children"
                          Value="@context.Value"
@@ -10,7 +10,8 @@
                          IconColor="@PlanTreeModel.GetColour(context.Value)"
                          EndText="@PlanTreeModel.GetActionText(context.Value)"
                          EndTextTypo="Typo.caption"
-                         Expanded="@context.Expanded"/>
+                         Expanded="@context.Expanded"
+                         />
     </ItemTemplate>
 </MudTreeView>
 
@@ -30,4 +31,5 @@
         _builtFor = Plan;
         _items = PlanTreeModel.Build(Plan.ToResourceTree());
     }
+
 }
