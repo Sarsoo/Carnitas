@@ -1,0 +1,13 @@
+@using Sarsoo.Terraform.JsonOutput.Plan
+@using Sarsoo.Terraform.JsonOutput.Value
+
+<MudGrid>
+    <MudItem xs="12">
+        <ModuleRepresentationTree Module="Module"/>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    [Parameter] public required ModuleRepresentation Module { get; set; }
+}

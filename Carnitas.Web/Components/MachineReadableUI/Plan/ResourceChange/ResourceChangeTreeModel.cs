@@ -1,22 +1,21 @@
 using Carnitas.Tree;
 using Carnitas.Web.Extensions;
 using MudBlazor;
-using Sarsoo.Terraform.JsonOutput.Plan;
 using Sarsoo.Terraform.MachineReadableUI;
 
-namespace Carnitas.Web.Components.MachineReadableUI;
+namespace Carnitas.Web.Components.MachineReadableUI.Plan.ResourceChange;
 
 /// <summary>
 /// Maps a <see cref="TreeNode{T}"/> resource forest onto MudBlazor tree item data. Kept separate
 /// from <c>PlanTree.razor</c> so the presentation logic can be unit tested.
 /// </summary>
-public static class PlanTreeModel
+public static class ResourceChangeTreeModel
 {
     /// <summary>
     /// Maps the whole forest to MudBlazor items, preserving order.
     /// </summary>
-    public static IReadOnlyList<TreeItemData<ResourceChange>> Build(
-        IReadOnlyList<TreeNode<ResourceChange>> forest)
+    public static IReadOnlyList<TreeItemData<Sarsoo.Terraform.JsonOutput.Plan.ResourceChange>> Build(
+        IReadOnlyList<TreeNode<Sarsoo.Terraform.JsonOutput.Plan.ResourceChange>> forest)
     {
         ArgumentNullException.ThrowIfNull(forest);
         return forest.Select(Map).ToList();
@@ -26,7 +25,7 @@ public static class PlanTreeModel
     /// Maps a single node: module branches get a folder icon and start collapsed; resource leaves
     /// carry the change and its action icon.
     /// </summary>
-    public static TreeItemData<ResourceChange> Map(TreeNode<ResourceChange> node)
+    public static TreeItemData<Sarsoo.Terraform.JsonOutput.Plan.ResourceChange> Map(TreeNode<Sarsoo.Terraform.JsonOutput.Plan.ResourceChange> node)
     {
         ArgumentNullException.ThrowIfNull(node);
 
@@ -34,7 +33,7 @@ public static class PlanTreeModel
 
         if (node.Value is { } resource)
         {
-            return new TreeItemData<ResourceChange>
+            return new TreeItemData<Sarsoo.Terraform.JsonOutput.Plan.ResourceChange>
             {
                 Text = node.Label,
                 Value = resource,
@@ -43,7 +42,7 @@ public static class PlanTreeModel
             };
         }
 
-        return new TreeItemData<ResourceChange>
+        return new TreeItemData<Sarsoo.Terraform.JsonOutput.Plan.ResourceChange>
         {
             Text = node.Label,
             Icon = Icons.Material.Filled.Folder,
@@ -56,7 +55,7 @@ public static class PlanTreeModel
     /// Reduces a resource's raw action list to the single action shown in the tree.
     /// A create combined with a delete is a replacement; otherwise the first action is used.
     /// </summary>
-    public static ResourceAction ReduceAction(ResourceChange change)
+    public static ResourceAction ReduceAction(Sarsoo.Terraform.JsonOutput.Plan.ResourceChange change)
     {
         ArgumentNullException.ThrowIfNull(change);
 
@@ -78,12 +77,12 @@ public static class PlanTreeModel
     /// The colour for a node's icon: module branches use the default colour, resource leaves use
     /// the action colour.
     /// </summary>
-    public static Color GetColour(ResourceChange? change) =>
+    public static Color GetColour(Sarsoo.Terraform.JsonOutput.Plan.ResourceChange? change) =>
         change is null ? Color.Default : ReduceAction(change).Colour;
 
     /// <summary>
     /// The trailing text for a node: none for module branches, the action name for resource leaves.
     /// </summary>
-    public static string? GetActionText(ResourceChange? change) =>
+    public static string? GetActionText(Sarsoo.Terraform.JsonOutput.Plan.ResourceChange? change) =>
         change is null ? null : ReduceAction(change).ToString();
 }

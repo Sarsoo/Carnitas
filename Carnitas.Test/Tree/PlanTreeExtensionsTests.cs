@@ -17,7 +17,7 @@ public class PlanTreeExtensionsTests
             ResourceChanges = [root, child, nested]
         };
 
-        var forest = plan.ToResourceTree();
+        var forest = plan.ToResourceChangeTree();
 
         Assert.Equal(2, forest.Count);
         Assert.Same(root, forest[0].Value);
@@ -50,7 +50,7 @@ public class PlanTreeExtensionsTests
             ]
         };
 
-        var forest = plan.ToResourceTree();
+        var forest = plan.ToResourceChangeTree();
 
         var foo = Assert.Single(forest);
         Assert.Equal("module.foo", foo.Label);
@@ -63,7 +63,7 @@ public class PlanTreeExtensionsTests
     {
         var plan = new PlanRepresentation { ResourceChanges = null! };
 
-        Assert.Empty(plan.ToResourceTree());
+        Assert.Empty(plan.ToResourceChangeTree());
     }
 
     private static ResourceChange Change(string address, string? moduleAddress) => new()

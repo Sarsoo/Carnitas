@@ -1,5 +1,6 @@
 using Carnitas.Tree;
 using Carnitas.Web.Components.MachineReadableUI;
+using Carnitas.Web.Components.MachineReadableUI.Plan.ResourceChange;
 using Carnitas.Web.Extensions;
 using MudBlazor;
 using Sarsoo.Terraform.JsonOutput.Change;
@@ -8,7 +9,7 @@ using Sarsoo.Terraform.MachineReadableUI;
 
 namespace Carnitas.Test;
 
-public class PlanTreeModelTests
+public class ResourceChangeTreeModelTests
 {
     [Fact]
     public void Build_maps_modules_to_collapsed_folder_nodes()
@@ -21,7 +22,7 @@ public class PlanTreeModelTests
             ]
         };
 
-        var items = PlanTreeModel.Build(plan.ToResourceTree());
+        var items = ResourceChangeTreeModel.Build(plan.ToResourceChangeTree());
 
         var module = Assert.Single(items);
         Assert.Equal("module.foo", module.Text);
@@ -43,16 +44,16 @@ public class PlanTreeModelTests
             ]
         };
 
-        var module = Assert.Single(PlanTreeModel.Build(plan.ToResourceTree()));
+        var module = Assert.Single(ResourceChangeTreeModel.Build(plan.ToResourceChangeTree()));
         var create = module.Children!.First(c => c.Text == "aws_instance.create");
         var update = module.Children!.First(c => c.Text == "aws_instance.update");
 
         Assert.Equal(ResourceAction.Create.Icon, create.Icon);
-        Assert.Equal(Color.Success, PlanTreeModel.GetColour(create.Value));
-        Assert.Equal("Create", PlanTreeModel.GetActionText(create.Value));
+        Assert.Equal(Color.Success, ResourceChangeTreeModel.GetColour(create.Value));
+        Assert.Equal("Create", ResourceChangeTreeModel.GetActionText(create.Value));
 
-        Assert.Equal(Color.Warning, PlanTreeModel.GetColour(update.Value));
-        Assert.Equal("Update", PlanTreeModel.GetActionText(update.Value));
+        Assert.Equal(Color.Warning, ResourceChangeTreeModel.GetColour(update.Value));
+        Assert.Equal("Update", ResourceChangeTreeModel.GetActionText(update.Value));
     }
 
     [Fact]
@@ -60,8 +61,8 @@ public class PlanTreeModelTests
     {
         var change = Change("aws_instance.web", null, ResourceAction.Delete, ResourceAction.Create);
 
-        Assert.Equal(ResourceAction.Replace, PlanTreeModel.ReduceAction(change));
-        Assert.Equal(Color.Tertiary, PlanTreeModel.GetColour(change));
+        Assert.Equal(ResourceAction.Replace, ResourceChangeTreeModel.ReduceAction(change));
+        Assert.Equal(Color.Tertiary, ResourceChangeTreeModel.GetColour(change));
     }
 
     [Fact]
@@ -69,8 +70,8 @@ public class PlanTreeModelTests
     {
         var change = new ResourceChange { Address = "aws_instance.web" };
 
-        Assert.Equal(ResourceAction.NoOp, PlanTreeModel.ReduceAction(change));
-        Assert.Equal(Color.Default, PlanTreeModel.GetColour(change));
+        Assert.Equal(ResourceAction.NoOp, ResourceChangeTreeModel.ReduceAction(change));
+        Assert.Equal(Color.Default, ResourceChangeTreeModel.GetColour(change));
     }
 
     [Fact]
@@ -81,10 +82,10 @@ public class PlanTreeModelTests
             ResourceChanges = [Change("module.foo.aws_instance.web", "module.foo", ResourceAction.Read)]
         };
 
-        var module = Assert.Single(PlanTreeModel.Build(plan.ToResourceTree()));
+        var module = Assert.Single(ResourceChangeTreeModel.Build(plan.ToResourceChangeTree()));
 
-        Assert.Equal(Color.Default, PlanTreeModel.GetColour(module.Value));
-        Assert.Null(PlanTreeModel.GetActionText(module.Value));
+        Assert.Equal(Color.Default, ResourceChangeTreeModel.GetColour(module.Value));
+        Assert.Null(ResourceChangeTreeModel.GetActionText(module.Value));
     }
 
     private static ResourceChange Change(

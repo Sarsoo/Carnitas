@@ -11,7 +11,7 @@ public static class PlanTreeExtensions
     /// Projects the plan's resource changes into a forest nested by module path. Root-module
     /// resources become top-level leaves; shared module chains are merged into a single branch.
     /// </summary>
-    public static IReadOnlyList<TreeNode<ResourceChange>> ToResourceTree(this PlanRepresentation plan)
+    public static IReadOnlyList<TreeNode<ResourceChange>> ToResourceChangeTree(this PlanRepresentation plan)
     {
         ArgumentNullException.ThrowIfNull(plan);
 

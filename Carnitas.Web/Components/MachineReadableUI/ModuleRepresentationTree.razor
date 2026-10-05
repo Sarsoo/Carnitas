@@ -1,0 +1,32 @@
+@using Sarsoo.Terraform.JsonOutput.Value
+
+<MudTreeView T="ModuleTreeContext" Items="_items" Class="pa-5" ExpandOnClick="true">
+    <ItemTemplate>
+        <MudTreeViewItem T="ModuleTreeContext"
+                         Items="@context.Children"
+                         Value="@context.Value"
+                         Text="@context.Text"
+                         Icon="@context.Icon"
+                         EndTextTypo="Typo.caption"
+                         Expanded="@context.Expanded" />
+    </ItemTemplate>
+</MudTreeView>
+
+@code {
+    [Parameter] public required ModuleRepresentation Module { get; set; }
+
+    private IReadOnlyList<TreeItemData<ModuleTreeContext>> _items = [];
+    private ModuleRepresentation? _builtFor;
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_builtFor, Module))
+        {
+            return;
+        }
+
+        _builtFor = Module;
+        _items = ModuleRepresentationTreeModel.Build(Module.ToResourceTree());
+    }
+
+}

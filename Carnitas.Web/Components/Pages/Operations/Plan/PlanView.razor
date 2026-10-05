@@ -27,6 +27,9 @@ else
         <MudTabPanel Text="Overview">
             
         </MudTabPanel>
+        <MudTabPanel Text="Planned Values" Icon="@Icons.Material.Filled.ReadMore">
+            <ModuleRepresentationTab Module="@_plan.PlannedValues.RootModule"/>
+        </MudTabPanel>
         <MudTabPanel Text="Changes" Icon="@Icons.Material.Filled.ReadMore">
             <PlanChangesTab Plan="_plan"/>
         </MudTabPanel>

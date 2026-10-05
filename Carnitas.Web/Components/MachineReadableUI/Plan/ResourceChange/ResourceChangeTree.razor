@@ -7,8 +7,8 @@
                          Value="@context.Value"
                          Text="@context.Text"
                          Icon="@context.Icon"
-                         IconColor="@PlanTreeModel.GetColour(context.Value)"
-                         EndText="@PlanTreeModel.GetActionText(context.Value)"
+                         IconColor="@ResourceChangeTreeModel.GetColour(context.Value)"
+                         EndText="@ResourceChangeTreeModel.GetActionText(context.Value)"
                          EndTextTypo="Typo.caption"
                          Expanded="@context.Expanded"
                          />
@@ -29,7 +29,7 @@
         }
 
         _builtFor = Plan;
-        _items = PlanTreeModel.Build(Plan.ToResourceTree());
+        _items = ResourceChangeTreeModel.Build(Plan.ToResourceChangeTree());
     }
 
 }
