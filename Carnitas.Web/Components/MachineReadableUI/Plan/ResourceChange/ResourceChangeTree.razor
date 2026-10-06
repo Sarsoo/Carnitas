@@ -1,12 +1,17 @@
 @using Sarsoo.Terraform.JsonOutput.Plan
 @using Sarsoo.Terraform.MachineReadableUI
 
-<MudTreeView T="ResourceChange" Items="_items" Class="pa-5" ExpandOnClick="true">
+<MudTreeView T="ResourceChange" Items="_items" ExpandOnClick="true">
     <ItemTemplate>
         <MudTreeViewItem Items="@context.Children"
                          Value="@context.Value"
                          Text="@context.Text"
                          Icon="@context.Icon"
+                         Visible="@(
+                                      !(context.Value?.Change?.Actions.Any() ?? false)
+                                      || !(context.Value?.Change?.Actions.All(x => x == ResourceAction.NoOp) ?? false) 
+                                      || ShowNoOp
+                                  )"
                          IconColor="@ResourceChangeTreeModel.GetColour(context.Value)"
                          EndText="@ResourceChangeTreeModel.GetActionText(context.Value)"
                          EndTextTypo="Typo.caption"
@@ -17,6 +22,7 @@
 
 @code {
     [Parameter] public required PlanRepresentation Plan { get; set; }
+    [Parameter] public bool ShowNoOp { get; set; } = false;
 
     private IReadOnlyList<TreeItemData<ResourceChange>> _items = [];
     private PlanRepresentation? _builtFor;

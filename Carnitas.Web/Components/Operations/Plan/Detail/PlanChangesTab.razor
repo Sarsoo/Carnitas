@@ -1,13 +1,24 @@
 @using Carnitas.Web.Components.MachineReadableUI.Plan.ResourceChange
 @using Sarsoo.Terraform.JsonOutput.Plan
 
-<MudGrid>
+<MudGrid Class="ma-5">
     <MudItem xs="12">
-        <ResourceChangeTree Plan="Plan"/>
+        <MudCard>
+            <MudCardContent>
+                <MudStack Row="true">
+                    <MudSpacer/>
+                    <MudSwitch @bind-Value="@ShowNoOp" Label="Show No-Ops"/>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12">
+        <ResourceChangeTree Plan="Plan" ShowNoOp="@ShowNoOp"/>
     </MudItem>
 </MudGrid>
 
 
 @code {
     [Parameter] public required PlanRepresentation Plan { get; set; }
+    public bool ShowNoOp { get; set; }
 }

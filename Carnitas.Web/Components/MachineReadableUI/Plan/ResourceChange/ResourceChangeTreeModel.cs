@@ -46,7 +46,7 @@ public static class ResourceChangeTreeModel
         {
             Text = node.Label,
             Icon = Icons.Material.Filled.Folder,
-            Expanded = false,
+            Expanded = true,
             Children = children
         };
     }
