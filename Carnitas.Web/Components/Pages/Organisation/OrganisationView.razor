@@ -6,35 +6,38 @@
 
 <h3>@org?.Name</h3>
 
-@if (org is null)
-{
-    <MudText>Not found</MudText>
-}
-else
-{
-    <MudBreadcrumbs Items="Breadcrumbs"/>
-    <MudTabs Elevation="2" 
-             Rounded="true" 
-             Position="Position.Start" 
-             ApplyEffectsToContainer="true" 
-             TabPanelsClass="px-6"  
-             ActivePanelIndex="@TabIndex" 
-             ActivePanelIndexChanged="@OnTabChanged">
-        <MudTabPanel Text="Overview">
-            <OrgOverviewCard Organisation=@org />
-        </MudTabPanel>
-        <MudTabPanel Text="Repos" Icon="@Constants.RepoIcon">
-            <OrgReposCard Organisation=@org />
-        </MudTabPanel>
-        <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
-            <OrgSettingsCard Organisation=@org Saved="ReloadOrg" />
-        </MudTabPanel>
-    </MudTabs>
-}
+<LoadingWrapper IsLoading="IsLoading">
+    @if (org is null)
+    {
+        <MudText>Not found</MudText>
+    }
+    else
+    {
+        <MudBreadcrumbs Items="Breadcrumbs"/>
+        <MudTabs Elevation="2" 
+                 Rounded="true" 
+                 Position="Position.Start" 
+                 ApplyEffectsToContainer="true" 
+                 TabPanelsClass="px-6"  
+                 ActivePanelIndex="@TabIndex" 
+                 ActivePanelIndexChanged="@OnTabChanged">
+            <MudTabPanel Text="Overview">
+                <OrgOverviewCard Organisation=@org />
+            </MudTabPanel>
+            <MudTabPanel Text="Repos" Icon="@Constants.RepoIcon">
+                <OrgReposCard Organisation=@org />
+            </MudTabPanel>
+            <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
+                <OrgSettingsCard Organisation=@org Saved="ReloadOrg" />
+            </MudTabPanel>
+        </MudTabs>
+    }
+</LoadingWrapper>
 
 @code {
     [Parameter]
     public required string Id { get; set; }
+    private bool IsLoading = true;
 
     private Organisation? org;
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => org?.ToBreadrumbs() ?? new List<BreadcrumbItem>();
@@ -55,6 +58,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await ReloadOrg();
+        IsLoading = false;
     }
 
     private async Task ReloadOrg()

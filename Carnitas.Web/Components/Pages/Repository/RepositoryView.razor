@@ -4,52 +4,55 @@
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
 
-<MudStack Row="true">
-    <h3>Repository</h3>
-    <MudSpacer/>
-    <FontAwesomeIcon Specifiers="brands,git-alt,2xl"/>
-</MudStack>
+<LoadingWrapper IsLoading="IsLoading">
+    <MudStack Row="true">
+        <h3>Repository</h3>
+        <MudSpacer/>
+        <FontAwesomeIcon Icon="@(_repo?.Type == RepositoryType.GitHub ? FontAwesome.GitHub : FontAwesome.Git)" Size="Size.Large"/>
+    </MudStack>
 
-@if (_repo is null)
-{
-    <MudText>Not found</MudText>
-}
-else
-{
-    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-4"
-               StartIcon="@Icons.Material.Filled.Add" OnClick="EnqueueAsync">Enqueue Task</MudButton>
+    @if (_repo is null)
+    {
+        <MudText>Not found</MudText>
+    }
+    else
+    {
+        <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-4"
+                   StartIcon="@Icons.Material.Filled.Add" OnClick="EnqueueAsync">Enqueue Task</MudButton>
 
-    <MudTabs Elevation="2" 
-             Rounded="true" 
-             Position="Position.Start" 
-             ApplyEffectsToContainer="true" 
-             TabPanelsClass="px-6" 
-             ActivePanelIndex="@TabIndex" 
-             ActivePanelIndexChanged="@OnTabChanged">
-        <MudTabPanel Text="Overview">
-            <RepoOverviewCard Repository=@_repo />
-        </MudTabPanel>
-        <MudTabPanel Text="Modules" Icon="@Constants.ModuleIcon">
-            <RepoModuleTab RepositoryId="@Id" @ref="_repoModule"/>
-        </MudTabPanel>
-        <MudTabPanel Text="Operations" Icon="@Constants.OpIcon">
-            <OperationsTable 
-                IncludeModule="true"
-                Filter="tasks => tasks.Where(x => x.RepositoryId == Id)" />
-        </MudTabPanel>
-        <MudTabPanel Text="Drift" Icon="@Constants.DriftIcon">
-            <MudText>Coming soon</MudText>
-        </MudTabPanel>
-        <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
-            <RepoSettingsCard Repository=@_repo Saved="@(() => _repoModule?.Reload())" />
-        </MudTabPanel>
-    </MudTabs>
-}
+        <MudTabs Elevation="2" 
+                 Rounded="true" 
+                 Position="Position.Start" 
+                 ApplyEffectsToContainer="true" 
+                 TabPanelsClass="px-6" 
+                 ActivePanelIndex="@TabIndex" 
+                 ActivePanelIndexChanged="@OnTabChanged">
+            <MudTabPanel Text="Overview">
+                <RepoOverviewCard Repository=@_repo />
+            </MudTabPanel>
+            <MudTabPanel Text="Modules" Icon="@Constants.ModuleIcon">
+                <RepoModuleTab RepositoryId="@Id" @ref="_repoModule"/>
+            </MudTabPanel>
+            <MudTabPanel Text="Operations" Icon="@Constants.OpIcon">
+                <OperationsTable 
+                    IncludeModule="true"
+                    Filter="tasks => tasks.Where(x => x.RepositoryId == Id)" />
+            </MudTabPanel>
+            <MudTabPanel Text="Drift" Icon="@Constants.DriftIcon">
+                <MudText>Coming soon</MudText>
+            </MudTabPanel>
+            <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
+                <RepoSettingsCard Repository=@_repo Saved="@(() => _repoModule?.Reload())" />
+            </MudTabPanel>
+        </MudTabs>
+    }
+</LoadingWrapper>
 
 @code {
     [Parameter]
     public required string Id { get; set; }
+    private bool IsLoading = true;
 
     private Repository? _repo;
     private RepoModuleTab? _repoModule;
@@ -77,6 +80,7 @@ else
         {
             _repo.Organisation = await Db.Organisations.FindAsync([_repo!.OrganisationId]);
         }
+        IsLoading = false;
     }
 
     private async Task EnqueueAsync()

@@ -7,68 +7,75 @@
 
 <h3>Queued Task</h3>
 
-@if (_task is null)
-{
-    <MudText>Not found</MudText>
-}
-else
-{
-    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
-    <MudCard Elevation="0" Class="mb-4">
-        <MudCardContent>
-            <MudStack Row="true">
-                <MudContainer>
-                    <MudStack Row="true">
-                        <MudText Typo="Typo.h5">@_task.Module?.Name</MudText>
-                        @* <MudProgressCircular Size="Size.Small" Color="Color.Default" Indeterminate="true"/> *@
-                    </MudStack>
-                    <MudChip T="string" Color="@_task.State.Colour">@_task.State</MudChip>
-                    <MudText Typo="Typo.body2">Repository: @_task.RepoUrl</MudText>
-                    <MudText Typo="Typo.body2"><MudIcon Icon="@Constants.ModuleIcon" /> <MudText Inline="true" Typo="Typo.body2" Class="text-mono">@_task.ModulePath</MudText></MudText>
-                    <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.Person" /> @InitiatorLabel(_task.InitiatorType, _task.InitiatorUser, _task.InitiatorUserId)</MudText>
-                    <MudText Typo="Typo.body2">Priority: @_task.Priority</MudText>
-                    <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.Loop" /> @_task.Attempts / @_task.MaxAttempts</MudText>
-                    <MudText Typo="Typo.body2">Scheduled: @_task.ScheduledAt</MudText>
-                    <MudText Typo="Typo.body2">Created: @_task.CreatedAt</MudText>
-                    @if (_task.StartedAt is not null)
-                    {
-                        <MudText Typo="Typo.body2">Started: @_task.StartedAt</MudText>
-                    }
-                    @if (_task.CompletedAt is not null)
-                    {
-                        <MudText Typo="Typo.body2">Completed: @_task.CompletedAt</MudText>
-                    }
-                    else if (_task.LockedBy is not null)
-                    {
-                        <MudText Typo="Typo.body2">Locked By: @_task.LockedBy</MudText>
-                        <MudText Typo="Typo.body2">Locked Until: @_task.LockedUntil</MudText>
-                    }
-                    @if (_task.LastError is not null)
-                    {
-                        @foreach (var stage in _task.OperationRuns.Where(x => x.ExitCode is > 0))
-                        {
-                            <MudAlert Severity="Severity.Error">@stage.DisplayString Stage Failed</MudAlert>
-                        }
-                    }
-                    @foreach (var plan in _planOperationRunIds)
-                    {
-                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@plan.OperationIdToPlanLink()">Go to Plan</MudButton>
-                    }
-                </MudContainer>
-                <MudContainer>
-                    <TaskTimeline Operations="@_task.OperationRuns"/>
-                </MudContainer>
-            </MudStack>
-        </MudCardContent>
-    </MudCard>
+<LoadingWrapper IsLoading="IsLoading">
+    @if (_task is null)
+    {
+        <MudText>Not found</MudText>
+    }
+    else
+    {
+        <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
+        <MudCard Elevation="0" Class="mb-4">
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudContainer>
+                            <MudStack Row="true">
+                                <MudText Typo="Typo.h5">@_task.Module?.Name</MudText>
+                                @* <MudProgressCircular Size="Size.Small" Color="Color.Default" Indeterminate="true"/> *@
+                            </MudStack>
+                            <MudChip T="string" Color="@_task.State.Colour">@_task.State</MudChip>
+                            <MudText Typo="Typo.body2">Repository: @_task.RepoUrl</MudText>
+                            <MudText Typo="Typo.body2"><MudIcon Icon="@Constants.ModuleIcon"/> <MudText Inline="true" Typo="Typo.body2" Class="text-mono">@_task.ModulePath</MudText></MudText>
+                            <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.Person"/> @InitiatorLabel(_task.InitiatorType, _task.InitiatorUser, _task.InitiatorUserId)</MudText>
+                            <MudText Typo="Typo.body2">Priority: @_task.Priority</MudText>
+                            <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Material.Filled.Loop"/> @_task.Attempts / @_task.MaxAttempts</MudText>
+                            <MudText Typo="Typo.body2">Scheduled: @_task.ScheduledAt</MudText>
+                            <MudText Typo="Typo.body2">Created: @_task.CreatedAt</MudText>
+                            @if (_task.StartedAt is not null)
+                            {
+                                <MudText Typo="Typo.body2">Started: @_task.StartedAt</MudText>
+                            }
+                            @if (_task.CompletedAt is not null)
+                            {
+                                <MudText Typo="Typo.body2">Completed: @_task.CompletedAt</MudText>
+                            }
+                            else if (_task.LockedBy is not null)
+                            {
+                                <MudText Typo="Typo.body2">Locked By: @_task.LockedBy</MudText>
+                                <MudText Typo="Typo.body2">Locked Until: @_task.LockedUntil</MudText>
+                            }
+                            @if (_task.LastError is not null)
+                            {
+                                @foreach (var stage in _task.OperationRuns.Where(x => x.ExitCode is > 0))
+                                {
+                                    <MudAlert Severity="Severity.Error">@stage.DisplayString Stage Failed</MudAlert>
+                                }
+                            }
+                            @foreach (var plan in _planOperationRunIds)
+                            {
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@plan.OperationIdToPlanLink()">Go to Plan</MudButton>
+                            }
+                        </MudContainer>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudContainer>
+                            <TaskTimeline Operations="@_task.OperationRuns"/>
+                        </MudContainer>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
 
-    <MudText Typo="Typo.h6" Class="mt-4">Operations</MudText>
-    <TaskOperationTable Operations="@_task.OperationRuns"/>
-}
+        <MudText Typo="Typo.h6" Class="mt-4">Operations</MudText>
+        <TaskOperationTable Operations="@_task.OperationRuns"/>
+    }
+</LoadingWrapper>
 
 @code {
     [Parameter]
     public required string Id { get; set; }
+    private bool IsLoading = true;
 
     private QueuedTask? _task;
     private List<string> _planOperationRunIds = new();
@@ -98,6 +105,8 @@ else
             .Where(x => x.OperationRun.QueuedTaskId == Id && x.Type == LogType.PlanJson)
             .Select(x => x.OperationRunId)
             .ToListAsync();
+        
+        IsLoading = false;
     }
 
 }

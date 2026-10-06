@@ -9,32 +9,36 @@
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
 
-<MudDataGrid T="(OperationRunLogEntry, TerraformMessage?)" 
-             Items="logEntries"
-             Dense="true"
-             Hover="true"
-             Filterable="true"
-             RowStyleFunc="_rowStyleFunc"
-             RowClassFunc="RowClassFunc"
-             RowClick="ClickCallback"
-             RowContextMenuClick="RightClickCallback"
-             Class="mt-2">
-    <Columns>
-        <PropertyColumn Title="Timestamp" Property="p => GetLogTimestamp(p)" />
-        <PropertyColumn Title="Level" Filterable="true" Property="p => GetLogLevel(p)" />
-        <PropertyColumn Title="Type" Filterable="true" Property="p => GetLogType(p)" />
-        <PropertyColumn Title="Log" Filterable="false" Property="p => GetLogLine(p)" />
-    </Columns>
-</MudDataGrid>
-<MudMenu PositionAtCursor="true" @ref="_contextMenu" id="_contextMenu">
-    <MudMenuItem Icon="@Icons.Material.Filled.OpenInNew" OnClick="_ => Navigation.NavigateTo(_contextRow?.Item1.ToLink())">
-        Open
-    </MudMenuItem>
-</MudMenu>
+<LoadingWrapper IsLoading="IsLoading">
+    <MudDataGrid T="(OperationRunLogEntry, TerraformMessage?)" 
+                 Items="logEntries"
+                 Dense="true"
+                 Hover="true"
+                 Filterable="true"
+                 RowStyleFunc="_rowStyleFunc"
+                 RowClassFunc="RowClassFunc"
+                 RowClick="ClickCallback"
+                 RowContextMenuClick="RightClickCallback"
+                 Class="mt-2">
+        <Columns>
+            <PropertyColumn Title="Timestamp" Property="p => GetLogTimestamp(p)" />
+            <PropertyColumn Title="Level" Filterable="true" Property="p => GetLogLevel(p)" />
+            <PropertyColumn Title="Type" Filterable="true" Property="p => GetLogType(p)" />
+            <PropertyColumn Title="Log" Filterable="false" Property="p => GetLogLine(p)" />
+        </Columns>
+    </MudDataGrid>
+    <MudMenu PositionAtCursor="true" @ref="_contextMenu" id="_contextMenu">
+        <MudMenuItem Icon="@Icons.Material.Filled.OpenInNew" OnClick="_ => Navigation.NavigateTo(_contextRow?.Item1.ToLink())">
+            Open
+        </MudMenuItem>
+    </MudMenu>
+</LoadingWrapper>
 
 @code {
     [Parameter] public string OperationId { get; set; }
     private List<(OperationRunLogEntry, TerraformMessage?)> logEntries = new();
+
+    private bool IsLoading { get; set; } = true;
     
     private (OperationRunLogEntry, TerraformMessage?)? _contextRow;
     private MudMenu _contextMenu = null!;
@@ -119,6 +123,7 @@
         }
         
         logEntries = terraformMessages;
+        IsLoading = false;
     }
 
     private string GetLogLine((OperationRunLogEntry, TerraformMessage?) log) => log.Item2 is not null ? log.Item2.Message : log.Item1.Payload.GetRawText();

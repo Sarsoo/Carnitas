@@ -71,12 +71,11 @@
                                 <MudStack Row="true">
                                     @if (context.Item.InitiatorType is InitiatorType.System)
                                     {
-                                        @* <MudText Typo="Typo.body2">Hello World!</MudText> *@
-                                        <FontAwesomeIcon Specifiers="solid,robot" SpreadDiv="true"/>
+                                        <FontAwesomeIcon Icon="@FontAwesome.Robot" />
                                     }
                                     else
                                     {
-                                        <MudIcon Icon="@Icons.Material.Filled.Person" Style="margin: auto"/>
+                                        <MudIcon Icon="@Icons.Material.Filled.Person"/>
                                     }
                                 </MudStack>
                             </CellTemplate>

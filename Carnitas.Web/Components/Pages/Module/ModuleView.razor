@@ -6,44 +6,46 @@
 
 <h3>Module</h3>
 
-@if (_module is null)
-{
-    <MudText>Not found</MudText>
-}
-else
-{
-    <MudStack Row="true">
-        <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
-        <MudSpacer/>
-        @if (_module?.Type is ModuleType.Root)
-        {
-            <MudText>Root Module</MudText>
-            <MudIcon Icon="@Constants.RootIcon"/>
-        }
-        else if (_module?.Type is ModuleType.Library)
-        {
-            <MudText>Library</MudText>
-            <MudIcon Icon="@Constants.LibraryIcon"/>
-        }
-    </MudStack>
-    <MudTabs Elevation="2" 
-             Rounded="true" 
-             Position="Position.Start" 
-             ApplyEffectsToContainer="true" 
-             TabPanelsClass="px-6" 
-             ActivePanelIndex="@TabIndex" 
-             ActivePanelIndexChanged="@OnTabChanged">
-        <MudTabPanel Text="Overview">
-            <ModuleOverviewCard Module=@_module />
-        </MudTabPanel>
-        <MudTabPanel Text="Operations" Icon="@Constants.OpIcon">
-            <OperationsTable Filter="tasks => tasks.Where(x => x.ModuleId == Id)" />
-        </MudTabPanel>
-        <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
-            <ModuleSettingsCard />
-        </MudTabPanel>
-    </MudTabs>
-}
+<LoadingWrapper IsLoading="IsLoading">
+    @if (_module is null)
+    {
+        <MudText>Not found</MudText>
+    }
+    else
+    {
+        <MudStack Row="true">
+            <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
+            <MudSpacer/>
+            @if (_module?.Type is ModuleType.Root)
+            {
+                <MudText>Root Module</MudText>
+                <MudIcon Icon="@Constants.RootIcon"/>
+            }
+            else if (_module?.Type is ModuleType.Library)
+            {
+                <MudText>Library</MudText>
+                <MudIcon Icon="@Constants.LibraryIcon"/>
+            }
+        </MudStack>
+        <MudTabs Elevation="2" 
+                 Rounded="true" 
+                 Position="Position.Start" 
+                 ApplyEffectsToContainer="true" 
+                 TabPanelsClass="px-6" 
+                 ActivePanelIndex="@TabIndex" 
+                 ActivePanelIndexChanged="@OnTabChanged">
+            <MudTabPanel Text="Overview">
+                <ModuleOverviewCard Module=@_module />
+            </MudTabPanel>
+            <MudTabPanel Text="Operations" Icon="@Constants.OpIcon">
+                <OperationsTable Filter="tasks => tasks.Where(x => x.ModuleId == Id)" />
+            </MudTabPanel>
+            <MudTabPanel Text="Settings" Icon="@Constants.SettingsIcon">
+                <ModuleSettingsCard />
+            </MudTabPanel>
+        </MudTabs>
+    }
+</LoadingWrapper>
 
 @code {
     [Parameter]
@@ -51,6 +53,8 @@ else
 
     [Parameter]
     public required string Id { get; set; }
+
+    private bool IsLoading = true;
 
     private Module? _module;
 
@@ -77,5 +81,6 @@ else
             .ThenInclude(r => r.Organisation)
             .Include(m => m.OperationRuns)
             .SingleOrDefaultAsync(m => m.Id == Id && m.RepositoryId == RepoId);
+        IsLoading = false;
     }
 }

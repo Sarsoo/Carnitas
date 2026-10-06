@@ -5,42 +5,39 @@
 @inject NavigationManager Navigation
 @inject ApplicationDbContext DbContext
 
-<MudToolBar>
-    @* <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Class="mr-5" /> *@
-    @* <MudIconButton Icon="@Icons.Material.Outlined.Add" /> *@
-    @* <MudIconButton Icon="@Icons.Material.Outlined.Edit" /> *@
-    @* <MudIconButton Icon="@Icons.Material.Outlined.Remove" /> *@
-    <MudSpacer />
-    <MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
-    <MudIconButton Icon="@Icons.Material.Outlined.Notifications" />
-    <MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt" />
-    <MudIconButton Icon="@Icons.Material.Outlined.MoreVert" Color="Color.Inherit" />
-</MudToolBar>
-<MudGrid Justify="Justify.Center">
-    @foreach (var org in _organisations)
-    {
-        var orgHref = $"/Org/{org.Id}";
-        <MudItem>
-            <MudCard>
-                <MudCardContent>
-                    <MudText>@org.Name</MudText>
-                    <MudText Typo="Typo.body2">@org.Description</MudText>
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@orgHref>Open</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-    }
-</MudGrid>
+<LoadingWrapper IsLoading="IsLoading">
+    <MudToolBar>
+        <MudSpacer />
+        <MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+    </MudToolBar>
+    <MudGrid Justify="Justify.Center">
+        @foreach (var org in _organisations)
+        {
+            var orgHref = $"/Org/{org.Id}";
+            <MudItem>
+                <MudCard>
+                    <MudCardContent>
+                        <MudText>@org.Name</MudText>
+                        <MudText Typo="Typo.body2">@org.Description</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@orgHref>Open</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</LoadingWrapper>
 
 @code {
 
     private IEnumerable<Organisation> _organisations = Enumerable.Empty<Organisation>();
+    private bool IsLoading = true;
     
     protected override async Task OnInitializedAsync()
     {
         _organisations = await DbContext.Organisations.ToListAsync();
+        IsLoading = false;
     }
     
     private async Task OpenDialogAsync()

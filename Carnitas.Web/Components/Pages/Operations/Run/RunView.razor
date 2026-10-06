@@ -6,54 +6,57 @@
 
 <h3>Operation Run</h3>
 
-@if (run is null)
-{
-    <MudText>Not found</MudText>
-}
-else
-{
-    <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
-    <MudCard Elevation="0" Class="mb-4">
-        <MudCardContent>
-            <MudText Typo="Typo.h5">@run.DisplayString</MudText>
-            @* <MudText Typo="Typo.body2">Id: @run.Id</MudText> *@
-            <MudText Typo="Typo.body2">Initiated By: @InitiatorLabel(run.InitiatorType, run.InitiatorUser, run.InitiatorUserId)</MudText>
-            <MudText Typo="Typo.body2">Started: @(run.StartTime?.ToString() ?? "—")</MudText>
-            @if (run.EndTime is not null)
-            {
-                <MudText Typo="Typo.body2">Ended: @run.EndTime</MudText>
-            }
-            <ExitCodeChip Code="@run.ExitCode"/>
-            @if (run.GitReference is not null)
-            {
-                <MudText Typo="Typo.body2">Git Reference: @run.GitReference</MudText>
-            }
-            @if (run.CommitSha is not null)
-            {
-                <MudText Typo="Typo.body2">Commit: @run.CommitSha</MudText>
-            }
-            @if (run.LogPath is not null)
-            {
-                <MudText Typo="Typo.body2">Log: @run.LogPath</MudText>
-            }
-            @if (run.Checkout is not null)
-            {
-                <MudText Typo="Typo.body2">Checkout: @run.Checkout.Path</MudText>
-            }
-            @if (_containsPlan)
-            {
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@run?.ToPlanLink()">Go to Plan</MudButton>
-            }
-        </MudCardContent>
-    </MudCard>
+<LoadingWrapper IsLoading="IsLoading">
+    @if (run is null)
+    {
+        <MudText>Not found</MudText>
+    }
+    else
+    {
+        <MudBreadcrumbs Items="Breadcrumbs"></MudBreadcrumbs>
+        <MudCard Elevation="0" Class="mb-4">
+            <MudCardContent>
+                <MudText Typo="Typo.h5">@run.DisplayString</MudText>
+                @* <MudText Typo="Typo.body2">Id: @run.Id</MudText> *@
+                <MudText Typo="Typo.body2">Initiated By: @InitiatorLabel(run.InitiatorType, run.InitiatorUser, run.InitiatorUserId)</MudText>
+                <MudText Typo="Typo.body2">Started: @(run.StartTime?.ToString() ?? "—")</MudText>
+                @if (run.EndTime is not null)
+                {
+                    <MudText Typo="Typo.body2">Ended: @run.EndTime</MudText>
+                }
+                <ExitCodeChip Code="@run.ExitCode"/>
+                @if (run.GitReference is not null)
+                {
+                    <MudText Typo="Typo.body2">Git Reference: @run.GitReference</MudText>
+                }
+                @if (run.CommitSha is not null)
+                {
+                    <MudText Typo="Typo.body2">Commit: @run.CommitSha</MudText>
+                }
+                @if (run.LogPath is not null)
+                {
+                    <MudText Typo="Typo.body2">Log: @run.LogPath</MudText>
+                }
+                @if (run.Checkout is not null)
+                {
+                    <MudText Typo="Typo.body2">Checkout: @run.Checkout.Path</MudText>
+                }
+                @if (_containsPlan)
+                {
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@run?.ToPlanLink()">Go to Plan</MudButton>
+                }
+            </MudCardContent>
+        </MudCard>
 
-    <MudText Typo="Typo.h6">Log</MudText>
-    <RunLogTable OperationId="@Id"/>
-}
+        <MudText Typo="Typo.h6">Log</MudText>
+        <RunLogTable OperationId="@Id"/>
+    }
+</LoadingWrapper>
 
 @code {
     [Parameter]
     public required string Id { get; set; }
+    private bool IsLoading = true;
 
     private OperationRun? run;
     private bool _containsPlan;
@@ -78,5 +81,7 @@ else
             .SingleOrDefaultAsync(r => r.Id == Id);
 
         _containsPlan = (await Db.OperationRunLogEntries.CountAsync(x => x.OperationRunId == Id && x.Type == LogType.PlanJson) > 0);
+        
+        IsLoading = false;
     }
 }

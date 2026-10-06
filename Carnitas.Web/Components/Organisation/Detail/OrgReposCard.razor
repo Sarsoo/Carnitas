@@ -16,11 +16,11 @@
                     <CellTemplate>
                         @if (context.Item.Type is RepositoryType.Generic)
                         {
-                            <FontAwesomeIcon Specifiers="brands,git-alt,2xl"/>
+                            <FontAwesomeIcon Icon="@FontAwesome.Git"/>
                         }
                         else if (context.Item.Type is RepositoryType.GitHub)
                         {
-                            <FontAwesomeIcon Specifiers="brands,github"/>
+                            <FontAwesomeIcon Icon="@FontAwesome.GitHub"/>
                         }
                     </CellTemplate>
                 </TemplateColumn>

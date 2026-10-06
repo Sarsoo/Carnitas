@@ -1,16 +1,7 @@
-<div class="d-flex" style="@DivStyle">
-    <i class="@Classes" style="@IStyle"></i>
-</div>
+<MudIcon ViewBox="0 0 640 640" Icon="@Icon" Color="@Color" Size="@Size" />
 
 @code {
-    [Parameter] public required string Specifiers { get; set; }
-
-    [Parameter] public string Class { get; set; } = string.Empty;
-    [Parameter] public string Style { get; set; } = string.Empty;
-    [Parameter] public bool SpreadDiv { get; set; }
-
-    private string DivStyle => SpreadDiv ? "margin: auto; text-align: center" : "text-align: center";
-    private string IStyle => SpreadDiv ? $"margin: auto; {Style}" : Style;
-
-    private string Classes => string.Join(' ', Specifiers.Split(',').Select(s => "fa-" + s)) + Class;
+    [Parameter] public required string Icon { get; set; }
+    [Parameter] public Color Color { get; set; } = Color.Inherit;
+    [Parameter] public Size Size { get; set; } = Size.Medium;
 }

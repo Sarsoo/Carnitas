@@ -8,7 +8,7 @@
     </MudCardHeader>
     <MudCardContent>
         @* <MudText Typo="Typo.body2">Id: @Repository.Id</MudText> *@
-        <MudText Typo="Typo.body2">Type: @Repository.Type</MudText>
+        @* <MudText Typo="Typo.body2">Type: @Repository.Type</MudText> *@
         @if (Repository.RepositoryUrl is not null)
         {
             <MudText Typo="Typo.body2">URL: @Repository.RepositoryUrl</MudText>

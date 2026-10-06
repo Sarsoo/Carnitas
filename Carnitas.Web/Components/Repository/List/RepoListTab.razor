@@ -7,9 +7,6 @@
 <MudToolBar>
     <MudSpacer />
     <MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
-    <MudIconButton Icon="@Icons.Material.Outlined.Notifications" />
-    <MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt" />
-    <MudIconButton Icon="@Icons.Material.Outlined.MoreVert" Color="Color.Inherit" />
 </MudToolBar>
 <MudGrid Justify="Justify.Center">
     @foreach (var repo in _repositories)
@@ -18,14 +15,28 @@
         var orgHref = $"/Org/{repo.OrganisationId}";
         <MudItem>
             <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">@repo.Name</MudText>
+                    <MudSpacer/>
+                    @if (repo.Type is RepositoryType.Generic)
+                    {
+                        <FontAwesomeIcon Icon="@FontAwesome.Git"/>
+                    }
+                    else if (repo.Type is RepositoryType.GitHub)
+                    {
+                        <FontAwesomeIcon Icon="@FontAwesome.GitHub"/>
+                    }
+                </MudCardHeader>
                 <MudCardContent>
-                    <MudText>@repo.Name</MudText>
-                    <MudText Typo="Typo.body2">@repo.Description</MudText>
-                    <MudText Typo="Typo.body2">Type: @repo.Type</MudText>
-                    <MudLink Href=@orgHref>@(repo.Organisation?.Name ?? repo.OrganisationId)</MudLink>
+                    @if (!string.IsNullOrWhiteSpace(repo.Description))
+                    {
+                        <MudText Typo="Typo.body2">@repo.Description</MudText>
+                    }
+                    @* <MudLink Href=@orgHref>@(repo.Organisation?.Name ?? repo.OrganisationId)</MudLink> *@
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href=@repoHref>Open</MudButton>
+                    <MudButton Class="mx-2" Variant="Variant.Filled" Color="Color.Primary" Href=@repoHref>Open</MudButton>
+                    <MudButton Class="mx-2" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Constants.OrgIcon" Href=@orgHref>@(repo.Organisation?.Name ?? repo.OrganisationId)</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>

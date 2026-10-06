@@ -1,0 +1,30 @@
+@if (IsLoading)
+{
+    <MudGrid>
+        <MudItem xs="12" Class="ma-5">
+            <MudPaper Class="pa-5">
+                <MudStack Row="true">
+                    <MudSpacer/>
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+                    <MudSpacer/>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter] public bool IsLoading { get; set; } = true;
+
+    public void SetLoaded()
+    {
+        IsLoading = false;
+    }
+    
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}
